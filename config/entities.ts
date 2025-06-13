@@ -13,6 +13,24 @@ import {
   AdminIcon,
 } from "@/assets/svg";
 
+// Import str components
+import { BookingStr } from "@/rails/view/str/BookingStr";
+import { StudentStr } from "@/rails/view/str/StudentStr";
+import { TeacherStr } from "@/rails/view/str/TeacherStr";
+import { LessonStr } from "@/rails/view/str/LessonStr";
+import { KiteEventStr } from "@/rails/view/str/KiteEventStr";
+import { EquipmentStr } from "@/rails/view/str/EquipmentStr";
+import PackageStr from "@/rails/view/str/PackageStr";
+
+// Import tag components
+import { BookingTag } from "@/rails/view/tag/BookingTag";
+import { StudentTag } from "@/rails/view/tag/StudentTag";
+import { TeacherTag } from "@/rails/view/tag/TeacherTag";
+import { LessonTag } from "@/rails/view/tag/LessonTag";
+import { KiteEventTag } from "@/rails/view/tag/KiteEventTag";
+import { EquipmentTag } from "@/rails/view/tag/EquipmentTag";
+import PackageTag from "@/rails/view/tag/PackageTag";
+
 // Entity colors configuration
 export const ENTITY_COLORS = {
   students: {
@@ -34,40 +52,40 @@ export const ENTITY_COLORS = {
     ring: "ring-blue-500",
   },
   bookings: {
-    primary: '#3B82F6', // Brighter marine blue
-    secondary: '#DBEAFE',
-    text: 'text-blue-100',
-    ring: 'ring-blue-600'
+    primary: "#3B82F6", // Brighter marine blue
+    secondary: "#DBEAFE",
+    text: "text-blue-100",
+    ring: "ring-blue-600",
   },
   lessons: {
-    primary: '#06B6D4', // Neon blue
-    secondary: '#CFFAFE',
-    text: 'text-cyan-800',
-    ring: 'ring-cyan-500'
+    primary: "#06B6D4", // Neon blue
+    secondary: "#CFFAFE",
+    text: "text-cyan-800",
+    ring: "ring-cyan-500",
   },
   kiteEvents: {
-    primary: '#15803D', // True green
-    secondary: '#DCFCE7',
-    text: 'text-green-100',
-    ring: 'ring-green-700'
+    primary: "#15803D", // True green
+    secondary: "#DCFCE7",
+    text: "text-green-100",
+    ring: "ring-green-700",
   },
   equipments: {
-    primary: '#7C3AED', // Purple
-    secondary: '#EDE9FE',
-    text: 'text-violet-100',
-    ring: 'ring-violet-600'
+    primary: "#7C3AED", // Purple
+    secondary: "#EDE9FE",
+    text: "text-violet-100",
+    ring: "ring-violet-600",
   },
   packages: {
-    primary: '#DC2626', // Red
-    secondary: '#FEE2E2',
-    text: 'text-red-100',
-    ring: 'ring-red-600'
+    primary: "#DC2626", // Red
+    secondary: "#FEE2E2",
+    text: "text-red-100",
+    ring: "ring-red-600",
   },
   payments: {
-    primary: '#10B981', // Green (matches icon color)
-    secondary: '#D1FAE5',
-    text: 'text-emerald-100',
-    ring: 'ring-emerald-600'
+    primary: "#10B981", // Green (matches icon color)
+    secondary: "#D1FAE5",
+    text: "text-emerald-100",
+    ring: "ring-emerald-600",
   },
 };
 
@@ -103,8 +121,8 @@ export const ENTITY_CONFIGS: Record<EntityType, EntityConfig> = {
     title: "Students",
     titleSingular: "Student",
     icon: HelmetIcon,
-    tag: null,
-    str: null,
+    tag: StudentTag,
+    str: StudentStr,
     searchFields: ["name", "id", "email", "phone", "passport_number"],
     RowComponent: null,
     FormComponent: null,
@@ -114,8 +132,8 @@ export const ENTITY_CONFIGS: Record<EntityType, EntityConfig> = {
     title: "Teachers",
     titleSingular: "Teacher",
     icon: HeadsetIcon,
-    tag: null,
-    str: null,
+    tag: TeacherTag,
+    str: TeacherStr,
     searchFields: [
       "name",
       "id",
@@ -145,8 +163,8 @@ export const ENTITY_CONFIGS: Record<EntityType, EntityConfig> = {
     title: "Bookings",
     titleSingular: "Booking",
     icon: BookingIcon,
-    tag: null,
-    str: null,
+    tag: BookingTag,
+    str: BookingStr,
     searchFields: [
       "id",
       "startDate",
@@ -163,8 +181,8 @@ export const ENTITY_CONFIGS: Record<EntityType, EntityConfig> = {
     title: "Lessons",
     titleSingular: "Lesson",
     icon: FlagIcon,
-    tag: null,
-    str: null,
+    tag: LessonTag,
+    str: LessonStr,
     searchFields: ["id", "status", "teacherName", "date", "bookingId"],
     RowComponent: null,
     FormComponent: null,
@@ -174,8 +192,8 @@ export const ENTITY_CONFIGS: Record<EntityType, EntityConfig> = {
     title: "Kite Events",
     titleSingular: "Kite Event",
     icon: KiteIcon,
-    tag: null,
-    str: null,
+    tag: KiteEventTag,
+    str: KiteEventStr,
     searchFields: ["id", "lessonId", "status", "location", "duration", "date"],
     RowComponent: null,
     FormComponent: null,
@@ -185,16 +203,14 @@ export const ENTITY_CONFIGS: Record<EntityType, EntityConfig> = {
     title: "Equipment",
     titleSingular: "Equipment",
     icon: EquipmentIcon,
-    tag: null,
-    str: null,
+    tag: EquipmentTag,
+    str: EquipmentStr,
     searchFields: [
       "id",
       "serialId",
       "type",
       "model",
       "size",
-      "status",
-      "condition",
     ],
     RowComponent: null,
     FormComponent: null,
@@ -204,8 +220,8 @@ export const ENTITY_CONFIGS: Record<EntityType, EntityConfig> = {
     title: "Packages",
     titleSingular: "Package",
     icon: PackageIcon,
-    tag: null,
-    str: null,
+    tag: PackageTag,
+    str: PackageStr,
     searchFields: ["duration", "price", "capacity", "description"],
     RowComponent: null,
     FormComponent: null,
@@ -217,7 +233,12 @@ export const ENTITY_CONFIGS: Record<EntityType, EntityConfig> = {
     icon: PaymentIcon,
     tag: null,
     str: null,
-    searchFields: ["amount", "transaction_id", "transaction.student.name", "transaction.student.email"],
+    searchFields: [
+      "amount",
+      "transaction_id",
+      "transaction.student.name",
+      "transaction.student.email",
+    ],
     RowComponent: null,
     FormComponent: null,
   },

@@ -1,28 +1,34 @@
 import React from 'react';
-import { ATag } from './ATag';
+import { AStr } from './AStr';
 import { Separator } from '@/components/ui/separator';
 import { ENTITY_CONFIGS } from '@/config/entities';
-import { EquipmentType } from "@/rails/model/EquipmentModel";
 
-interface EquipmentTagProps {
-    equipment: EquipmentType;
+interface EquipmentStrProps {
+    id?: string;
+    serialId?: string;
+    type?: string;
+    model?: string;
+    size?: number;
+    className?: string;
 }
 
-export function EquipmentTag({ equipment }: EquipmentTagProps) {
+export function EquipmentStr({ 
+    id, 
+    serialId, 
+    type, 
+    model, 
+    size, 
+    className 
+}: EquipmentStrProps) {
     const EquipmentIcon = ENTITY_CONFIGS.equipments.icon;
-    
-    const id = equipment.id;
-    const serialId = equipment.serial_id;
-    const type = equipment.type;
-    const model = equipment.model;
-    const size = equipment.size;
     
     // Use serialId if available, otherwise use truncated id, otherwise fallback
     const displayId = serialId || (id ? `#${id.slice(0, 8)}` : 'Unknown');
     
     return (
-        <ATag
+        <AStr
             icon={<EquipmentIcon className="w-4 h-4" />}
+            className={className}
         >
             {model && (
                 <>
@@ -46,6 +52,6 @@ export function EquipmentTag({ equipment }: EquipmentTagProps) {
             )}
             
             <span className="text-muted-foreground">{displayId}</span>
-        </ATag>
+        </AStr>
     );
 }

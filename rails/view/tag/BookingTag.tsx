@@ -1,8 +1,8 @@
 import React from 'react';
 import { ATag } from './ATag';
 import { FormatDateRange } from '@/components/formatters';
-import { DatePickerRange } from '@/rails/types';
 import { ENTITY_CONFIGS } from '@/config/entities';
+import { BookingType } from "@/rails/model/BookingModel";
 
 
 /*
@@ -13,19 +13,21 @@ import { ENTITY_CONFIGS } from '@/config/entities';
 
 
 */
-export interface BookingTagProps extends React.HTMLAttributes<HTMLDivElement> {
-    dateRange: DatePickerRange;
+export interface BookingTagProps {
+    booking: BookingType;
 }
 
-export function BookingTag({ dateRange, ...props }: BookingTagProps) {
+export function BookingTag({ booking }: BookingTagProps) {
     const BookingIcon = ENTITY_CONFIGS.bookings.icon;
     
     return (
         <ATag
             icon={<BookingIcon className="w-4 h-4" />}
-            {...props}
         >
-            <FormatDateRange startDate={dateRange.startDate} endDate={dateRange.endDate} />
+            <FormatDateRange 
+                startDate={booking.date_start} 
+                endDate={booking.date_end} 
+            />
         </ATag>
     );
 }

@@ -1,26 +1,24 @@
 import React from 'react';
 import { User } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { ATag } from './ATag';
+import { AStr } from './AStr';
 import { ENTITY_CONFIGS } from '@/config/entities';
-import { PackageStudentType } from "@/rails/model/PackageStudentModel";
 
-interface PackageTagProps {
-    package: PackageStudentType;
+interface PackageStrProps {
+    price: number;
+    duration: number; // in minutes
+    capacity: number;
+    className?: string;
 }
 
-export default function PackageTag({ package: packageModel }: PackageTagProps) {
-    const price = packageModel.price;
-    const duration = packageModel.duration; // in minutes
-    const capacity = packageModel.capacity;
-    
+export default function PackageStr({ price, duration, capacity, className = "" }: PackageStrProps) {
     const hoursDecimal = duration > 0 ? duration / 60 : 0;
     const hours = hoursDecimal % 1 === 0 ? `${Math.floor(hoursDecimal)}h` : `${hoursDecimal.toFixed(1)}h`;
     const avgPricePerHour = duration > 0 ? (price / (duration / 60)).toFixed(0) : 0;
     const PackageIcon = ENTITY_CONFIGS.packages.icon;
 
     return (
-        <ATag icon={<PackageIcon className="w-4 h-4" />}>
+        <AStr icon={<PackageIcon className="w-4 h-4" />} className={className}>
 
             <span className="text-xs font-semibold">
                 €{price}
@@ -43,6 +41,6 @@ export default function PackageTag({ package: packageModel }: PackageTagProps) {
                     <User key={index} className="w-3 h-3 text-muted-foreground" />
                 ))}
             </div>
-        </ATag>
+        </AStr>
     );
 }

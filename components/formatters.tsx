@@ -2,24 +2,6 @@ import { User, GraduationCap } from 'lucide-react';
 import { DatePickerRange } from '@/rails/types';
 import { getDateString, getTime } from './getters';
 
-/**
- * Format duration (convert minutes to hours and minutes)
- */
-export const formatDuration = (minutes: number) => {
-    if (minutes < 60) {
-        return `${minutes}mins`;
-    }
-    
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    
-    if (remainingMinutes === 0) {
-        return hours === 1 ? '1hr' : `${hours}hrs`;
-    }
-    
-    const hourText = hours === 1 ? '1hr' : `${hours}hrs`;
-    return `${hourText} ${remainingMinutes}mins`;
-};
 
 // Date type configurations
 const DATE_TYPES = {
@@ -90,6 +72,26 @@ export const ProgressBar = ({
             </span>
         </div>
     );
+};
+
+
+/**
+ * Format duration (convert minutes to hours and minutes)
+ */
+export const formatDuration = (minutes: number) => {
+    if (minutes < 60) {
+        return `${minutes}mins`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    if (remainingMinutes === 0) {
+        return hours === 1 ? '1hr' : `${hours}hrs`;
+    }
+
+    const hourText = hours === 1 ? '1hr' : `${hours}hrs`;
+    return `${hourText} ${remainingMinutes}mins`;
 };
 
 

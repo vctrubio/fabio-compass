@@ -1,39 +1,66 @@
+'use client';
+
 import React from 'react';
 import { ATag } from './ATag';
 import { Separator } from '@/components/ui/separator';
 import { ENTITY_CONFIGS } from '@/config/entities';
+import { getLessonStatusColor, updateLessonIdStatus } from '@/actions/enums';
+import { LessonStatusEnum } from '@/rails/model/EnumModel';
+import { DropdownTag } from './DropdownTag';
+import { toast } from 'sonner';
 
-interface LessonTagProps {
-    teacherName: string;
+interface LessonFromRelation {
+    id: string;
     status: string;
-    className?: string;
+    teacher?: { name: string };
 }
 
-// Status color mapping
-const statusColorMap: Record<string, string> = {
-    planned: 'bg-gray-100',
-    ongoing: 'bg-blue-100',
-    completed: 'bg-green-100',
-    delegated: 'bg-yellow-100',
-    cancelled: 'bg-red-100'
-};
+interface LessonTagProps {
+    lesson: LessonFromRelation;
+}
 
-export function LessonTag({ teacherName, status, className }: LessonTagProps) {
+export function LessonTag({ lesson }: LessonTagProps) {
     const LessonIcon = ENTITY_CONFIGS.lessons.icon;
-    const statusColor = statusColorMap[status] || statusColorMap.planned; // fallback to planned
+    const statusColor = getLessonStatusColor(lesson.status);
+
+    const handleStatusClick = async (newStatus: string) => {
+        console.log(`Lesson status update requested for ${lesson.id}: ${lesson.status} → ${newStatus}`);
+        
+        try {
+            const result = await updateLessonIdStatus(lesson, newStatus);
+            
+            if (result.success) {
+                console.log('Lesson status updated successfully:', result.data);
+            } else {
+                console.error('Failed to update lesson status:', result.error);
+                toast.error(`Failed to update lesson status: ${result.error}`);
+            }
+        } catch (error) {
+            console.error('Error updating lesson status:', error);
+            toast.error(`Error updating lesson status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    };
+
+    const statusOptions = LessonStatusEnum.options.map((status) => ({
+        value: status,
+        label: status,
+        colorClass: getLessonStatusColor(status)
+    }));
     
     return (
         <ATag
             icon={<LessonIcon className="w-4 h-4" />}
-            className={className}
         >
-            <span>{teacherName}</span>
+            <span>{lesson.teacher?.name || 'N/A PROBLEM'}</span>
             
             <Separator orientation="vertical" className="h-4" />
             
-            <span className={`text-xs font-medium rounded px-1 ${statusColor}`}>
-                {status}
-            </span>
+            <DropdownTag
+                currentValue={lesson.status}
+                options={statusOptions}
+                onSelect={handleStatusClick}
+                currentColorClass={statusColor}
+            />
         </ATag>
     );
 }
