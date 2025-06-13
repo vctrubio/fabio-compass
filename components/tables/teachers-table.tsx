@@ -3,6 +3,7 @@ import { drizzleTeachers } from "@/rails/controller/TeacherDrizzle";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getLanguageBadge, getRoleBadgeVariant, getRoleBadgeStyle } from "@/components/getters";
+import { ENTITY_CONFIGS } from "@/config/entities";
 
 export default async function TeachersTable() {
     try {
@@ -11,7 +12,10 @@ export default async function TeachersTable() {
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>All Teachers ({teachersData.length})</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                        <ENTITY_CONFIGS.teachers.icon className="h-5 w-5" />
+                        All Teachers ({teachersData.length})
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="overflow-x-auto">

@@ -1,32 +1,32 @@
 'use client'
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { HelmetIcon } from '@/assets/svg/HelmetIcon';
-import { HeadsetIcon } from '@/assets/svg/HeadsetIcon';
-import { UsersIcon } from '@/assets/svg/UsersIcon';
-import usersConfig from '@/config/users-credentials.json';
+import { ENTITY_CONFIGS } from '@/config/entities';
+import { getUserRoleColor } from '@/components/getters';
 
-// Icon mapping
-const ICON_MAP = {
-    HelmetIcon,
-    HeadsetIcon,
-    UsersIcon
+// Role configurations for the what-we-do component
+const ROLE_CONFIGS = {
+    student: {
+        Icon: ENTITY_CONFIGS.students.icon,
+        label: ENTITY_CONFIGS.students.titleSingular,
+        colors: getUserRoleColor('student'),
+        route: '/student'
+    },
+    teacher: {
+        Icon: ENTITY_CONFIGS.teachers.icon,
+        label: ENTITY_CONFIGS.teachers.titleSingular,
+        colors: getUserRoleColor('teacher'),
+        route: '/teacher'
+    },
+    admin: {
+        Icon: ENTITY_CONFIGS.admin.icon,
+        label: ENTITY_CONFIGS.admin.titleSingular,
+        colors: getUserRoleColor('admin'),
+        route: '/fabio'
+    }
 } as const;
 
-// Convert users config to role configs format
-const ROLE_CONFIGS = Object.fromEntries(
-    Object.entries(usersConfig).map(([key, user]) => [
-        key,
-        {
-            Icon: ICON_MAP[user.icon as keyof typeof ICON_MAP],
-            label: user.label,
-            color: user.color,
-            route: user.route
-        }
-    ])
-);
-
-// Connection colors between roles
+// Connection colors between roles - declared in this file
 const CONNECTION_COLORS = {
     studentTeacher: "text-blue-500 dark:text-blue-400",
     studentAdmin: "text-green-500 dark:text-green-400", 
@@ -206,7 +206,7 @@ export default function WWD({
 
                                 {/* Top row - 2 icons */}
                                 <div className="flex gap-20 relative z-10">
-                                    {ROLE_ICONS.slice(0, 2).map(({ Icon, label, color, route }, index) => (
+                                    {ROLE_ICONS.slice(0, 2).map(({ Icon, label, colors, route }, index) => (
                                         <div
                                             key={label}
                                             className={`flex items-center gap-4 cursor-pointer ${index === 0 ? 'flex-row-reverse' : 'flex-row'}`}
@@ -214,8 +214,10 @@ export default function WWD({
                                             onMouseLeave={() => setHoveredIcon(null)}
                                             onClick={() => handleIconClick(route)}
                                         >
-                                            <div className={`p-5 border-2 ${color} bg-transparent rounded-xl shadow-inner transition-all duration-300 ${hoveredIcon === index ? `shadow-lg ring-2 ring-current/50` : ''
-                                                }`}>
+                                            <div 
+                                                className={`p-5 border-2 bg-transparent rounded-xl shadow-inner transition-all duration-300 ${hoveredIcon === index ? `shadow-lg ring-2 ring-current/50` : ''}`}
+                                                style={{ borderColor: colors.primary }}
+                                            >
                                                 <Icon className="h-12 w-12 text-slate-700 dark:text-slate-200" />
                                             </div>
                                             <span className="text-2xl font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
@@ -227,7 +229,7 @@ export default function WWD({
 
                                 {/* Bottom row - 1 centered icon */}
                                 <div className="flex justify-center relative z-10">
-                                    {ROLE_ICONS.slice(2).map(({ Icon, label, color, route }) => (
+                                    {ROLE_ICONS.slice(2).map(({ Icon, label, colors, route }) => (
                                         <div
                                             key={label}
                                             className="flex flex-col items-center gap-2 cursor-pointer"
@@ -235,8 +237,10 @@ export default function WWD({
                                             onMouseLeave={() => setHoveredIcon(null)}
                                             onClick={() => handleIconClick(route)}
                                         >
-                                            <div className={`p-5 border-2 ${color} bg-transparent rounded-xl shadow-inner transition-all duration-300 ${hoveredIcon === 2 ? `shadow-lg ring-2 ring-current/50` : ''
-                                                }`}>
+                                            <div 
+                                                className={`p-5 border-2 bg-transparent rounded-xl shadow-inner transition-all duration-300 ${hoveredIcon === 2 ? `shadow-lg ring-2 ring-current/50` : ''}`}
+                                                style={{ borderColor: colors.primary }}
+                                            >
                                                 <Icon className="h-12 w-12 text-slate-700 dark:text-slate-200" />
                                             </div>
                                             <span className="text-2xl font-bold text-slate-700 dark:text-slate-300">
@@ -250,11 +254,11 @@ export default function WWD({
 
                         {/* Mobile/Tablet: Row Layout */}
                         <div className="md:hidden flex flex-col gap-4 mb-8 py-4">
-                            {ROLE_ICONS.map(({ Icon, label, color, route }, index) => (
+                            {ROLE_ICONS.map(({ Icon, label, colors, route }, index) => (
                                 <div
                                     key={label}
-                                    className={`flex items-center gap-4 cursor-pointer p-4 border-4 ${color} bg-transparent rounded-xl transition-all duration-300 hover:shadow-lg ${hoveredIcon === index ? `ring-2 ring-current/50 shadow-lg` : ''
-                                        }`}
+                                    className={`flex items-center gap-4 cursor-pointer p-4 border-4 bg-transparent rounded-xl transition-all duration-300 hover:shadow-lg ${hoveredIcon === index ? `ring-2 ring-current/50 shadow-lg` : ''}`}
+                                    style={{ borderColor: colors.primary }}
                                     onMouseEnter={() => setHoveredIcon(index)}
                                     onMouseLeave={() => setHoveredIcon(null)}
                                     onClick={() => handleIconClick(route)}

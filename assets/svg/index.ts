@@ -9,6 +9,7 @@ export { CalendarIcon } from './CalendarIcon';
 export { FlagIcon } from './FlagIcon';
 export { HeadsetIcon } from './HeadsetIcon';
 export { PackageIcon } from './PackageIcon';
+export { PaymentIcon } from './PaymentIcon';
 
 // Re-export for easier imports
 export * from './HelmetIcon';
@@ -22,3 +23,4 @@ export * from './CalendarIcon';
 export * from './FlagIcon';
 export * from './HeadsetIcon';
 export * from './PackageIcon';
+export * from './PaymentIcon';

@@ -2,6 +2,7 @@
 import { drizzleKiteEvents } from "@/rails/controller";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ENTITY_CONFIGS } from "@/config/entities";
 
 export default async function KiteEventsTable() {
     try {
@@ -10,7 +11,10 @@ export default async function KiteEventsTable() {
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>All Kite Events ({kiteEventsData.length})</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                        <ENTITY_CONFIGS.kiteEvents.icon className="h-5 w-5" />
+                        All Kite Events ({kiteEventsData.length})
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="overflow-x-auto">

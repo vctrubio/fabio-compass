@@ -3,6 +3,7 @@ import { drizzleStudents } from "@/rails/controller/StudentDrizzle";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getLanguageBadge } from "@/components/getters";
+import { ENTITY_CONFIGS } from "@/config/entities";
 
 export default async function StudentsTable() {
     try {
@@ -11,7 +12,10 @@ export default async function StudentsTable() {
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>All Students ({studentsData.length})</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                        <ENTITY_CONFIGS.students.icon className="h-5 w-5" />
+                        All Students ({studentsData.length})
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="overflow-x-auto">
