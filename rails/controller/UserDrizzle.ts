@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 
 export async function getAllUsers() {
   try {
+    if (process.env.DEBUG) console.log("(dev:drizzle:server) getting table name: Users");
     const users = await db
       .select({
         id: user_wallet.id,
@@ -17,6 +18,7 @@ export async function getAllUsers() {
       })
       .from(user_wallet);
 
+    if (process.env.DEBUG) console.log("(dev:drizzle:server) parse completed: Users");
     return users;
   } catch (error) {
     console.error("Error fetching users:", error);

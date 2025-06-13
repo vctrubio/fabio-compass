@@ -72,8 +72,11 @@ function calculateLambdaValues(teacher: any) {
 
 export async function drizzleTeachers(): Promise<DrizzleData<TeacherType>[]> {
   try {
+    if (process.env.DEBUG) console.log("(dev:drizzle:server) getting table name: Teachers");
     const teachers = await db.query.Teacher.findMany(teacherWithSort);
-    return teachers.map(parseTeacher);
+    const result = teachers.map(parseTeacher);
+    if (process.env.DEBUG) console.log("(dev:drizzle:server) parse completed: Teachers");
+    return result;
   } catch (error) {
     console.error("Error fetching teachers with Drizzle:", error);
     throw new Error("Failed to fetch teachers");
