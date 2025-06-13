@@ -1,26 +1,33 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { createLesson } from '@/actions/lesson-create';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { FlagIcon } from '@/assets/svg/FlagIcon';
 import { ALink } from '@/rails/view/link/ALink';
+import { Loader2 } from 'lucide-react';
 
-// Simple interface for teacher params - only requires id and name
-export interface TeacherParams {
+interface TeacherType {
   id: string;
   name: string;
 }
 
 interface LinkTeacherToLessonProps {
   bookingId: string;
-  teachers: TeacherParams[];
+  teachers: TeacherType[];
   className?: string;
 }
 
 export function LinkTeacherToLesson({ bookingId, teachers, className }: LinkTeacherToLessonProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingTeacherId, setLoadingTeacherId] = useState<string | null>(null);
+  
   const handleCreateLesson = async (teacherId: string, teacherName: string) => {
+    if (isLoading) return;
+    
+    setIsLoading(true);
+    setLoadingTeacherId(teacherId);
     console.log(`Creating new lesson for booking ${bookingId} with teacher ${teacherName} (${teacherId})`);
     
     try {
@@ -37,17 +44,20 @@ export function LinkTeacherToLesson({ bookingId, teachers, className }: LinkTeac
     } catch (error) {
       console.error('Error creating lesson:', error);
       toast.error(`Failed to create lesson: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
+      setLoadingTeacherId(null);
     }
   };
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger asChild disabled={isLoading}>
         <ALink 
-          icon={<FlagIcon className="w-3.5 h-3.5" />}
-          className={`${className || ''}`}
+          icon={isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FlagIcon className="w-3.5 h-3.5" />}
+          className={`${className || ''} ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
         >
-          <span className="text-xs font-medium">Link Teacher</span>
+          <span className="text-xs font-medium">{isLoading ? 'Creating...' : 'Link Teacher'}</span>
         </ALink>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-[140px] p-1">
@@ -57,9 +67,17 @@ export function LinkTeacherToLesson({ bookingId, teachers, className }: LinkTeac
               key={teacher.id}
               onClick={() => handleCreateLesson(teacher.id, teacher.name)}
               className="text-sm hover:bg-transparent focus:bg-transparent p-1 cursor-pointer"
+              disabled={isLoading}
             >
               <span className="w-full inline-flex items-center justify-between text-xs font-medium rounded-md px-2 py-1.5 bg-gray-200 text-gray-900">
-                {teacher.name}
+                {loadingTeacherId === teacher.id ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    {teacher.name}
+                  </div>
+                ) : (
+                  teacher.name
+                )}
               </span>
             </DropdownMenuItem>
           ))

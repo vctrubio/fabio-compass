@@ -19,6 +19,7 @@ interface DropdownTagProps {
     onSelect: (value: string) => void;
     currentColorClass: string;
     className?: string;
+    disabled?: boolean;
 }
 
 export function DropdownTag({ 
@@ -26,7 +27,8 @@ export function DropdownTag({
     options, 
     onSelect, 
     currentColorClass,
-    className 
+    className,
+    disabled = false
 }: DropdownTagProps) {
     const handleSelect = (selectedValue: string) => {
         // Only call onSelect if the selected value is different from current
@@ -38,10 +40,11 @@ export function DropdownTag({
         }
     };
 
+
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <span className={`text-xs font-medium rounded-md px-2 py-1 cursor-pointer hover:opacity-80 inline-flex items-center gap-1.5 transition-opacity ${currentColorClass} ${className || ''}`}>
+            <DropdownMenuTrigger asChild disabled={disabled}>
+                <span className={`text-xs font-medium rounded-md px-2 py-1 inline-flex items-center gap-1.5 transition-opacity ${currentColorClass} ${className || ''} ${disabled ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer hover:opacity-80'}`}>
                     {currentValue}
                     <ChevronDown className="w-3 h-3" />
                 </span>
@@ -52,6 +55,7 @@ export function DropdownTag({
                         key={option.value}
                         onClick={() => handleSelect(option.value)}
                         className="text-sm hover:bg-transparent focus:bg-transparent p-1 cursor-pointer"
+                        disabled={disabled}
                     >
                         <span className={`w-full inline-flex items-center justify-between text-xs font-medium rounded-md px-2 py-1.5 ${option.colorClass}`}>
                             {option.label}

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ATag } from './ATag';
 import { Separator } from '@/components/ui/separator';
 import { ENTITY_CONFIGS } from '@/config/entities';
@@ -11,6 +11,7 @@ import { KiteEventStatusEnum } from '@/rails/model/EnumModel';
 import { DropdownTag } from './DropdownTag';
 import { toast } from 'sonner';
 import { EquipmentType } from '@/rails/model/EquipmentModel';
+import { Loader2 } from 'lucide-react';
 
 interface KiteEventFromRelation {
     id: string;
@@ -26,12 +27,16 @@ interface KiteEventTagProps {
 }
 
 export function KiteEventTag({ kiteEvent }: KiteEventTagProps) {
+    const [isLoading, setIsLoading] = useState(false);
     const KiteEventIcon = ENTITY_CONFIGS.kiteEvents.icon;
 
     const dateObj = new Date(kiteEvent.date);
     const statusColor = kiteEvent.status ? getKiteEventStatusColor(kiteEvent.status) : undefined;
 
     const handleStatusClick = async (newStatus: string) => {
+        if (isLoading || newStatus === kiteEvent.status) return;
+
+        setIsLoading(true);
         console.log(`Kite event status update requested for ${kiteEvent.id}: ${kiteEvent.status} → ${newStatus}`);
 
         try {
@@ -44,6 +49,7 @@ export function KiteEventTag({ kiteEvent }: KiteEventTagProps) {
 
             if (result.success) {
                 console.log('Kite event status updated successfully:', result.data);
+                toast.success('Kite event status updated successfully');
             } else {
                 console.error('Failed to update kite event status:', result.error);
                 toast.error(`Failed to update kite event status: ${result.error}`);
@@ -51,6 +57,8 @@ export function KiteEventTag({ kiteEvent }: KiteEventTagProps) {
         } catch (error) {
             console.error('Error updating kite event status:', error);
             toast.error(`Error updating kite event status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -64,7 +72,7 @@ export function KiteEventTag({ kiteEvent }: KiteEventTagProps) {
 
     return (
         <ATag
-            icon={<KiteEventIcon className="w-4 h-4" />}
+            icon={isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <KiteEventIcon className="w-4 h-4" />}
         >
             <span>{formatDuration(kiteEvent.duration)}</span>
 
@@ -72,7 +80,6 @@ export function KiteEventTag({ kiteEvent }: KiteEventTagProps) {
 
             <span>{getTime(dateObj)}</span>
 
-            <Separator orientation="vertical" className="h-4" />
 
             <span>{getDateString(dateObj)}</span>
 
@@ -91,6 +98,7 @@ export function KiteEventTag({ kiteEvent }: KiteEventTagProps) {
                         options={statusOptions}
                         onSelect={handleStatusClick}
                         currentColorClass={statusColor!}
+                        disabled={isLoading}
                     />
                 </>
             )}
