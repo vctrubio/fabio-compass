@@ -239,18 +239,18 @@ export const FormatDateWithWeek = ({ dateStr }: { dateStr: string | undefined | 
  */
 export const FormatDateRange = ({ startDate, endDate }: DatePickerRange) => {
     if (!startDate) {
-        return <span className="text-red-400 text-xs">No start date found</span>;
+        return <span className="text-red-400">No start date found</span>;
     }
 
     if (!endDate) {
-        return <span className="text-red-400 text-xs">No end date found</span>;
+        return <span className="text-red-400">No end date found</span>;
     }
 
     const startDateObj = new Date(startDate);
     const endDateObj = new Date(endDate);
 
     if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
-        return <span className="text-gray-400 text-xs">Invalid date range</span>;
+        return <span className="text-gray-400 ">Invalid date range</span>;
     }
 
     const now = new Date();
@@ -284,7 +284,7 @@ export const FormatDateRange = ({ startDate, endDate }: DatePickerRange) => {
     const endDateString = getDateString(endDateObj);
 
     return (
-        <div className="inline-flex items-center  gap-2">
+        <div className="inline-flex items-center gap-2">
             {/* Date Range */}
             <div className="font-semibold">
                 {sameDay ? startDateString : `${startDateString} - ${endDateString}`}

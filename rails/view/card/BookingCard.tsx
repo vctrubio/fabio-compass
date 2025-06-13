@@ -5,7 +5,6 @@ import { PackageStudentType } from "@/rails/model/PackageStudentModel";
 import { BookingTag } from "../tag/BookingTag";
 import { StudentTag } from "../tag/StudentTag";
 import { LessonTag } from "../tag/LessonTag";
-import { KiteEventTag } from "../tag/KiteEventTag";
 import PackageTag from "../tag/PackageTag";
 import { ProgressBar } from "@/components/formatters";
 import { LinkTeacherToLesson } from '@/rails/view/link/LinkTeacherToLesson';
@@ -40,7 +39,7 @@ export function BookingCard({ booking }: BookingCardProps) {
 
     return (
         <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 border rounded-md pr-2">
                 <BookingTag booking={booking.model} />
 
                 {packageMinutes > 0 && (
@@ -52,7 +51,9 @@ export function BookingCard({ booking }: BookingCardProps) {
             </div>
 
             {packageData && (
-                <PackageTag package={packageData} />
+                <div className="flex flex-wrap gap-1">
+                    <PackageTag package={packageData} />
+                </div>
             )}
 
             {/* Lessons */}
@@ -74,7 +75,7 @@ export function BookingCard({ booking }: BookingCardProps) {
             )}
 
             {/* Kite Events */}
-            {allKiteEvents.length > 0 && (
+            {/* {allKiteEvents.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                     {allKiteEvents.map((kiteEvent) => (
                         <KiteEventTag
@@ -83,7 +84,7 @@ export function BookingCard({ booking }: BookingCardProps) {
                         />
                     ))}
                 </div>
-            )}
+            )} */}
 
             {/* Students */}
             {students.length > 0 ? (

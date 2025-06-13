@@ -10,11 +10,20 @@ import { DropdownTag } from './DropdownTag';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { internalActionTracker } from '@/components/providers/AdminProvider';
+import { formatDuration } from '@/components/formatters';
+import { KiteIcon } from '@/assets/svg/KiteIcon';
 
 interface LessonFromRelation {
     id: string;
     status: string;
     teacher?: { name: string };
+    kiteEvents?: Array<{
+        id: string;
+        duration: number;
+        date: string;
+        status?: string;
+        location?: string;
+    }>;
 }
 
 interface LessonTagProps {
@@ -37,7 +46,7 @@ export function LessonTag({ lesson }: LessonTagProps) {
         const checkComplete = () => {
             // Only proceed if the component is still mounted and we're in loading state
             if (unmounted) return;
-            
+
             // If the action is no longer executing, that means the server action has completed
             if (!internalActionTracker.isExecuting()) {
                 // Use a longer delay to ensure complete refresh
@@ -51,10 +60,10 @@ export function LessonTag({ lesson }: LessonTagProps) {
                 timer = setTimeout(checkComplete, 100);
             }
         };
-        
+
         // Start the checking process
         timer = setTimeout(checkComplete, 100);
-        
+
         // Clean up on unmount or when loading state changes
         return () => {
             unmounted = true;
@@ -64,13 +73,13 @@ export function LessonTag({ lesson }: LessonTagProps) {
 
     const handleStatusClick = async (newStatus: string) => {
         if (isLoading || newStatus === lesson.status) return;
-        
+
         setIsLoading(true);
         console.log(`Lesson status update requested for ${lesson.id}: ${lesson.status} → ${newStatus}`);
-        
+
         try {
             const result = await updateLessonIdStatus(lesson, newStatus);
-            
+
             if (!result.success) {
                 console.error('Failed to update lesson status:', result.error);
                 toast.error(`Failed to update lesson status: ${result.error}`);
@@ -94,15 +103,20 @@ export function LessonTag({ lesson }: LessonTagProps) {
         label: status,
         colorClass: getLessonStatusColor(status)
     }));
-    
+
+    // Calculate kite event stats
+    const kiteEventsCount = lesson.kiteEvents?.length || 0;
+    const totalKiteEventMinutes = lesson.kiteEvents?.reduce(
+        (sum, event) => sum + (event.duration || 0),
+        0
+    ) || 0;
+
     return (
         <ATag
             icon={isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LessonIcon className="w-4 h-4" />}
         >
             <span>{lesson.teacher?.name || 'N/A PROBLEM'}</span>
-            
-            <Separator orientation="vertical" className="h-4" />
-            
+
             <DropdownTag
                 currentValue={lesson.status}
                 options={statusOptions}
@@ -110,6 +124,20 @@ export function LessonTag({ lesson }: LessonTagProps) {
                 currentColorClass={statusColor}
                 disabled={isLoading}
             />
+
+
+            {kiteEventsCount > 0 && (
+                <>
+                    <Separator orientation="vertical" className="h-4" />
+                    <span className="flex items-center gap-1">
+                        {Array.from({ length: kiteEventsCount }).map((_, i) => (
+                            <KiteIcon key={i} className="w-3.5 h-3.5" />
+                        ))}
+                        <span>-</span>
+                        <span>{formatDuration(totalKiteEventMinutes)}</span>
+                    </span>
+                </>
+            )}
         </ATag>
     );
 }
