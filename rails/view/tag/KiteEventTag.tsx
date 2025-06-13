@@ -49,7 +49,7 @@ export function KiteEventTag({ kiteEvent }: KiteEventTagProps) {
 
             if (result.success) {
                 console.log('Kite event status updated successfully:', result.data);
-                toast.success('Kite event status updated successfully');
+                // Success toast is handled by the action itself
             } else {
                 console.error('Failed to update kite event status:', result.error);
                 toast.error(`Failed to update kite event status: ${result.error}`);

@@ -9,7 +9,8 @@ import { KiteEventTag } from "../tag/KiteEventTag";
 import { TeacherTag } from "../tag/TeacherTag";
 import PackageTag from "../tag/PackageTag";
 import { ProgressBar } from "@/components/formatters";
-import { LinkTeacherToLesson, TeacherParams } from '@/rails/view/link/LinkTeacherToLesson';
+import { LinkTeacherToLesson } from '@/rails/view/link/LinkTeacherToLesson';
+import { LinkStudentToBooking } from '@/rails/view/link/LinkStudentToBooking';
 
 export interface BookingCardProps {
     booking: DrizzleData<BookingType>;
@@ -23,28 +24,28 @@ export function BookingCard({ booking }: BookingCardProps) {
     // Extract all kite events from all lessons
     const allKiteEvents = lessons.flatMap(lesson => lesson.kiteEvents || []);
 
-    // Function to get unique teachers as TeacherParams (only id and name)
-    const getUniqueTeachers = (): TeacherParams[] => {
-        // Get unique teachers from lessons
-        return lessons
-            .filter(lesson => lesson.teacher)
-            .map(lesson => ({
-                id: lesson.teacher!.id,
-                name: lesson.teacher!.name
-            }))
-            .filter((teacher, index, self) =>
-                index === self.findIndex(t => t.id === teacher.id)
-            );
-    };
-    
-    // Get the unique teachers
-    const uniqueTeachers = getUniqueTeachers();
-
     // Calculate total kiting minutes from all kite events
     const totalKitingMinutes = allKiteEvents.reduce((sum, kiteEvent) => sum + (kiteEvent.duration || 0), 0);
 
     // Get package total minutes for progress calculation
     const packageMinutes = packageData?.duration || 0;
+
+    // Get package capacity for student validation
+    const packageCapacity = packageData?.capacity || 0;
+
+    // Check if we need to show "Add Students" link
+    const needsMoreStudents = packageCapacity > 0 && students.length < packageCapacity;
+
+    // Get current student IDs for filtering
+    const currentStudentIds = students.map(student => student.id);
+
+    // Get unique teachers from lessons for display
+    const uniqueTeachers = lessons
+        .filter(lesson => lesson.teacher)
+        .map(lesson => lesson.teacher!)
+        .filter((teacher, index, self) =>
+            index === self.findIndex(t => t.id === teacher.id)
+        );
 
     return (
         <div className="flex flex-col gap-2">
@@ -77,7 +78,6 @@ export function BookingCard({ booking }: BookingCardProps) {
                 <div className="flex flex-wrap gap-1">
                     <LinkTeacherToLesson
                         bookingId={booking.model.id}
-                        teachers={uniqueTeachers}
                     />
                 </div>
             )}
@@ -115,10 +115,24 @@ export function BookingCard({ booking }: BookingCardProps) {
                             student={student}
                         />
                     ))}
+                    {needsMoreStudents && (
+                        <LinkStudentToBooking
+                            bookingId={booking.model.id}
+                            currentStudentIds={currentStudentIds}
+                        />
+                    )}
                 </div>
             ) : (
-                <div className="text-xs text-muted-foreground font-medium px-3 py-1.5 border border-destructive/20 bg-destructive/5 rounded-md">
-                    N/A Error, no students found
+                <div className="flex flex-wrap gap-1">
+                    <div className="text-xs text-muted-foreground font-medium px-3 py-1.5 border border-destructive/20 bg-destructive/5 rounded-md">
+                        N/A Error, no students found
+                    </div>
+                    {packageCapacity > 0 && (
+                        <LinkStudentToBooking
+                            bookingId={booking.model.id}
+                            currentStudentIds={currentStudentIds}
+                        />
+                    )}
                 </div>
             )}
         </div>

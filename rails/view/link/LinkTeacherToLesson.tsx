@@ -2,41 +2,48 @@
 
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import { createLesson } from '@/actions/lesson-create';
+import { createLesson } from '@/actions/lesson-actions';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { FlagIcon } from '@/assets/svg/FlagIcon';
 import { ALink } from '@/rails/view/link/ALink';
 import { Loader2 } from 'lucide-react';
+import { useAdmin } from '@/components/providers/AdminProvider';
 
-interface TeacherType {
+export interface TeacherParams {
   id: string;
   name: string;
 }
 
 interface LinkTeacherToLessonProps {
   bookingId: string;
-  teachers: TeacherType[];
   className?: string;
 }
 
-export function LinkTeacherToLesson({ bookingId, teachers, className }: LinkTeacherToLessonProps) {
+export function LinkTeacherToLesson({ bookingId, className }: LinkTeacherToLessonProps) {
+  const { teachersData } = useAdmin();
   const [isLoading, setIsLoading] = useState(false);
   const [loadingTeacherId, setLoadingTeacherId] = useState<string | null>(null);
-  
+
+  // Convert teachers data to TeacherParams format
+  const teachers: TeacherParams[] = teachersData.map(teacher => ({
+    id: teacher.model.id,
+    name: teacher.model.name
+  }));
+
   const handleCreateLesson = async (teacherId: string, teacherName: string) => {
     if (isLoading) return;
-    
+
     setIsLoading(true);
     setLoadingTeacherId(teacherId);
     console.log(`Creating new lesson for booking ${bookingId} with teacher ${teacherName} (${teacherId})`);
-    
+
     try {
       // Call the server action to create the lesson
       const result = await createLesson(bookingId, teacherId);
-      
+
       if (result.success) {
-        toast.success(`Lesson created for teacher ${teacherName}`);
         console.log('Lesson created successfully:', result.data);
+        // Success toast is handled by the action itself
       } else {
         console.error('Failed to create lesson:', result.error);
         toast.error(`Failed to create lesson: ${result.error}`);
@@ -53,7 +60,7 @@ export function LinkTeacherToLesson({ bookingId, teachers, className }: LinkTeac
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild disabled={isLoading}>
-        <ALink 
+        <ALink
           icon={isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FlagIcon className="w-3.5 h-3.5" />}
           className={`${className || ''} ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
         >

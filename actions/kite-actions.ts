@@ -1,18 +1,14 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
-
-// Revalidation path constant
-const REVALIDATE_PATH = "/fabio";
-
 import { ApiAction } from "@/rails/types";
+import { withInternalActionTracking } from '@/lib/action-wrapper';
 
 export async function updateKiteEventStatus(
   kiteEventId: string,
   newStatus: string
 ): Promise<ApiAction> {
-  try {
+  return withInternalActionTracking(async () => {
     const supabase = await createClient();
     
     console.log('Updating kite event status via Supabase:', kiteEventId, newStatus);
@@ -29,16 +25,6 @@ export async function updateKiteEventStatus(
     }
 
     console.log('Kite event status updated successfully:', data);
-
-    // Revalidate the path to update the UI
-    revalidatePath(REVALIDATE_PATH);
-
     return { success: true, data };
-  } catch (error) {
-    console.error('Unexpected error updating kite event status:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
-    };
-  }
+  });
 }

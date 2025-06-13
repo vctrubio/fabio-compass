@@ -36,7 +36,7 @@ export function LessonTag({ lesson }: LessonTagProps) {
             
             if (result.success) {
                 console.log('Lesson status updated successfully:', result.data);
-                toast.success('Lesson status updated successfully');
+                // Success toast is handled by the action itself
             } else {
                 console.error('Failed to update lesson status:', result.error);
                 toast.error(`Failed to update lesson status: ${result.error}`);

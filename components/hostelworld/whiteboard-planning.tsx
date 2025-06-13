@@ -1,19 +1,12 @@
 'use client';
 
-import { DrizzleData } from "@/rails/types";
-import { BookingType } from "@/rails/model/BookingModel";
-import { TeacherType } from "@/rails/model/TeacherModel";
 import { useState } from "react";
 import { WhiteboardNavigation } from "./whiteboard-navigation";
 import WhiteboardDebug from "./whiteboard-debug";
+import { useAdmin } from "@/components/providers/AdminProvider";
 
-// Type declaration for the data we're receiving
-interface WhiteboardPlanningProps {
-    bookingsData: DrizzleData<BookingType>[];
-    teachersData: DrizzleData<TeacherType>[];
-}
-
-export default function WhiteboardPlanning({ bookingsData, teachersData }: WhiteboardPlanningProps) {
+export default function WhiteboardPlanning() {
+    const { bookingsData, teachersData } = useAdmin();
     const [selectedDate, setSelectedDate] = useState(new Date());
 
     return (
