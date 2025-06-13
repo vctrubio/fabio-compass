@@ -2,36 +2,7 @@ import { getAllUsers } from "@/rails/controller/UserDrizzle";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserType } from "@/rails/model";
-import { getRoleColors } from "@/config/entity";
-
-const getRoleBadgeVariant = (role: UserType['role']) => {
-  switch (role) {
-    case 'admin':
-    case 'teacherAdmin':
-      return 'destructive';
-    case 'teacher':
-      return 'default';
-    case 'student':
-      return 'secondary';
-    case 'pendingStudent':
-    case 'pendingTeacher':
-    case 'pendingAdmin':
-      return 'outline';
-    case 'disabled':
-      return 'destructive';
-    default:
-      return 'outline';
-  }
-};
-
-const getRoleBadgeStyle = (role: UserType['role']) => {
-  const colors = getRoleColors(role);
-  return {
-    backgroundColor: colors.secondary,
-    color: colors.primary,
-    borderColor: colors.primary,
-  };
-};
+import { getRoleBadgeVariant, getRoleBadgeStyle } from "@/components/getters";
 
 export default async function UsersTable() {
   try {

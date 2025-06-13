@@ -2,14 +2,7 @@
 import { drizzleStudents } from "@/rails/controller/StudentDrizzle";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const getLanguageBadge = (languages: string[]) => {
-    return languages.map((lang, index) => (
-        <Badge key={index} variant="outline" className="mr-1">
-            {lang}
-        </Badge>
-    ));
-};
+import { getLanguageBadge } from "@/components/getters";
 
 export default async function StudentsTable() {
     try {
@@ -28,9 +21,9 @@ export default async function StudentsTable() {
                                     <th className="text-left p-3">Name</th>
                                     <th className="text-left p-3">Languages</th>
                                     <th className="text-left p-3">Email / Role</th>
-                                    <th className="text-left p-3">Country</th>
-                                    <th className="text-left p-3">Age</th>
-                                    <th className="text-left p-3">Phone</th>
+                                    <th className="text-left p-3">Bookings</th>
+                                    <th className="text-left p-3">Lessons</th>
+                                    <th className="text-left p-3">Kite Events</th>
                                     <th className="text-left p-3">Created</th>
                                 </tr>
                             </thead>
@@ -38,6 +31,15 @@ export default async function StudentsTable() {
                                 {studentsData.map((studentData) => {
                                     const student = studentData.model;
                                     const userWallet = (studentData.relations as any)?.userWallet;
+                                    const lambdas = studentData.lambdas as {
+                                        teachers: string[];
+                                        bookingMinutes: number;
+                                        kiteEventMinutes: number;
+                                        kiteEventHours: number;
+                                        lessonsCount: number;
+                                        kiteEventsCount: number;
+                                        bookingsCount: number;
+                                    };
 
                                     return (
                                         <tr key={student.id} className="border-b hover:bg-muted/50">
@@ -57,11 +59,13 @@ export default async function StudentsTable() {
                                                 {userWallet?.email ? (
                                                     <div>
                                                         <div className="font-medium text-sm">{userWallet.email}</div>
-                                                        <div className="text-xs text-muted-foreground">Email</div>
+                                                        {userWallet.role && (
+                                                            <Badge variant="outline" className="mt-1">{userWallet.role}</Badge>
+                                                        )}
                                                     </div>
                                                 ) : userWallet?.role ? (
                                                     <div>
-                                                        <Badge variant="outline">aaaaa</Badge>
+                                                        <Badge variant="outline">{userWallet.role}</Badge>
                                                         <div className="text-xs text-muted-foreground mt-1">Role (No Email)</div>
                                                     </div>
                                                 ) : (
@@ -69,19 +73,28 @@ export default async function StudentsTable() {
                                                 )}
                                             </td>
                                             <td className="p-3">
-                                                <span className="text-sm">
-                                                    {student.country || 'N/A'}
-                                                </span>
+                                                <div className="text-sm font-medium">
+                                                    {lambdas.bookingsCount}
+                                                </div>
+                                                <div className="text-xs text-muted-foreground">
+                                                    {lambdas.bookingsCount === 1 ? 'booking' : 'bookings'}
+                                                </div>
                                             </td>
                                             <td className="p-3">
-                                                <span className="text-sm">
-                                                    {student.age ? `${student.age} years` : 'N/A'}
-                                                </span>
+                                                <div className="text-sm font-medium">
+                                                    {lambdas.lessonsCount}
+                                                </div>
+                                                <div className="text-xs text-muted-foreground">
+                                                    {lambdas.lessonsCount === 1 ? 'lesson' : 'lessons'}
+                                                </div>
                                             </td>
                                             <td className="p-3">
-                                                <span className="text-sm font-mono">
-                                                    {student.phone || 'N/A'}
-                                                </span>
+                                                <div className="text-sm font-medium">
+                                                    {lambdas.kiteEventsCount}
+                                                </div>
+                                                <div className="text-xs text-muted-foreground">
+                                                    {lambdas.kiteEventHours}h total
+                                                </div>
                                             </td>
                                             <td className="p-3">
                                                 <div className="text-sm">

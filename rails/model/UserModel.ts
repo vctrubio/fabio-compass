@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { UserRoleEnum } from "./";
+import { UserRoleEnum } from "./EnumModel";
 
 export const User = z.object({
   id: z.string().uuid(),

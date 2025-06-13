@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AuthButton } from "@/components/with-init/auth-button";
+import { MAIN_ROUTES } from "@/config/routes";
 
 export default function Navbar() {
   return (
@@ -13,24 +14,15 @@ export default function Navbar() {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link 
-              href="/student" 
-              className="text-foreground/70 hover:text-foreground transition-colors"
-            >
-              Student
-            </Link>
-            <Link
-              href="/teacher" 
-              className="text-foreground/70 hover:text-foreground transition-colors"
-            >
-              Teacher
-            </Link>
-            <Link 
-              href="/fabio" 
-              className="text-foreground/70 hover:text-foreground transition-colors"
-            >
-              Admin
-            </Link>
+            {MAIN_ROUTES.map((route) => (
+              <Link
+                key={route.path}
+                href={route.path}
+                className="text-foreground/70 hover:text-foreground transition-colors"
+              >
+                {route.label}
+              </Link>
+            ))}
           </div>
 
           {/* Auth Section */}

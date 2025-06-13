@@ -1,5 +1,4 @@
 import { HelmetIcon } from "@/assets/svg/HelmetIcon";
-import StudentsTable from "@/components/tables/students-table";
 
 export default function StudentPage() {
   return (

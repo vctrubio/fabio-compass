@@ -3,9 +3,12 @@ import postgres from "postgres";
 import * as schema from "./migrations/schema";
 import * as relations from "./migrations/relations";
 
+// Merge schema and relations for proper typing
+const fullSchema = { ...schema, ...relations };
+
 const globalForDb = globalThis as unknown as {
   client?: ReturnType<typeof postgres>;
-  db?: ReturnType<typeof drizzle>;
+  db?: ReturnType<typeof drizzle<typeof fullSchema>>;
 };
 
 if (!process.env.DATABASE_URL) {
@@ -23,7 +26,7 @@ const client =
 const db =
   globalForDb.db ??
   drizzle(client, {
-    schema: { ...schema, ...relations },
+    schema: fullSchema,
     logger: false,
   });
 
