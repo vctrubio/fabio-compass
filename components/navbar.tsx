@@ -8,22 +8,28 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand */}
           <Link href="/" className="flex items-center space-x-2">
-            <span className="text-xl font-bold">Kite App</span>
+            <span className="text-xl font-bold">Kite Hostel</span>
           </Link>
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-6">
             <Link 
-              href="/" 
+              href="/student" 
               className="text-foreground/70 hover:text-foreground transition-colors"
             >
-              Home
+              Student
             </Link>
             <Link 
-              href="/protected" 
+              href="/teacher" 
               className="text-foreground/70 hover:text-foreground transition-colors"
             >
-              Protected
+              Teacher
+            </Link>
+            <Link 
+              href="/fabio" 
+              className="text-foreground/70 hover:text-foreground transition-colors"
+            >
+              Admin
             </Link>
           </div>
 

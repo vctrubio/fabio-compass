@@ -4,28 +4,27 @@ import { useRouter } from 'next/navigation';
 import { HelmetIcon } from '@/assets/svg/HelmetIcon';
 import { HeadsetIcon } from '@/assets/svg/HeadsetIcon';
 import { UsersIcon } from '@/assets/svg/UsersIcon';
+import usersConfig from '@/config/users.json';
 
-// Define all role configurations as constants
-const ROLE_CONFIGS = {
-    student: {
-        Icon: HelmetIcon,
-        label: "Student",
-        color: "border-yellow-500",
-        route: "/student"
-    },
-    teacher: {
-        Icon: HeadsetIcon,
-        label: "Teacher", 
-        color: "border-emerald-600",
-        route: "/teacher"
-    },
-    admin: {
-        Icon: UsersIcon,
-        label: "Fabio",
-        color: "border-slate-500",
-        route: "/fabio"
-    }
+// Icon mapping
+const ICON_MAP = {
+    HelmetIcon,
+    HeadsetIcon,
+    UsersIcon
 } as const;
+
+// Convert users config to role configs format
+const ROLE_CONFIGS = Object.fromEntries(
+    Object.entries(usersConfig).map(([key, user]) => [
+        key,
+        {
+            Icon: ICON_MAP[user.icon as keyof typeof ICON_MAP],
+            label: user.label,
+            color: user.color,
+            route: user.route
+        }
+    ])
+);
 
 // Connection colors between roles
 const CONNECTION_COLORS = {

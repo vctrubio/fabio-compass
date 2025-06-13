@@ -1,0 +1,32 @@
+{
+  "student": {
+    "email": "s_isabel@gmail.com",
+    "password": "password",
+    "label": "Student",
+    "icon": "HelmetIcon",
+    "color": "border-yellow-500",
+    "bgColor": "bg-yellow-50 dark:bg-yellow-900/20",
+    "textColor": "text-yellow-700 dark:text-yellow-300",
+    "route": "/student"
+  },
+  "teacher": {
+    "email": "t_ricardo@gmail.com", 
+    "password": "password",
+    "label": "Teacher",
+    "icon": "HeadsetIcon",
+    "color": "border-emerald-600",
+    "bgColor": "bg-emerald-50 dark:bg-emerald-900/20",
+    "textColor": "text-emerald-700 dark:text-emerald-300",
+    "route": "/teacher"
+  },
+  "admin": {
+    "email": "admin@gmail.com",
+    "password": "password", 
+    "label": "Admin",
+    "icon": "UsersIcon",
+    "color": "border-slate-500",
+    "bgColor": "bg-slate-50 dark:bg-slate-900/20",
+    "textColor": "text-slate-700 dark:text-slate-300",
+    "route": "/fabio"
+  }
+}
