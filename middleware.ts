@@ -38,10 +38,12 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  console.log('dev:middleware:ran');
+
   if (process.env.DEBUG) {
-    console.log('dev:debug:middleware: user', user);
+    console.log("dev:debug:middleware: user", user);
   }
-  
+
   if (
     request.nextUrl.pathname !== "/" &&
     !user &&
@@ -49,16 +51,16 @@ export async function middleware(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/auth")
   ) {
     if (process.env.DEBUG) {
-      console.log(
-        "dev:debug:middleware: no user, redirecting to /auth/login"
-      );
+      console.log("dev:debug:middleware: no user, redirecting to /auth/login");
     }
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
+    console.log("dev:middleware:redirecting to", url.toString());
     return NextResponse.redirect(url);
   }
-
+  
+  console.log("dev:middleware:continuing with request", request.nextUrl.pathname);
   return supabaseResponse;
 }
 

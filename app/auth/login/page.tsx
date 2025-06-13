@@ -4,7 +4,7 @@ import { LoginForm } from "@/components/with-init/login-form";
 import { HelmetIcon } from "@/assets/svg/HelmetIcon";
 import { HeadsetIcon } from "@/assets/svg/HeadsetIcon";
 import { UsersIcon } from "@/assets/svg/UsersIcon";
-import usersConfig from "@/config/users.json";
+import usersConfig from "@/config/users-credentials.json";
 import { quickLogin } from "@/actions/auth";
 import { useState } from "react";
 import { toast } from "sonner";

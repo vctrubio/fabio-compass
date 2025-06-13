@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { HelmetIcon } from '@/assets/svg/HelmetIcon';
 import { HeadsetIcon } from '@/assets/svg/HeadsetIcon';
 import { UsersIcon } from '@/assets/svg/UsersIcon';
-import usersConfig from '@/config/users.json';
+import usersConfig from '@/config/users-credentials.json';
 
 // Icon mapping
 const ICON_MAP = {
