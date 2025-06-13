@@ -19,7 +19,7 @@ export default function Navbar() {
             >
               Student
             </Link>
-            <Link 
+            <Link
               href="/teacher" 
               className="text-foreground/70 hover:text-foreground transition-colors"
             >
