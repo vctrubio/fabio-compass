@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { HelmetIcon } from '@/assets/svg/HelmetIcon';
 import { ALink } from '@/rails/view/link/ALink';
 import { Loader2 } from 'lucide-react';
-import { useAdmin } from '@/components/providers/AdminProvider';
+import { useAdmin, internalActionTracker } from '@/components/providers/AdminProvider';
 import { addStudentToBooking } from '@/actions/booking-student-actions';
 
 export interface StudentParams {
@@ -33,6 +33,43 @@ export function LinkStudentToBooking({ bookingId, className, currentStudentIds =
       name: student.model.name
     }));
   
+  // Monitor the internal action tracker to coordinate UI state
+  useEffect(() => {
+    let unmounted = false;
+    let timer: NodeJS.Timeout | null = null;
+
+    // Only set up monitoring if we're currently loading
+    if (!isLoading) return;
+
+    const checkComplete = () => {
+      // Only proceed if the component is still mounted and we're in loading state
+      if (unmounted) return;
+      
+      // If the action is no longer executing, that means the server action has completed
+      if (!internalActionTracker.isExecuting()) {
+        // Use a longer delay to ensure complete refresh
+        timer = setTimeout(() => {
+          if (!unmounted) {
+            setIsLoading(false);
+            setLoadingStudentId(null);
+          }
+        }, 800); // Longer delay to ensure router has completely refreshed
+      } else {
+        // Keep checking while action is executing
+        timer = setTimeout(checkComplete, 100);
+      }
+    };
+    
+    // Start the checking process
+    timer = setTimeout(checkComplete, 100);
+    
+    // Clean up on unmount or when loading state changes
+    return () => {
+      unmounted = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [isLoading]);
+  
   const handleAddStudent = async (studentId: string, studentName: string) => {
     if (isLoading) return;
     
@@ -43,17 +80,21 @@ export function LinkStudentToBooking({ bookingId, className, currentStudentIds =
     try {
       const result = await addStudentToBooking(bookingId, studentId);
       
-      if (result.success) {
-        console.log('Student added successfully:', result.data);
-        // Success toast is handled by the action itself
-      } else {
+      if (!result.success) {
         console.error('Failed to add student:', result.error);
         toast.error(`Failed to add student: ${result.error}`);
+        // Reset loading state for failures immediately
+        setIsLoading(false);
+        setLoadingStudentId(null);
+      } else {
+        console.log('Student added successfully:', result.data);
+        // For success, don't reset loading state yet
+        // The useEffect will handle it after the refresh completes
       }
     } catch (error) {
       console.error('Error adding student to booking:', error);
       toast.error(`Failed to add student: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
+      // Reset loading state for exceptions immediately
       setIsLoading(false);
       setLoadingStudentId(null);
     }

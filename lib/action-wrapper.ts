@@ -26,6 +26,8 @@ export async function withInternalActionTracking<T>(
     return result;
   } finally {
     // Always reset the flag, even if there was an error
-    setTimeout(() => internalActionTracker.setExecuting(false), 100);
+    // Use a significantly longer timeout to ensure components have time
+    // to respond to the action completion before we reset state
+    setTimeout(() => internalActionTracker.setExecuting(false), 500);
   }
 }

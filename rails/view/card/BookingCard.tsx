@@ -6,7 +6,6 @@ import { BookingTag } from "../tag/BookingTag";
 import { StudentTag } from "../tag/StudentTag";
 import { LessonTag } from "../tag/LessonTag";
 import { KiteEventTag } from "../tag/KiteEventTag";
-import { TeacherTag } from "../tag/TeacherTag";
 import PackageTag from "../tag/PackageTag";
 import { ProgressBar } from "@/components/formatters";
 import { LinkTeacherToLesson } from '@/rails/view/link/LinkTeacherToLesson';
@@ -38,14 +37,6 @@ export function BookingCard({ booking }: BookingCardProps) {
 
     // Get current student IDs for filtering
     const currentStudentIds = students.map(student => student.id);
-
-    // Get unique teachers from lessons for display
-    const uniqueTeachers = lessons
-        .filter(lesson => lesson.teacher)
-        .map(lesson => lesson.teacher!)
-        .filter((teacher, index, self) =>
-            index === self.findIndex(t => t.id === teacher.id)
-        );
 
     return (
         <div className="flex flex-col gap-2">
@@ -89,18 +80,6 @@ export function BookingCard({ booking }: BookingCardProps) {
                         <KiteEventTag
                             key={kiteEvent.id}
                             kiteEvent={kiteEvent}
-                        />
-                    ))}
-                </div>
-            )}
-
-            {/* Teachers */}
-            {uniqueTeachers.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                    {uniqueTeachers.map((teacher) => (
-                        <TeacherTag
-                            key={`teacher-${teacher.id}`}
-                            teacher={teacher}
                         />
                     ))}
                 </div>
