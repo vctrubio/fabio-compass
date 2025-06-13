@@ -3,9 +3,8 @@
 import { DrizzleData } from "@/rails/types";
 import { BookingType } from "@/rails/model/BookingModel";
 import { TeacherType } from "@/rails/model/TeacherModel";
-import Link from "next/link";
 import { ENTITY_CONFIGS } from "@/config/entities";
-import { getDateString } from "@/components/getters";
+import { BookingCard } from "@/rails/view/card/BookingCard";
 
 // Type declaration for the lambda values from BookingDrizzle
 interface BookingLambdas {
@@ -94,50 +93,29 @@ interface BookingRowProps {
 }
 
 function BookingRow({ booking, index }: BookingRowProps) {
-  const searchParams = new URLSearchParams({
-    start_date: booking.model.date_start,
-    end_date: booking.model.date_end,
-  });
-  
-  const bookingUrl = `/bookings/${booking.model.id}?${searchParams.toString()}`;
+  // Slice the ID to show only first 8 characters
+  const slicedId = booking.model.id.slice(0, 8);
 
   return (
-    <Link href={bookingUrl}>
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <ENTITY_CONFIGS.bookings.icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            <div>
-              <div className="font-medium text-gray-800 dark:text-gray-200">
-                Booking #{index + 1}
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                ID: {booking.model.id}
-              </div>
+    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-3">
+          <ENTITY_CONFIGS.bookings.icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <div>
+            <div className="font-medium text-gray-800 dark:text-gray-200">
+              Booking #{index + 1}
             </div>
-          </div>
-          
-          <div className="text-right">
-            <div className="text-sm font-medium text-gray-800 dark:text-gray-200">
-              {getDateString(new Date(booking.model.date_start))} - {getDateString(new Date(booking.model.date_end))}
-            </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              {new Date(booking.model.date_start).toLocaleTimeString('es-ES', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: false,
-                timeZone: 'Europe/Madrid'
-              })} - {new Date(booking.model.date_end).toLocaleTimeString('es-ES', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: false,
-                timeZone: 'Europe/Madrid'
-              })}
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              ID: {slicedId}...
             </div>
           </div>
         </div>
+        
+        <BookingCard 
+          booking={booking}
+        />
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -162,6 +140,8 @@ function BookingsList({ bookingsData }: BookingsListProps) {
   );
 }
 
+// Raw data sections component
+
 export default function WhiteboardDebug({ bookingsData, teachersData }: WhiteboardDebugProps) {
     return (
         <div className="space-y-6">
@@ -172,27 +152,40 @@ export default function WhiteboardDebug({ bookingsData, teachersData }: Whiteboa
             <BookingsList bookingsData={bookingsData} />
 
             {/* Raw data sections */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Bookings raw data */}
-                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-300">
-                        Raw Booking Data ({bookingsData.length} bookings)
-                    </h3>
-                    <pre className="bg-gray-100 dark:bg-gray-700 p-4 rounded text-sm overflow-auto max-h-96 text-gray-800 dark:text-gray-200">
-                        {JSON.stringify(bookingsData, null, 2)}
-                    </pre>
-                </div>
-
-                {/* Teachers raw data */}
-                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-300">
-                        Raw Teacher Data ({teachersData.length} teachers)
-                    </h3>
-                    <pre className="bg-gray-100 dark:bg-gray-700 p-4 rounded text-sm overflow-auto max-h-96 text-gray-800 dark:text-gray-200">
-                        {JSON.stringify(teachersData, null, 2)}
-                    </pre>
-                </div>
-            </div>
+            <RawDataSections bookingsData={bookingsData} teachersData={teachersData} />
         </div>
     );
+}
+
+
+
+interface RawDataSectionsProps {
+  bookingsData: DrizzleData<BookingType>[];
+  teachersData: DrizzleData<TeacherType>[];
+}
+
+function RawDataSections({ bookingsData, teachersData }: RawDataSectionsProps) {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Bookings raw data */}
+      <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+        <h3 className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-300">
+          Raw Booking Data ({bookingsData.length} bookings)
+        </h3>
+        <pre className="bg-gray-100 dark:bg-gray-700 p-4 rounded text-sm overflow-auto max-h-96 text-gray-800 dark:text-gray-200">
+          {JSON.stringify(bookingsData, null, 2)}
+        </pre>
+      </div>
+
+      {/* Teachers raw data */}
+      <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+        <h3 className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-300">
+          Raw Teacher Data ({teachersData.length} teachers)
+        </h3>
+        <pre className="bg-gray-100 dark:bg-gray-700 p-4 rounded text-sm overflow-auto max-h-96 text-gray-800 dark:text-gray-200">
+          {JSON.stringify(teachersData, null, 2)}
+        </pre>
+      </div>
+    </div>
+  );
 }

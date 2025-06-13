@@ -2,14 +2,33 @@ import { User, GraduationCap } from 'lucide-react';
 import { DatePickerRange } from '@/rails/types';
 import { getDateString, getTime } from './getters';
 
+/**
+ * Format duration (convert minutes to hours and minutes)
+ */
+export const formatDuration = (minutes: number) => {
+    if (minutes < 60) {
+        return `${minutes}mins`;
+    }
+    
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    
+    if (remainingMinutes === 0) {
+        return hours === 1 ? '1hr' : `${hours}hrs`;
+    }
+    
+    const hourText = hours === 1 ? '1hr' : `${hours}hrs`;
+    return `${hourText} ${remainingMinutes}mins`;
+};
+
 // Date type configurations
 const DATE_TYPES = {
     today: {
-        label: "Today",
+        label: "Hoy",
         colors: "border-b-2 border-green-500"
     },
     tomorrow: {
-        label: "Tomorrow",
+        label: "Mañana",
         colors: "border-b-2 border-blue-500"
     },
     past: {
@@ -265,85 +284,13 @@ export const FormatDateRange = ({ startDate, endDate }: DatePickerRange) => {
     return (
         <div className="inline-flex items-center  gap-2">
             {/* Date Range */}
-            <div className="">
+            <div className="font-semibold">
                 {sameDay ? startDateString : `${startDateString} - ${endDateString}`}
             </div>
 
             {/* Duration Badge with Color */}
-            <div className={` text-xs font-medium ${badgeColor}`}>
+            <div className={`px-2 rounded-sm ${badgeColor}`}>
                 {durationDays}d
-            </div>
-        </div>
-    );
-};
-
-/**
- * Component to display package information including price, hours, capacity, and average price per hour
- */
-export const FormatPackageInfo = ({ package: pkg }: { package: any }) => {
-    if (!pkg) {
-        return <span className="text-gray-400 text-sm">Package info unavailable</span>;
-    }
-
-    const price = (pkg as any).price || 0;
-    const durationMinutes = (pkg as any).duration || 0;
-    const hoursDecimal = durationMinutes > 0 ? durationMinutes / 60 : 0;
-    const hours = hoursDecimal % 1 === 0 ? `${Math.floor(hoursDecimal)}h` : `${hoursDecimal.toFixed(1)}h`;
-    const capacity = (pkg as any).capacity || 0;
-    const avgPricePerHour = durationMinutes > 0 ? (price / (durationMinutes / 60)).toFixed(0) : 0;
-
-    return (
-        <div className="inline-flex items-center rounded-lg border border-border bg-card shadow-sm">
-
-            <div className="px-3 py-1.5 flex items-center gap-1">
-                {Array.from({ length: capacity }, (_, index) => (
-                    <User key={index} className="w-3 h-3 text-muted-foreground" />
-                ))}
-            </div>
-
-            <div className="px-3 py-1.5 text-sm text-foreground">
-                {hours}
-            </div>
-
-            <div className="px-3 py-1.5 text-sm font-medium text-foreground">
-                €{price}
-            </div>
-
-            <div className="px-3 py-1.5 text-xs font-medium bg-orange-200 text-orange-800">
-                €{avgPricePerHour}/h
-            </div>
-
-
-        </div>
-    );
-};
-
-/**
- * Component to display package booking information - only hours and capacity
- */
-export const FormatPackageBooking = ({ package: pkg }: { package: any }) => {
-    if (!pkg) {
-        return <span className="text-gray-400 text-sm">Package info unavailable</span>;
-    }
-
-    const durationMinutes = (pkg as any).duration || 0;
-    const hoursDecimal = durationMinutes > 0 ? durationMinutes / 60 : 0;
-    const hours = hoursDecimal % 1 === 0 ? `${Math.floor(hoursDecimal)}h` : `${hoursDecimal.toFixed(1)}h`;
-    const capacity = (pkg as any).capacity || 0;
-
-    return (
-        <div className="inline-flex items-center gap-2">
-
-            <div className=" text-sm text-foreground">
-                {hours}
-            </div>
-
-            <div className=" text-muted-foreground">/</div>
-
-            <div className="flex items-center gap-1">
-                {Array.from({ length: capacity }, (_, index) => (
-                    <User key={index} className="w-3 h-3 text-muted-foreground" />
-                ))}
             </div>
         </div>
     );
