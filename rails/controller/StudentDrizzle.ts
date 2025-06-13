@@ -98,36 +98,50 @@ function calculateLambdaValues(student: any) {
   const teachers = new Map<string, string>();
   let totalBookingMinutes = 0;
   let totalKiteEventMinutes = 0;
+  let lessonsCount = 0;
+  let kiteEventsCount = 0;
 
   student.bookingStudents?.forEach((bookingStudent: any) => {
     if (bookingStudent.booking?.package?.duration) {
       totalBookingMinutes += bookingStudent.booking.package.duration;
     }
 
-    // Extract teacher IDs/names and kite event minutes from lessons
-    bookingStudent.booking?.lessons?.forEach((lesson: any) => {
-      if (lesson.teacher_id) {
-        // If we have a teacher object with a name, use it, otherwise just store the ID
-        if (lesson.teacher && lesson.teacher.name) {
-          teachers.set(lesson.teacher_id, lesson.teacher.name);
-        } else {
-          teachers.set(lesson.teacher_id, lesson.teacher_id);
-        }
-      }
+    // Count lessons and extract teacher IDs/names and kite event data
+    if (bookingStudent.booking?.lessons) {
+      lessonsCount += bookingStudent.booking.lessons.length;
 
-      // Add kite event hours (already in minutes)
-      lesson.kiteEvents?.forEach((kiteEvent: any) => {
-        if (kiteEvent.hour && !isNaN(Number(kiteEvent.hour))) {
-          totalKiteEventMinutes += Number(kiteEvent.hour);
+      bookingStudent.booking.lessons.forEach((lesson: any) => {
+        if (lesson.teacher_id) {
+          // If we have a teacher object with a name, use it, otherwise just store the ID
+          if (lesson.teacher && lesson.teacher.name) {
+            teachers.set(lesson.teacher_id, lesson.teacher.name);
+          } else {
+            teachers.set(lesson.teacher_id, lesson.teacher_id);
+          }
+        }
+
+        // Count kite events and add their duration (in minutes)
+        if (lesson.kiteEvents) {
+          kiteEventsCount += lesson.kiteEvents.length;
+          
+          lesson.kiteEvents.forEach((kiteEvent: any) => {
+            if (kiteEvent.duration && !isNaN(Number(kiteEvent.duration))) {
+              totalKiteEventMinutes += Number(kiteEvent.duration);
+            }
+          });
         }
       });
-    });
+    }
   });
 
   return {
     teachers: Array.from(teachers.values()),
     bookingMinutes: totalBookingMinutes,
     kiteEventMinutes: totalKiteEventMinutes,
+    kiteEventHours: Number((totalKiteEventMinutes / 60).toFixed(1)),
+    lessonsCount,
+    kiteEventsCount,
+    bookingsCount: student.bookingStudents?.length || 0,
   };
 }
 
@@ -141,19 +155,7 @@ export async function drizzleStudents(): Promise<DrizzleData<StudentType>[]> {
   }
 }
 
-export async function drizzleStudentById(id: string): Promise<{
-  model: StudentType;
-  relations: {
-    bookingStudents: any;
-    userWallet: any;
-    transactions: any;
-  };
-  lambdas: {
-    teachers: string[];
-    bookingMinutes: number;
-    kiteEventMinutes: number;
-  };
-} | null> {
+export async function drizzleStudentById(id: string): Promise<DrizzleData<StudentType> | null> {
   try {
     const student = await db.query.Student.findFirst({
       where: eq(Student.id, id),
@@ -164,19 +166,7 @@ export async function drizzleStudentById(id: string): Promise<{
       return null;
     }
 
-    return parseStudent(student) as {
-      model: StudentType;
-      relations: {
-        bookingStudents: any;
-        userWallet: any;
-        transactions: any;
-      };
-      lambdas: {
-        teachers: string[];
-        bookingMinutes: number;
-        kiteEventMinutes: number;
-      };
-    };
+    return parseStudent(student);
   } catch (error) {
     console.error("Error fetching student by ID with Drizzle:", error);
     throw new Error("Failed to fetch student");
