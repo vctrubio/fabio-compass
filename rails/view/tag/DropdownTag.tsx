@@ -41,23 +41,24 @@ export function DropdownTag({
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <span className={`text-xs font-medium rounded px-1 cursor-pointer hover:opacity-80 inline-flex items-center gap-1 transition-opacity ${currentColorClass} ${className}`}>
+                <span className={`text-xs font-medium rounded-md px-2 py-1 cursor-pointer hover:opacity-80 inline-flex items-center gap-1.5 transition-opacity ${currentColorClass} ${className || ''}`}>
                     {currentValue}
                     <ChevronDown className="w-3 h-3" />
                 </span>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="min-w-[120px]">
+            <DropdownMenuContent align="start" className="min-w-[140px] p-1">
                 {options.map((option) => (
                     <DropdownMenuItem
                         key={option.value}
                         onClick={() => handleSelect(option.value)}
-                        className={`text-sm ${option.value === currentValue ? 'bg-accent' : ''}`}
+                        className="text-sm hover:bg-transparent focus:bg-transparent p-1 cursor-pointer"
                     >
-                        <span className={`inline-block w-3 h-3 rounded-full mr-2 ${option.colorClass}`} />
-                        {option.label}
-                        {option.value === currentValue && (
-                            <span className="ml-auto text-xs text-muted-foreground">✓</span>
-                        )}
+                        <span className={`w-full inline-flex items-center justify-between text-xs font-medium rounded-md px-2 py-1.5 ${option.colorClass}`}>
+                            {option.label}
+                            {option.value === currentValue && (
+                                <span className="text-xs opacity-70">✓</span>
+                            )}
+                        </span>
                     </DropdownMenuItem>
                 ))}
             </DropdownMenuContent>

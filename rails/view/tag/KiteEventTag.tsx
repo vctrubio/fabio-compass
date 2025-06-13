@@ -10,6 +10,7 @@ import { getKiteEventStatusColor, updateKiteEventIdStatus } from '@/actions/enum
 import { KiteEventStatusEnum } from '@/rails/model/EnumModel';
 import { DropdownTag } from './DropdownTag';
 import { toast } from 'sonner';
+import { EquipmentType } from '@/rails/model/EquipmentModel';
 
 interface KiteEventFromRelation {
     id: string;
@@ -17,7 +18,7 @@ interface KiteEventFromRelation {
     date: string; // ISO date string
     status?: string; // KiteEvent status
     location?: string; // KiteEvent location
-    equipments?: Array<{ id: string; serialId?: string; type?: string; model?: string; size?: number }>;
+    equipments?: EquipmentType[];
 }
 
 interface KiteEventTagProps {
@@ -53,11 +54,13 @@ export function KiteEventTag({ kiteEvent }: KiteEventTagProps) {
         }
     };
 
-    const statusOptions = KiteEventStatusEnum.options.map((status) => ({
-        value: status,
-        label: status,
-        colorClass: getKiteEventStatusColor(status)
-    }));
+    const statusOptions = KiteEventStatusEnum.options
+        .filter(status => status !== 'plannedAuto')
+        .map((status) => ({
+            value: status,
+            label: status,
+            colorClass: getKiteEventStatusColor(status)
+        }));
 
     return (
         <ATag

@@ -8,3 +8,9 @@ export interface DrizzleData<T> {
   relations: object;
   lambdas: object;
 }
+
+export interface ApiAction {
+  success: boolean;
+  error?: string;
+  data?: unknown;
+}

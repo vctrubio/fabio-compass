@@ -7,6 +7,8 @@ export default {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
+    "./actions/**/*.{js,ts,jsx,tsx}",
+    "./rails/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {

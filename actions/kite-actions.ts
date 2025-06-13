@@ -6,16 +6,12 @@ import { revalidatePath } from 'next/cache';
 // Revalidation path constant
 const REVALIDATE_PATH = "/fabio";
 
-interface UpdateResult {
-  success: boolean;
-  error?: string;
-  data?: unknown;
-}
+import { ApiAction } from "@/rails/types";
 
 export async function updateKiteEventStatus(
   kiteEventId: string,
   newStatus: string
-): Promise<UpdateResult> {
+): Promise<ApiAction> {
   try {
     const supabase = await createClient();
     
