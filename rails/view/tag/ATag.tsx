@@ -19,7 +19,7 @@ export function ATag({ icon, children, className, ...props }: ATagProps) {
         <div
             className={cn(
                 "inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium border rounded-md transition-colors",
-                "bg-background text-foreground border-border hover:bg-muted",
+                "bg-background text-foreground border-border",
                 className
             )}
             {...props}

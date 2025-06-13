@@ -13,7 +13,7 @@ export default function PackageTag({ package: packageModel }: PackageTagProps) {
     const price = packageModel.price;
     const duration = packageModel.duration; // in minutes
     const capacity = packageModel.capacity;
-    
+
     const hoursDecimal = duration > 0 ? duration / 60 : 0;
     const hours = hoursDecimal % 1 === 0 ? `${Math.floor(hoursDecimal)}h` : `${hoursDecimal.toFixed(1)}h`;
     const avgPricePerHour = duration > 0 ? (price / (duration / 60)).toFixed(0) : 0;
@@ -21,7 +21,6 @@ export default function PackageTag({ package: packageModel }: PackageTagProps) {
 
     return (
         <ATag icon={<PackageIcon className="w-4 h-4" />}>
-
             <span className="text-xs font-semibold">
                 €{price}
             </span>

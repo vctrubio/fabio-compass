@@ -1,5 +1,5 @@
 import db from "@/drizzle";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, desc } from "drizzle-orm";
 import { Booking } from "@/drizzle/migrations/schema";
 import { BookingType } from "@/rails/model/BookingModel";
 import { DrizzleData } from "@/rails/types";
@@ -46,7 +46,7 @@ function parseBooking(booking: any): DrizzleData<BookingType> {
 
 const bookingWithSort = {
   ...bookingsWithRelations,
-  orderBy: asc(Booking.date_start), // Sort by start date ascending
+  orderBy: desc(Booking.created_at), 
 };
 
 function calculateLambdaValues(booking: any) {

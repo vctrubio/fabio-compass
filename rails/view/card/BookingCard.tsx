@@ -9,6 +9,7 @@ import { KiteEventTag } from "../tag/KiteEventTag";
 import { TeacherTag } from "../tag/TeacherTag";
 import PackageTag from "../tag/PackageTag";
 import { ProgressBar } from "@/components/formatters";
+import { LinkTeacherToLesson, TeacherParams } from '@/rails/view/link/LinkTeacherToLesson';
 
 export interface BookingCardProps {
     booking: DrizzleData<BookingType>;
@@ -17,15 +18,27 @@ export interface BookingCardProps {
 export function BookingCard({ booking }: BookingCardProps) {
     const packageData = (booking.relations as { package?: PackageStudentType }).package;
     const students = (booking.lambdas as { students?: Array<{ id: string; name: string; languages?: string }> })?.students || [];
-    const lessons = (booking.relations as { lessons?: Array<{ id: string; status: string; teacher?: { name: string }; kiteEvents?: Array<{ id: string; duration: number; date: string; status?: string; location?: string; equipments?: Array<{ id: string; serialId?: string; type?: string; model?: string; size?: number }> }> }> })?.lessons || [];
+    const lessons = (booking.relations as { lessons?: Array<{ id: string; status: string; teacher?: { id: string; name: string }; kiteEvents?: Array<{ id: string; duration: number; date: string; status?: string; location?: string; equipments?: Array<any> }> }> })?.lessons || [];
 
     // Extract all kite events from all lessons
     const allKiteEvents = lessons.flatMap(lesson => lesson.kiteEvents || []);
 
-    // Extract unique teachers from lessons
-    const uniqueTeachers = lessons
-        .map(lesson => lesson.teacher?.name)
-        .filter((name, index, arr) => name && arr.indexOf(name) === index) as string[];
+    // Function to get unique teachers as TeacherParams (only id and name)
+    const getUniqueTeachers = (): TeacherParams[] => {
+        // Get unique teachers from lessons
+        return lessons
+            .filter(lesson => lesson.teacher)
+            .map(lesson => ({
+                id: lesson.teacher!.id,
+                name: lesson.teacher!.name
+            }))
+            .filter((teacher, index, self) =>
+                index === self.findIndex(t => t.id === teacher.id)
+            );
+    };
+    
+    // Get the unique teachers
+    const uniqueTeachers = getUniqueTeachers();
 
     // Calculate total kiting minutes from all kite events
     const totalKitingMinutes = allKiteEvents.reduce((sum, kiteEvent) => sum + (kiteEvent.duration || 0), 0);
@@ -51,7 +64,7 @@ export function BookingCard({ booking }: BookingCardProps) {
             )}
 
             {/* Lessons */}
-            {lessons.length > 0 && (
+            {lessons.length > 0 ? (
                 <div className="flex flex-wrap gap-1">
                     {lessons.map((lesson) => (
                         <LessonTag
@@ -59,6 +72,13 @@ export function BookingCard({ booking }: BookingCardProps) {
                             lesson={lesson}
                         />
                     ))}
+                </div>
+            ) : (
+                <div className="flex flex-wrap gap-1">
+                    <LinkTeacherToLesson
+                        bookingId={booking.model.id}
+                        teachers={uniqueTeachers}
+                    />
                 </div>
             )}
 
@@ -77,10 +97,10 @@ export function BookingCard({ booking }: BookingCardProps) {
             {/* Teachers */}
             {uniqueTeachers.length > 0 && (
                 <div className="flex flex-wrap gap-1">
-                    {uniqueTeachers.map((teacherName, index) => (
+                    {uniqueTeachers.map((teacher) => (
                         <TeacherTag
-                            key={`teacher-${index}`}
-                            teacher={{ name: teacherName }}
+                            key={`teacher-${teacher.id}`}
+                            teacher={teacher}
                         />
                     ))}
                 </div>
