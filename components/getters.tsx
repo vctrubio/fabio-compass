@@ -11,83 +11,73 @@ export const getLanguageBadge = (languages: string[]) => {
 };
 
 export const getRoleBadgeVariant = (role: UserType['role']) => {
-  switch (role) {
-    case 'admin':
-    case 'teacherAdmin':
-      return 'destructive';
-    case 'teacher':
-      return 'default';
-    case 'student':
-      return 'secondary';
-    case 'pendingStudent':
-    case 'pendingTeacher':
-    case 'pendingAdmin':
-      return 'outline';
-    case 'disabled':
-      return 'destructive';
-    default:
-      return 'outline';
-  }
+    switch (role) {
+        case 'admin':
+        case 'teacherAdmin':
+            return 'destructive';
+        case 'teacher':
+            return 'default';
+        case 'student':
+            return 'secondary';
+        case 'pendingStudent':
+        case 'pendingTeacher':
+        case 'pendingAdmin':
+            return 'outline';
+        case 'disabled':
+            return 'destructive';
+        default:
+            return 'outline';
+    }
 };
 
 export const getUserRoleColor = (role: UserType['role']) => {
-  switch (role) {
-    case 'student':
-    case 'pendingStudent':
-      return ENTITY_COLORS.students;
-    case 'teacher':
-    case 'teacherAdmin':
-    case 'pendingTeacher':
-      return ENTITY_COLORS.teachers;
-    case 'admin':
-    case 'pendingAdmin':
-      return ENTITY_COLORS.admin;
-    default:
-      return ENTITY_COLORS.admin; // fallback
-  }
+    switch (role) {
+        case 'student':
+        case 'pendingStudent':
+            return ENTITY_COLORS.students;
+        case 'teacher':
+        case 'teacherAdmin':
+        case 'pendingTeacher':
+            return ENTITY_COLORS.teachers;
+        case 'admin':
+        case 'pendingAdmin':
+            return ENTITY_COLORS.admin;
+        default:
+            return ENTITY_COLORS.admin; // fallback
+    }
 };
 
 export const getRoleBadgeStyle = (role: UserType['role']) => {
-  const colors = getUserRoleColor(role);
-  return {
-    backgroundColor: colors.secondary,
-    color: colors.primary,
-    borderColor: colors.primary,
-  };
+    const colors = getUserRoleColor(role);
+    return {
+        backgroundColor: colors.secondary,
+        color: colors.primary,
+        borderColor: colors.primary,
+    };
 };
 
-// Date formatting functions for consistent date display across the app
-// Using explicit locale and timezone to prevent hydration mismatches
-export const formatDate = (date: string | Date) => {
-  return new Date(date).toLocaleDateString('en-US', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    timeZone: 'America/New_York'
-  });
+// Date string getters - Spanish months with ES timezone
+export const getDateString = (date: Date) => {
+    const month = date.toLocaleString("es-ES", { month: "long", timeZone: "Europe/Madrid" });
+    const day = date.getDate();
+    const year = date.getFullYear();
+    const currentYear = new Date().getFullYear();
+    return currentYear !== year ? `${month} ${day}, ${year}` : `${month} ${day}`;
 };
 
-export const formatTime = (date: string | Date) => {
-  return new Date(date).toLocaleTimeString('en-US', { 
-    hour: '2-digit', 
-    minute: '2-digit',
-    hour12: true,
-    timeZone: 'America/New_York'
-  });
+// Date string with day of the week - always displays weekday
+export const getDateStringWithWeek = (date: Date) => {
+    const weekday = date.toLocaleString("es-ES", { weekday: "long", timeZone: "Europe/Madrid" });
+    const month = date.toLocaleString("es-ES", { month: "long", timeZone: "Europe/Madrid" });
+    const day = date.getDate();
+    const year = date.getFullYear();
+    const currentYear = new Date().getFullYear();
+    return currentYear !== year ? `${weekday}, ${month} ${day}, ${year}` : `${weekday}, ${month} ${day}`;
 };
 
-export const formatDateRange = (startDate: string | Date, endDate: string | Date) => {
-  return `${formatDate(startDate)} - ${formatDate(endDate)}`;
-};
-
-export const formatTimeRange = (startDate: string | Date, endDate: string | Date) => {
-  return `${formatTime(startDate)} - ${formatTime(endDate)}`;
-};
-
-export const formatDateTime = (date: string | Date) => {
-  return `${formatDate(date)} ${formatTime(date)}`;
-};
-
-export const formatDateTimeRange = (startDate: string | Date, endDate: string | Date) => {
-  return `${formatDateTime(startDate)} - ${formatDateTime(endDate)}`;
+// Time formatter - formats date to HH:MM
+export const getTime = (date: Date) => {
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    return `${hours}:${minutes}`;
 };
