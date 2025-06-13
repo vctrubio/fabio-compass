@@ -1,6 +1,8 @@
+import "./globals.css";
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
-import "./globals.css";
+import WatchBar from "@/components/watchbar/WatchBar";
+import Navbar from "@/components/navbar";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -28,6 +30,8 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <Navbar />
+          <WatchBar />
           {children}
         </ThemeProvider>
       </body>
