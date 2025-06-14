@@ -100,7 +100,7 @@ function BookingsList({ bookingsData }: BookingsListProps) {
         <ENTITY_CONFIGS.bookings.icon className="h-5 w-5" />
         Bookings ({bookingsData.length})
       </h3>
-      <div className="flex flex-wrap gap-4 max-h-96 overflow-y-auto p-1 justify-between">
+      <div className="flex flex-wrap gap-4 max-h-96 overflow-y-auto p-1 justify-around">
         {bookingsData.map((booking) => (
           <div
             key={booking.model.id}
