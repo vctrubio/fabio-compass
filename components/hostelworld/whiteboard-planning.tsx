@@ -6,14 +6,7 @@ import { useAdmin } from "@/components/providers/AdminProvider";
 import { DrizzleData } from "@/rails/types";
 import { BookingType } from "@/rails/model/BookingModel";
 import { BookingStr } from "@/rails/view/str/BookingStr";
-
-// Consistent date formatting function that works the same on server and client
-const formatDateConsistently = (date: Date): string => {
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-};
+import { formatDateNow } from "@/components/formatters";
 
 // BookingList component to display all filtered bookings
 const BookingList = ({ bookings }: { bookings: DrizzleData<BookingType>[] }) => {
@@ -33,27 +26,29 @@ const BookingList = ({ bookings }: { bookings: DrizzleData<BookingType>[] }) => 
                 // Extract package data for progress bar
                 const packageData = (booking.relations as { package?: any })?.package;
                 const packageMinutes = packageData?.duration || 0;
-                
+
                 // Calculate total kiting minutes from all events
-                const lessons = (booking.relations as { lessons?: Array<{ 
-                    id: string; 
-                    kiteEvents?: Array<{ duration: number }> 
-                }> })?.lessons || [];
-                
+                const lessons = (booking.relations as {
+                    lessons?: Array<{
+                        id: string;
+                        kiteEvents?: Array<{ duration: number }>
+                    }>
+                })?.lessons || [];
+
                 const allKiteEvents = lessons.flatMap(lesson => lesson.kiteEvents || []);
                 const totalKitingMinutes = allKiteEvents.reduce(
-                    (sum, kiteEvent) => sum + (kiteEvent.duration || 0), 
+                    (sum, kiteEvent) => sum + (kiteEvent.duration || 0),
                     0
                 );
-                
+
                 return (
-                    <div 
+                    <div
                         key={booking.model?.id}
                         className="p-3 bg-white dark:bg-gray-950/50 rounded-md border 
                               border-gray-100 dark:border-gray-800 hover:border-gray-300
                               dark:hover:border-gray-700 transition-all"
                     >
-                        <BookingStr 
+                        <BookingStr
                             dateRange={{
                                 startDate: booking.model.date_start,
                                 endDate: booking.model.date_end
@@ -69,16 +64,16 @@ const BookingList = ({ bookings }: { bookings: DrizzleData<BookingType>[] }) => 
 };
 
 // BookingsHeader component to display booking count and info
-const BookingsHeader = ({ 
-    filteredCount, 
-    totalCount 
-}: { 
-    filteredCount: number, 
-    totalCount: number 
+const BookingsHeader = ({
+    filteredCount,
+    totalCount
+}: {
+    filteredCount: number,
+    totalCount: number
 }) => (
     <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-medium text-primary">
-            {filteredCount} bookings found for this date 
+            {filteredCount} bookings found for this date
             <span className="text-muted-foreground ml-1">
                 (out of {totalCount} total)
             </span>
@@ -86,18 +81,19 @@ const BookingsHeader = ({
     </div>
 );
 
-// BookingsPanel component that includes controls and state management
-const BookingsPanel = ({ 
+// BookingDebug component that includes controls and state management
+const BookingDebug = ({
     bookings,
-    totalBookingsCount,
-    formattedDate 
-}: { 
+    formattedDate
+}: {
     bookings: DrizzleData<BookingType>[],
-    totalBookingsCount: number,
     formattedDate: string
 }) => {
     const [showDetails, setShowDetails] = useState(true);
-    
+
+    // Calculate total counts internally
+    const filteredCount = bookings.length;
+
     return (
         <div className="space-y-3">
             {/* Controls */}
@@ -107,10 +103,10 @@ const BookingsPanel = ({
                         Booking Debug: {formattedDate}
                     </h2>
                     <div className="px-2 py-0.5 rounded-md bg-secondary dark:bg-secondary/70 text-secondary-foreground text-xs font-medium">
-                        {bookings.length} bookings
+                        {filteredCount} bookings
                     </div>
                 </div>
-                <button 
+                <button
                     onClick={() => setShowDetails(!showDetails)}
                     className="text-sm px-3 py-1 rounded bg-secondary hover:bg-secondary/80 
                             text-secondary-foreground transition-colors"
@@ -118,19 +114,55 @@ const BookingsPanel = ({
                     {showDetails ? "Hide Details" : "Show Details"}
                 </button>
             </div>
-            
+
             {/* Details panel with animation */}
             {showDetails && (
                 <div className="animate-in fade-in-50 slide-in-from-top-3 duration-300">
                     <div className="p-4 bg-card rounded-lg border dark:border-gray-800 shadow-sm">
-                        <BookingsHeader 
-                            filteredCount={bookings.length} 
-                            totalCount={totalBookingsCount} 
+                        <BookingsHeader
+                            filteredCount={filteredCount}
+                            totalCount={filteredCount}
                         />
                         <BookingList bookings={bookings} />
                     </div>
                 </div>
             )}
+        </div>
+    );
+};
+
+// WhiteboardCalendar component to display calendar and sidebar panels
+const WhiteboardCalendar = () => {
+    return (
+        <div className="grid grid-cols-12 gap-4">
+            {/* Calendar - takes 9 columns on desktop, full width on mobile */}
+            <div className="col-span-12 lg:col-span-9 border rounded-md p-4">
+                <h3 className="font-medium mb-2">Calendar View</h3>
+                <div className="h-96 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded flex items-center justify-center text-muted-foreground">
+                    Calendar Placeholder
+                </div>
+            </div>
+            
+            {/* Student and Teachers panels - 3 columns on desktop, full width on mobile */}
+            <div className="col-span-12 lg:col-span-3 flex flex-col gap-4 h-full">
+                {/* Students Panel - with flex-grow to use available space */}
+                <div className="border rounded-md p-4 flex-grow">
+                    <h3 className="font-medium mb-2">Students</h3>
+                    <div className="space-y-2 overflow-y-auto max-h-[350px]">
+                        <div className="p-2 border rounded-md">Student 1</div>
+                        <div className="p-2 border rounded-md">Student 2</div>
+                    </div>
+                </div>
+                
+                {/* Teachers Panel */}
+                <div className="border rounded-md p-4">
+                    <h3 className="font-medium mb-2">Teachers</h3>
+                    <div className="space-y-2">
+                        <div className="p-2 border rounded-md">Teacher 1</div>
+                        <div className="p-2 border rounded-md">Teacher 2</div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
@@ -163,10 +195,10 @@ export default function WhiteboardPlanning() {
     }, [bookingsData, selectedDate]);
 
     // Format date once for reuse
-    const formattedDate = formatDateConsistently(selectedDate);
+    const formattedDate = formatDateNow(selectedDate);
 
     return (
-        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg border dark:border-gray-800">
+        <div className="dark:bg-gray-900 rounded-lg shadow-lg border dark:border-gray-800">
             {/* Date Navigation */}
             <WhiteboardNavigation
                 selectedDate={selectedDate}
@@ -174,11 +206,18 @@ export default function WhiteboardPlanning() {
             />
 
             <div className="p-6 space-y-4">
-                <BookingsPanel 
-                    bookings={filteredBookings} 
-                    totalBookingsCount={bookingsData.length}
+                <BookingDebug
+                    bookings={filteredBookings}
                     formattedDate={formattedDate}
                 />
+            </div>
+
+            <div className="flex flex-col gap-2 p-2">
+                <div className="border">helloworld</div>
+                <div className="border">control panell</div>
+                
+                {/* Use the new WhiteboardCalendar component */}
+                <WhiteboardCalendar />
             </div>
         </div>
     );
