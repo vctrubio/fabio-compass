@@ -5,11 +5,6 @@ import { ENTITY_CONFIGS } from '@/config/entities';
 import { BookingType } from "@/rails/model/BookingModel";
 
 
-/*
-🟢 Green if currently active
-🔵 Blue if future booking
-⚫ Gray if past booking
-*/
 export interface BookingTagProps {
     booking: BookingType;
 }
@@ -20,6 +15,7 @@ export function BookingTag({ booking }: BookingTagProps) {
     return (
         <ATag
             icon={<BookingIcon className="w-4 h-4" />}
+            className="border-0"
         >
             <FormatDateRange
                 startDate={booking.date_start}

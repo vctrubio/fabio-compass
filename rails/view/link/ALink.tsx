@@ -10,7 +10,7 @@ export function ALink({ icon, children, className, ...props }: ALinkProps) {
     return (
         <div
             className={cn(
-                "inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-orange-400 cursor-pointer hover:opacity-80 transition-opacity",
+                "inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-gray-300 cursor-pointer hover:border-orange-400 hover:opacity-80 transition-all duration-300 ease-in-out",
                 className
             )}
             {...props}
