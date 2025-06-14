@@ -120,8 +120,6 @@ export interface StudentModel {
   name: string;
 }
 export interface WhiteboardCalendarProps {
-  bookingsData: DrizzleData<BookingType>[];
-  whiteboardData: any;
   selectedDate: Date;
   dateData: any;
   teacherEventLinkedList: any;

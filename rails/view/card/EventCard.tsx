@@ -31,13 +31,16 @@ export function EventCard({ event, viewMode = 'grid' }: EventCardProps) {
     };
 
     if (viewMode === 'print') {
+        const durationHours = Math.floor(event.duration / 60);
+        const durationMinutes = event.duration % 60;
+        const durationText = durationHours > 0 
+            ? `${durationHours}h ${durationMinutes}m` 
+            : `${durationMinutes}m`;
+
         return (
             <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-3 space-y-2">
-                <div className="text-sm font-medium">{event.time}</div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">
-                    {event.duration}min • {event.location}
-                </div>
-                <div className="text-xs text-gray-500">{event.status}</div>
+                <div className="text-sm font-medium">({durationText})</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">{event.location}</div>
                 {event.students.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                         {event.students.map(student => (
@@ -52,20 +55,15 @@ export function EventCard({ event, viewMode = 'grid' }: EventCardProps) {
     }
 
     return (
-        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-3 space-y-2">
-            <KiteEventTag kiteEvent={kiteEventForTag} />
+        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg w-full p-2">
+            <KiteEventTag kiteEvent={kiteEventForTag} viewFull={false} />
             
             {event.students.length > 0 && (
-                <div className="flex flex-wrap gap-1">
+                <div className="mt-2">
                     {event.students.map(student => (
                         <StudentTag 
                             key={student.id} 
-                            student={{ 
-                                model: { 
-                                    id: student.id, 
-                                    name: student.name 
-                                } 
-                            }} 
+                            name={student.name}
                         />
                     ))}
                 </div>

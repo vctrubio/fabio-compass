@@ -3,27 +3,26 @@
 import { useMemo, useState } from "react";
 import { TeacherEventLinkedList } from "./teacher-event-linked-list";
 import { getDateString } from "@/components/getters";
-import { EventCard } from "./event-card";
 import { HeadsetIcon } from "@/assets/svg/HeadsetIcon";
-import { HelmetIcon } from "@/assets/svg/HelmetIcon";
 import { Printer, Grid, Share, FlagIcon } from "lucide-react";
 import { WhiteboardCalendarProps, TeacherEvent } from "./types";
+import { EventCard } from "@/rails/view/card/EventCard";
 
 export function WhiteboardCalendar({ 
-    bookingsData,
-    whiteboardData,
     selectedDate,
     dateData,
     teacherEventLinkedList,
     earliestTime
 }: WhiteboardCalendarProps) {
     const [viewMode, setViewMode] = useState<'grid' | 'print'>('grid');
-    
-    // Helper function to get ordinal suffix
-    const getOrdinalSuffix = (n: number) => {
-        const s = ['th', 'st', 'nd', 'rd'];
-        const v = n % 100;
-        return s[(v - 20) % 10] || s[v] || s[0];
+
+    // Helper functions for time calculations
+    const addMinutesToTime = (time: string, minutes: number): string => {
+        const [hours, mins] = time.split(':').map(Number);
+        const totalMinutes = hours * 60 + mins + minutes;
+        const newHours = Math.floor(totalMinutes / 60);
+        const newMins = totalMinutes % 60;
+        return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}`;
     };
 
     // Get all teachers (not just those with events)
@@ -31,48 +30,37 @@ export function WhiteboardCalendar({
         return dateData.todayTeacherLessonsEvent as TeacherEvent[];
     }, [dateData.todayTeacherLessonsEvent]);
 
-    // Generate time slots based on events throughout the day
-    const timeSlots = useMemo(() => {
-        const allEventTimes = new Set<string>();
-        
-        // Collect all unique event times
+    // Calculate maximum number of slots needed (including gaps) using the linked list's gap functionality
+    const maxSlots = useMemo(() => {
+        let maxEventsWithGaps = 0;
         allTeachers.forEach((teacher: TeacherEvent) => {
             const teacherNode = teacherEventLinkedList.getTeacherById(teacher.teacher.model.id);
-            if (teacherNode) {
-                let current = teacherNode.eventHead;
-                while (current) {
-                    allEventTimes.add(current.event.time);
-                    current = current.next;
-                }
+            if (teacherNode && teacherNode.hasEvents()) {
+                // Use the linked list's built-in gap calculation
+                const gaps = teacherNode.getAllGaps();
+                const significantGaps = gaps.filter((gap: number) => gap > 30); // Only count gaps > 30 minutes
+                
+                // Total slots = events + significant gaps
+                const eventsWithGaps = teacherNode.eventCount + significantGaps.length;
+                maxEventsWithGaps = Math.max(maxEventsWithGaps, eventsWithGaps);
             }
         });
-        
-        // Convert to sorted array
-        const sortedTimes = Array.from(allEventTimes).sort();
-        
-        // Ensure we have at least some default slots if no events
-        if (sortedTimes.length === 0) {
-            return ['09:00', '11:00', '13:00', '15:00', '17:00'];
-        }
-        
-        return sortedTimes;
+        return Math.max(maxEventsWithGaps, 4); // Minimum 4 slots
     }, [allTeachers, teacherEventLinkedList]);
 
-    const renderTeacherRow = (teacher: TeacherEvent, index: number) => {
+    const renderTeacherRow = (teacher: TeacherEvent) => {
         const teacherNode = teacherEventLinkedList.getTeacherById(teacher.teacher.model.id);
         
-        // Create a map of time to event for this teacher
-        const eventsByTime = new Map<string, any>();
-        if (teacherNode) {
-            let current = teacherNode.eventHead;
-            while (current) {
-                eventsByTime.set(current.event.time, current.event);
-                current = current.next;
-            }
-        }
-        
-        // Check if teacher has any events - if not, don't render in any view
-        const teacherEvents: any[] = [];
+        // Get all events for this teacher in order
+        const teacherEvents: Array<{
+            id: string;
+            time: string;
+            duration: number;
+            date: string;
+            status: string;
+            location: string;
+            students: Array<{ id: string; name: string }>;
+        }> = [];
         if (teacherNode) {
             let current = teacherNode.eventHead;
             while (current) {
@@ -81,11 +69,37 @@ export function WhiteboardCalendar({
             }
         }
         
+        // Don't render teachers with no events
         if (teacherEvents.length === 0) {
-            return null; // Don't render teachers with no events in any view
+            return null;
         }
         
         if (viewMode === 'print') {
+            // For print view, use time-based grid with EventCards
+            const allEventTimes = new Set<string>();
+            
+            // Collect all unique event times from all teachers
+            allTeachers.forEach((t: TeacherEvent) => {
+                const tNode = teacherEventLinkedList.getTeacherById(t.teacher.model.id);
+                if (tNode) {
+                    let current = tNode.eventHead;
+                    while (current) {
+                        allEventTimes.add(current.event.time);
+                        current = current.next;
+                    }
+                }
+            });
+            
+            const timeSlots = Array.from(allEventTimes).sort();
+            if (timeSlots.length === 0) {
+                return null;
+            }
+            
+            const eventsByTime = new Map<string, typeof teacherEvents[0]>();
+            teacherEvents.forEach(event => {
+                eventsByTime.set(event.time, event);
+            });
+            
             return (
                 <div 
                     key={teacher.teacher.model.id} 
@@ -99,76 +113,13 @@ export function WhiteboardCalendar({
                     </div>
                     
                     {/* Time Slots */}
-                    {timeSlots.map((timeSlot, index) => {
+                    {timeSlots.map((timeSlot, slotIndex) => {
                         const event = eventsByTime.get(timeSlot);
-                        const isLastColumn = index === timeSlots.length - 1;
+                        const isLastColumn = slotIndex === timeSlots.length - 1;
                         
                         return (
                             <div key={`${teacher.teacher.model.id}-${timeSlot}`} className={`min-h-[60px] p-2 ${!isLastColumn ? 'border-r border-gray-300' : ''}`}>
                                 {event ? (
-                                    <div className="bg-gray-100 dark:bg-gray-700 rounded p-2 text-xs">
-                                        <div className="text-gray-600 dark:text-gray-400">{(event.duration / 60).toFixed(1)}h</div>
-                                        {event.students && event.students.length > 0 && (
-                                            <div className="mt-1 flex flex-wrap gap-2">
-                                                {event.students.map((student: any, idx: number) => (
-                                                    <div key={idx} className="text-yellow-700 dark:text-yellow-400 flex items-center gap-1">
-                                                        <HelmetIcon className="w-3 h-3" />
-                                                        {student.name}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div className="text-center text-gray-400 text-xs">-</div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-            );
-        }
-        
-        // Grid view - show events as cards with gaps
-        // teacherEvents already populated above
-        
-        // Find gaps between consecutive events
-        const eventsWithGaps: Array<{type: 'event' | 'gap', data?: any, time?: string}> = [];
-        
-        for (let i = 0; i < teacherEvents.length; i++) {
-            const currentEvent = teacherEvents[i];
-            eventsWithGaps.push({ type: 'event', data: currentEvent });
-            
-            // Check if there's a gap to the next event
-            if (i < teacherEvents.length - 1) {
-                const nextEvent = teacherEvents[i + 1];
-                const currentEndTime = addMinutesToTime(currentEvent.time, currentEvent.duration);
-                
-                // If there's a gap of more than 30 minutes, show it
-                if (getTimeDifferenceMinutes(currentEndTime, nextEvent.time) > 30) {
-                    eventsWithGaps.push({ 
-                        type: 'gap', 
-                        time: `${currentEndTime} - ${nextEvent.time}`
-                    });
-                }
-            }
-        }
-        
-        return (
-            <div key={teacher.teacher.model.id} className="grid grid-cols-12 gap-2 border-b border-gray-200 dark:border-gray-600 py-2">
-                {/* Teacher Name - 2 columns */}
-                <div className="col-span-2 font-medium text-sm truncate flex items-center gap-1">
-                    <HeadsetIcon className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
-                    <span>{teacher.teacher.model.name}</span>
-                </div>
-                
-                {/* Events and Gaps - 10 columns */}
-                <div className="col-span-10 flex gap-1">
-                    {eventsWithGaps.map((item, slotIndex) => {
-                        if (item.type === 'event') {
-                            const event = item.data;
-                            return (
-                                <div key={`${teacher.teacher.model.id}-event-${slotIndex}`} className="min-h-[80px] flex-shrink-0 w-32">
                                     <EventCard 
                                         event={{
                                             id: event.id,
@@ -181,42 +132,87 @@ export function WhiteboardCalendar({
                                         }}
                                         viewMode={viewMode}
                                     />
-                                </div>
-                            );
-                        } else {
-                            // Gap
-                            return (
-                                <div key={`${teacher.teacher.model.id}-gap-${slotIndex}`} className="min-h-[80px] flex-shrink-0 w-24">
+                                ) : (
+                                    <div className="text-center text-gray-400 text-xs">-</div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        }
+        
+        // Grid view - show events and gaps in designated slots using linked list's gap functionality
+        const eventsWithGaps: Array<{type: 'event' | 'gap', data?: any, time?: string, gapMinutes?: number}> = [];
+        
+        // Use the linked list to traverse events and gaps
+        let current = teacherNode.eventHead;
+        while (current) {
+            // Add the event
+            eventsWithGaps.push({ type: 'event', data: current.event });
+            
+            // Check if there's a significant gap after this event
+            if (current.gapAfter > 30) { // Only show gaps > 30 minutes
+                const currentEndTime = addMinutesToTime(current.event.time, current.event.duration);
+                const nextStartTime = current.next ? current.next.event.time : '';
+                
+                eventsWithGaps.push({ 
+                    type: 'gap', 
+                    time: nextStartTime ? `${currentEndTime} - ${nextStartTime}` : `${currentEndTime} - end`,
+                    gapMinutes: current.gapAfter
+                });
+            }
+            
+            current = current.next;
+        }
+        
+        return (
+            <div key={teacher.teacher.model.id} className={`grid gap-2 border-b border-gray-200 dark:border-gray-600 py-2`} style={{ gridTemplateColumns: `200px repeat(${maxSlots}, 1fr)` }}>
+                {/* Teacher Name */}
+                <div className="font-medium text-sm truncate flex items-center gap-1">
+                    <HeadsetIcon className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+                    <span>{teacher.teacher.model.name}</span>
+                </div>
+                
+                {/* Event and Gap Slots */}
+                {Array.from({ length: maxSlots }, (_, slotIndex) => {
+                    const item = eventsWithGaps[slotIndex];
+                    
+                    return (
+                        <div key={`${teacher.teacher.model.id}-slot-${slotIndex}`} className="min-h-[80px]">
+                            {item ? (
+                                item.type === 'event' ? (
+                                    <EventCard 
+                                        event={{
+                                            id: item.data.id,
+                                            time: item.data.time,
+                                            duration: item.data.duration,
+                                            date: item.data.date,
+                                            status: item.data.status,
+                                            location: item.data.location,
+                                            students: item.data.students || []
+                                        }}
+                                        viewMode={viewMode}
+                                    />
+                                ) : (
+                                    // Gap
                                     <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-dashed border-yellow-300 dark:border-yellow-600 rounded-lg p-2 min-h-[80px] flex items-center justify-center">
                                         <div className="text-center text-yellow-600 dark:text-yellow-400 text-xs">
                                             <div className="font-medium">Gap</div>
                                             <div className="text-xs">{item.time}</div>
                                         </div>
                                     </div>
+                                )
+                            ) : (
+                                <div className="border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-lg min-h-[80px] flex items-center justify-center">
+                                    <span className="text-gray-400 text-xs">Empty</span>
                                 </div>
-                            );
-                        }
-                    })}
-                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
         );
-    };
-
-    // Helper functions for time calculations
-    const addMinutesToTime = (time: string, minutes: number): string => {
-        const [hours, mins] = time.split(':').map(Number);
-        const totalMinutes = hours * 60 + mins + minutes;
-        const newHours = Math.floor(totalMinutes / 60);
-        const newMins = totalMinutes % 60;
-        return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}`;
-    };
-
-    const getTimeDifferenceMinutes = (startTime: string, endTime: string): number => {
-        const [startHours, startMins] = startTime.split(':').map(Number);
-        const [endHours, endMins] = endTime.split(':').map(Number);
-        const startTotalMins = startHours * 60 + startMins;
-        const endTotalMins = endHours * 60 + endMins;
-        return endTotalMins - startTotalMins;
     };
 
     const handlePrint = () => {
@@ -419,43 +415,67 @@ export function WhiteboardCalendar({
             {/* Header */}
             {viewMode === 'print' ? (
                 <div id="print-view-container">
-                    <div id="print-schedule-header" className="grid gap-0 border-b-2 border-gray-300 dark:border-gray-600 pb-2 mb-2" style={{gridTemplateColumns: `200px repeat(${timeSlots.length}, 1fr)`}}>
-                        <div className="font-bold text-sm flex items-center gap-1 border-r border-gray-300 px-2">
-                            <HeadsetIcon className="w-4 h-4" />
-                            Teacher
-                        </div>
-                        {timeSlots.map((timeSlot, index) => {
-                            const isLastColumn = index === timeSlots.length - 1;
+                    {(() => {
+                        // Calculate time slots for print headers
+                        const allEventTimes = new Set<string>();
+                        allTeachers.forEach((teacher: TeacherEvent) => {
+                            const teacherNode = teacherEventLinkedList.getTeacherById(teacher.teacher.model.id);
+                            if (teacherNode) {
+                                let current = teacherNode.eventHead;
+                                while (current) {
+                                    allEventTimes.add(current.event.time);
+                                    current = current.next;
+                                }
+                            }
+                        });
+                        const timeSlots = Array.from(allEventTimes).sort();
+                        
+                        if (timeSlots.length === 0) {
                             return (
-                                <div key={index} className={`text-sm font-bold text-center px-2 ${!isLastColumn ? 'border-r border-gray-300' : ''}`}>
-                                    {timeSlot}
+                                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                                    No lessons scheduled for this date
                                 </div>
                             );
-                        })}
-                    </div>
-                    <div id="print-view-table" className="overflow-x-auto overflow-y-auto max-h-[600px]">
-                        {allTeachers.length === 0 ? (
-                            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                                No teachers available for this date
-                            </div>
-                        ) : (
-                            allTeachers.map(renderTeacherRow).filter(Boolean)
-                        )}
-                    </div>
+                        }
+                        
+                        return (
+                            <>
+                                {/* Print Header with Time Slots */}
+                                <div id="print-schedule-header" className="grid gap-0 border-b-2 border-gray-300 dark:border-gray-600 pb-2 mb-2" style={{gridTemplateColumns: `200px repeat(${timeSlots.length}, 1fr)`}}>
+                                    <div className="font-bold text-sm flex items-center gap-1 border-r border-gray-300 px-2">
+                                        <HeadsetIcon className="w-4 h-4" />
+                                        Teacher
+                                    </div>
+                                    {timeSlots.map((timeSlot, index) => {
+                                        const isLastColumn = index === timeSlots.length - 1;
+                                        return (
+                                            <div key={index} className={`text-sm font-bold text-center px-2 ${!isLastColumn ? 'border-r border-gray-300' : ''}`}>
+                                                {timeSlot}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                
+                                {/* Print Content */}
+                                <div id="print-view-table" className="overflow-x-auto overflow-y-auto max-h-[600px]">
+                                    {allTeachers.map(renderTeacherRow).filter(Boolean)}
+                                </div>
+                            </>
+                        );
+                    })()}
                 </div>
             ) : (
                 <>
-                    <div className="grid grid-cols-12 gap-2 border-b-2 border-gray-300 dark:border-gray-600 pb-2 mb-2">
-                        <div className="col-span-2 font-bold text-sm flex items-center gap-1">
+                    <div className={`grid gap-2 border-b-2 border-gray-300 dark:border-gray-600 pb-2 mb-2`} style={{ gridTemplateColumns: `200px repeat(${maxSlots}, 1fr)` }}>
+                        <div className="font-bold text-sm flex items-center gap-1">
                             <HeadsetIcon className="w-4 h-4" />
                             Teacher
                         </div>
-                        <div className="col-span-10 grid grid-cols-4 gap-2">
-                            <div className="text-sm font-bold text-center">1st</div>
-                            <div className="text-sm font-bold text-center">2nd</div>
-                            <div className="text-sm font-bold text-center">3rd</div>
-                            <div className="text-sm font-bold text-center">4th</div>
-                        </div>
+                        {Array.from({ length: maxSlots }, (_, index) => (
+                            <div key={index} className="text-sm font-bold text-center">
+                                Slot {index + 1}
+                            </div>
+                        ))}
                     </div>
                     
                     {/* Grid Content */}

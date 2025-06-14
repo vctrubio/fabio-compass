@@ -25,9 +25,10 @@ interface KiteEventFromRelation {
 
 interface KiteEventTagProps {
     kiteEvent: KiteEventFromRelation;
+    viewFull?: boolean;
 }
 
-export function KiteEventTag({ kiteEvent }: KiteEventTagProps) {
+export function KiteEventTag({ kiteEvent, viewFull = true }: KiteEventTagProps) {
     const [isLoading, setIsLoading] = useState(false);
     const KiteEventIcon = ENTITY_CONFIGS.kiteEvents.icon;
 
@@ -110,6 +111,38 @@ export function KiteEventTag({ kiteEvent }: KiteEventTagProps) {
             colorClass: getKiteEventStatusColor(status)
         }));
 
+    if (!viewFull) {
+        // Compact view: duration, dropdown, and below: start time and location
+        return (
+            <div className="space-y-1">
+                <ATag
+                    icon={isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <KiteEventIcon className="w-4 h-4" />}
+                >
+                    <span>{formatDuration(kiteEvent.duration)}</span>
+                    
+                    {kiteEvent.status && (
+                        <>
+                            <Separator orientation="vertical" className="h-4" />
+                            <DropdownTag
+                                currentValue={kiteEvent.status}
+                                options={statusOptions}
+                                onSelect={handleStatusClick}
+                                currentColorClass={statusColor!}
+                                disabled={isLoading}
+                            />
+                        </>
+                    )}
+                </ATag>
+                
+                <div className="text-xs text-muted-foreground space-y-0.5">
+                    <div>Start: {getTime(dateObj)}</div>
+                    {kiteEvent.location && <div>Location: {kiteEvent.location}</div>}
+                </div>
+            </div>
+        );
+    }
+
+    // Full view: existing layout
     return (
         <ATag
             icon={isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <KiteEventIcon className="w-4 h-4" />}

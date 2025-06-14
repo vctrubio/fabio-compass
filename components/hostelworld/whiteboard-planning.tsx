@@ -149,8 +149,6 @@ export default function WhiteboardPlanning() {
                     {/* Main Calendar/Planning Area */}
                     <div className="col-span-12 lg:col-span-9">
                         <WhiteboardCalendar 
-                            bookingsData={filteredBookings}
-                            whiteboardData={whiteboardData}
                             selectedDate={selectedDate}
                             dateData={dateData}
                             teacherEventLinkedList={teacherEventLinkedList}
