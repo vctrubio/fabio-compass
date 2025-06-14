@@ -2,6 +2,13 @@ import { DrizzleData } from "@/rails/types";
 import { TeacherType } from "@/rails/model/TeacherModel";
 import { BookingType } from "@/rails/model/BookingModel";
 
+//tmp to remove
+export interface TeacherEvent {
+  teacher: {
+    model: TeacherModel;
+  };
+}
+
 // =====================================
 // Booking Data Types
 // =====================================

@@ -18,7 +18,7 @@ export function StudentEntityColumn({
         key={student.id}
         className="inline-block bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mr-1 mb-1 flex items-center gap-1"
       >
-        <HelmetIcon className="w-3 h-3" />
+        <HelmetIcon className="w-4 h-4" />
         {student.name}
       </div>
     );
@@ -42,7 +42,7 @@ export function StudentEntityColumn({
           <div className="flex items-center justify-between">
             <span className="text-gray-600 dark:text-gray-300 flex">
               <span className="flex items-center gap-1 mr-1">
-                <HeadsetIcon className="w-3 h-3" />
+                <HeadsetIcon className="w-4  h-4" />
                 {lesson.teacher.name}
               </span>
               <span>[-{lesson.status}-]</span>
@@ -67,7 +67,7 @@ export function StudentEntityColumn({
   return (
     <div className="bg-white dark:bg-gray-800 border rounded-lg px-1 py-4 h-full flex flex-col">
       <h2 className="text-xl font-bold mb-4 flex items-center gap-2 flex-shrink-0">
-        <HelmetIcon className="w-6 h-6" />
+        <HelmetIcon className="w-8 h-8" />
         Students
       </h2>
       <div className="overflow-y-auto flex-1">
