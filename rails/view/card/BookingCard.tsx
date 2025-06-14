@@ -40,8 +40,8 @@ export function BookingCard({ booking, headerClassName }: BookingCardProps) {
     const currentStudentIds = students.map(student => student.id);
 
     return (
-        <div className="flex flex-col gap-2 border">
-            <div className={cn("flex items-center gap-2 pr-2 pl-1 py-2 border border-b", headerClassName)}>
+        <div className="flex flex-col gap-2 border rounded-sm">
+            <div className={cn("flex items-center gap-2 pr-2 pl-1 py-2 border-b", headerClassName)}>
                 <BookingTag booking={booking.model} />
 
                 {packageMinutes > 0 && (

@@ -1,6 +1,6 @@
 import { DrizzleData } from "@/rails/types";
 import { BookingType } from "@/rails/model/BookingModel";
-import { ProcessedBookingData } from "./whiteboard-backend";
+import { ProcessedBookingData } from "./types";
 
 /**
  * Centralized styling utility for whiteboard components

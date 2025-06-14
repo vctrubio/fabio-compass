@@ -5,23 +5,37 @@ import { BookingType } from "@/rails/model/BookingModel";
 // =====================================
 // Booking Data Types
 // =====================================
+
+export interface ProcessedData {
+  bookings: ProcessedBookingData[];
+  teacherStudentMapping: TeacherStudentMapping[];
+  teacherLessonEvents: TeacherLessonEvent[];
+  teachers: DrizzleData<TeacherType>[];
+  getDateData: (selectedDate: Date) => {
+    todayTeacherLessonsEvent: TeacherLessonEvent[];
+    totalEvents: KiteEventData[];
+    teacherConfirmationEvents: KiteEventData[];
+    availableLessonsFromBookings: LessonWithStudents[];
+  };
+}
+
 export interface ProcessedBookingData {
   id: string;
   booking: DrizzleData<BookingType>;
-  
+
   // Date information
   startDate?: string;
   endDate?: string;
-  
+
   // Package information
   packagePrice?: number;
   packageDuration: number; // in minutes
   packageCapacity?: number;
   pricePerHour?: number;
-  
+
   // Students
-  students: Array<{ id: string; name: string }>;
-  
+  students: Array<StudentModel>;
+
   // Lessons with simplified access
   lessons: Array<{
     id: string;
@@ -29,7 +43,7 @@ export interface ProcessedBookingData {
     status?: string;
     kiteEvents: Array<{ duration: number }>;
   }>;
-  
+
   // Calculated values
   totalKiteTime: number; // in minutes
   isCompleted: boolean;
@@ -42,15 +56,13 @@ export interface ProcessedBookingData {
 export interface KiteEventData {
   id: string;
   lesson_id: string;
-  teacher_id: string;
-  teacher_name: string;
   date: string;
   time: string;
   duration: number;
   location: string;
   status: string;
-  students: any[];
-  equipmentItems?: any[];
+  teacher: TeacherModel;
+  students: Array<StudentModel>;
   pricePerHour?: number;
 }
 
@@ -82,12 +94,6 @@ export type TeacherAvailability = {
 // =====================================
 // Lesson Types
 // =====================================
-export type LessonForScheduling = {
-  lessonId: string;
-  studentNames: string[];
-  teacherName: string;
-  teacherId: string;
-};
 
 export type DurationSettings = {
   single: number;
@@ -102,12 +108,10 @@ export interface TeacherModel {
   name: string;
 }
 
-export interface TeacherEvent {
-  teacher: {
-    model: TeacherModel;
-  };
+export interface StudentModel {
+  id: string;
+  name: string;
 }
-
 export interface WhiteboardCalendarProps {
   bookingsData: DrizzleData<BookingType>[];
   whiteboardData: any;
@@ -121,16 +125,17 @@ export interface WhiteboardCalendarProps {
 // Event Controller Types
 // =====================================
 export interface EventControllerProps {
-  selectedLessons: LessonForScheduling[];
+  selectedLessons: LessonWithStudents[];
   selectedDate: Date;
   onRemoveLesson: (lessonId: string) => void;
   onClearAll: () => void;
   teacherEventLinkedList?: any;
   earliestTime: string;
+  todayKiteEvents?: KiteEventData[];
 }
 
 export interface SelectedLessonsDisplayProps {
-  selectedLessons: LessonForScheduling[];
+  selectedLessons: LessonWithStudents[];
   teacherAvailability: Record<string, TeacherAvailability>;
   selectedDate: Date;
   location: string;
@@ -141,14 +146,31 @@ export interface SelectedLessonsDisplayProps {
 // =====================================
 // Component Types
 // =====================================
-export interface StudentEntityColumnProps {
-  lessons: any[];
-  onEntityClick: (lessonId: string) => void;
-  selectedLessons: any[];
+// =====================================
+// Student Entity Column Types
+// =====================================
+export interface LessonWithStudents {
+  lesson_id: string;
+  booking_id: string;
+  students: StudentModel[];
+  hours_remaining: number;
+  kite_events_count: number;
+  kite_hours_completed: number;
+  teacher: TeacherModel;
+  status: string;
+  pph?: number; // price per hour
 }
 
-export interface TeacherEntityColumnProps {
-  teachers: any[];
-  onEntityClick: (teacherId: string) => void;
-  selectedTeachers: any[];
+export interface StudentEntityColumnProps {
+  lessons?: LessonWithStudents[];
+  onEntityClick?: (lessonId: string) => void;
+  selectedLessons?: LessonWithStudents[];
+}
+
+// =====================================
+// Whiteboard Backend Types
+// =====================================
+export interface WhiteboardData {
+  teachers: DrizzleData<TeacherType>[];
+  bookings: DrizzleData<BookingType>[];
 }

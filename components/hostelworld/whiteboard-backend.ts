@@ -1,13 +1,16 @@
 import { useMemo } from "react";
 import { DrizzleData } from "@/rails/types";
-import { TeacherType } from "@/rails/model/TeacherModel";
 import { BookingType } from "@/rails/model/BookingModel";
 import { 
   ProcessedBookingData, 
   KiteEventData,
-  LessonForScheduling, 
   DurationSettings, 
-  TeacherAvailability 
+  TeacherAvailability,
+  LessonWithStudents,
+  TeacherStudentMapping,
+  TeacherLessonEvent,
+  WhiteboardData,
+  ProcessedData
 } from "./types";
 
 export class BookingDataProcessor {
@@ -124,7 +127,7 @@ export const TimeUtils = {
 // Teacher availability calculation
 export const TeacherAvailabilityCalculator = {
   calculateSynchronousAvailability: (
-    selectedLessons: LessonForScheduling[],
+    selectedLessons: LessonWithStudents[],
     submitTime: string,
     durations: DurationSettings,
     teacherEventLinkedList: any
@@ -138,13 +141,13 @@ export const TeacherAvailabilityCalculator = {
     // Group lessons by teacher
     const lessonsByTeacher = selectedLessons.reduce(
       (acc, lesson) => {
-        if (!acc[lesson.teacherId]) {
-          acc[lesson.teacherId] = [];
+        if (!acc[lesson.teacher.id]) {
+          acc[lesson.teacher.id] = [];
         }
-        acc[lesson.teacherId].push(lesson);
+        acc[lesson.teacher.id].push(lesson);
         return acc;
       },
-      {} as Record<string, LessonForScheduling[]>
+      {} as Record<string, LessonWithStudents[]>
     );
 
     // Track all calculated times to ensure no conflicts between teachers
@@ -162,7 +165,7 @@ export const TeacherAvailabilityCalculator = {
 
       teacherLessons.forEach((lesson, index) => {
         const lessonDuration =
-          lesson.studentNames.length > 1
+          lesson.students.length > 1
             ? durations.multiple
             : durations.single;
 
@@ -176,7 +179,7 @@ export const TeacherAvailabilityCalculator = {
           if (previousEvent) {
             currentTime = previousEvent.endTime;
             console.log(
-              `📅 Sequential scheduling: Lesson ${lesson.lessonId.slice(-4)} starts at ${currentTime} (after previous lesson from same teacher)`
+              `📅 Sequential scheduling: Lesson ${lesson.lesson_id.slice(-4)} starts at ${currentTime} (after previous lesson from same teacher)`
             );
           }
         }
@@ -233,14 +236,14 @@ export const TeacherAvailabilityCalculator = {
         // Add to calculated events
         allCalculatedEvents.push({
           teacherId,
-          lessonId: lesson.lessonId,
+          lessonId: lesson.lesson_id,
           startTime: calculatedTime,
           endTime,
           duration: lessonDuration,
         });
 
         // Store availability info
-        newAvailability[lesson.lessonId] = {
+        newAvailability[lesson.lesson_id] = {
           ...availability,
           calculatedTime,
           endTime,
@@ -249,10 +252,10 @@ export const TeacherAvailabilityCalculator = {
         };
 
         console.log(
-          `🔄 Synchronous calculation for lesson ${lesson.lessonId.slice(-4)}:`,
+          `🔄 Synchronous calculation for lesson ${lesson.lesson_id.slice(-4)}:`,
           {
             teacherId,
-            teacherName: lesson.teacherName,
+            teacherName: lesson.teacher.name,
             originalSubmitTime: submitTime,
             currentTime,
             calculatedTime,
@@ -280,55 +283,25 @@ export const TeacherAvailabilityCalculator = {
 // Lesson preparation for API calls
 export const LessonPreparation = {
   prepareLessonsWithCalculatedTime: (
-    selectedLessons: LessonForScheduling[],
+    selectedLessons: LessonWithStudents[],
     teacherAvailability: Record<string, TeacherAvailability>,
     submitTime: string,
     durations: DurationSettings
   ) => {
     return selectedLessons.map((lesson) => {
       const calculatedTime =
-        teacherAvailability[lesson.lessonId]?.calculatedTime || submitTime;
+        teacherAvailability[lesson.lesson_id]?.calculatedTime || submitTime;
       const lessonDuration =
-        lesson.studentNames.length > 1 ? durations.multiple : durations.single;
+        lesson.students.length > 1 ? durations.multiple : durations.single;
       return {
-        lessonId: lesson.lessonId,
-        teacherId: lesson.teacherId,
+        lessonId: lesson.lesson_id,
+        teacherId: lesson.teacher.id,
         calculatedTime: calculatedTime,
         duration: lessonDuration,
       };
     });
   },
 };
-
-interface WhiteboardData {
-  teachers: DrizzleData<TeacherType>[];
-  bookings: DrizzleData<BookingType>[];
-}
-
-interface ProcessedData {
-  bookings: ProcessedBookingData[];
-  teacherStudentMapping: TeacherStudentMapping[];
-  teacherLessonEvents: TeacherLessonEvent[];
-  teachers: DrizzleData<TeacherType>[];
-  getDateData: (selectedDate: Date) => {
-    todayBookings: ProcessedBookingData[];
-    todayTeacherLessonsEvent: TeacherLessonEvent[];
-    totalEvents: KiteEventData[];
-    plannedEvents: KiteEventData[];
-    teacherConfirmationEvents: KiteEventData[];
-    availableLessonsFromBookings: Array<{
-      lesson_id: string;
-      booking_id: string;
-      student_names: string[];
-      student_ids: string[];
-      hours_remaining: number;
-      kite_events_count: number;
-      kite_hours_completed: number;
-      teacher_name?: string;
-      status?: string;
-    }>;
-  };
-}
 
 export function useWhiteboardBackend(data: WhiteboardData): ProcessedData {
   const {
@@ -453,7 +426,7 @@ export function useWhiteboardBackend(data: WhiteboardData): ProcessedData {
     // Function to get date-specific data
     const getDateData = (selectedDate: Date) => {
       // Filter bookings for selected date
-      const todayBookings = bookings.filter((processedBooking) => {
+      const selectedDateBookings = bookings.filter((processedBooking) => {
         const startDate = new Date(processedBooking.booking.model.date_start);
         const endDate = new Date(processedBooking.booking.model.date_end);
         const selectedDateStart = new Date(
@@ -477,21 +450,21 @@ export function useWhiteboardBackend(data: WhiteboardData): ProcessedData {
         );
       });
 
-      // Get today's booking IDs
-      const todayBookingIds = new Set(
-        todayBookings.map((pb) => pb.booking.model.id)
+      // Get selected date's booking IDs
+      const selectedDateBookingIds = new Set(
+        selectedDateBookings.map((pb) => pb.booking.model.id)
       );
 
-      // Filter teacher lessons for today
+      // Filter teacher lessons for selected date
       const todayTeacherLessonsEvent = teacherLessonEvents
         .map((teacherEvent) => ({
           ...teacherEvent,
           lessons: teacherEvent.lessons.filter((lesson) =>
-            todayBookingIds.has(lesson.booking_id)
+            selectedDateBookingIds.has(lesson.booking_id)
           ),
           students: teacherEvent.students.filter((student) => {
             return teacherEvent.lessons.some((lesson) => {
-              if (!todayBookingIds.has(lesson.booking_id)) return false;
+              if (!selectedDateBookingIds.has(lesson.booking_id)) return false;
               // Find the booking for this lesson to check students
               const booking = rawBookings.find(b => b.model.id === lesson.booking_id);
               if (!booking) return false;
@@ -510,7 +483,7 @@ export function useWhiteboardBackend(data: WhiteboardData): ProcessedData {
         }))
         .filter((teacherEvent) => teacherEvent.lessons.length > 0);
 
-      // Process today's kite events
+      // Process selected date's kite events
       const totalEvents: KiteEventData[] = [];
       todayTeacherLessonsEvent.forEach((teacherEvent) => {
         teacherEvent.lessons.forEach((lesson) => {
@@ -532,20 +505,34 @@ export function useWhiteboardBackend(data: WhiteboardData): ProcessedData {
               const duration = kiteEvent.duration;
               if (duration && typeof duration === "number" && duration > 0) {
                 // Find the processed booking data for this lesson to get pricePerHour
-                const processedBooking = todayBookings.find(pb => 
+                const processedBooking = selectedDateBookings.find((pb: any) => 
                   pb.booking.model.id === lesson.booking_id
                 );
                 
+                // Validate required fields before creating event
+                if (!kiteEvent.id || !lesson.id || !teacherEvent.teacher.model.id || !kiteEvent.location || !kiteEvent.status) {
+                  console.error('❌ Missing required fields for kite event:', {
+                    eventId: kiteEvent.id,
+                    lessonId: lesson.id,
+                    teacherId: teacherEvent.teacher.model.id,
+                    location: kiteEvent.location,
+                    status: kiteEvent.status
+                  });
+                  return; // Skip this event
+                }
+
                 totalEvents.push({
                   id: kiteEvent.id,
                   lesson_id: lesson.id,
-                  teacher_id: teacherEvent.teacher.model.id,
-                  teacher_name: teacherEvent.teacher.model.name,
                   date: kiteEvent.date,
                   time: eventDate.toTimeString().slice(0, 5),
                   duration: duration,
-                  location: kiteEvent.location || "Unknown",
-                  status: kiteEvent.status || "planned",
+                  location: kiteEvent.location,
+                  status: kiteEvent.status,
+                  teacher: {
+                    id: teacherEvent.teacher.model.id,
+                    name: teacherEvent.teacher.model.name
+                  },
                   students: students,
                   pricePerHour: processedBooking?.pricePerHour,
                 });
@@ -561,9 +548,6 @@ export function useWhiteboardBackend(data: WhiteboardData): ProcessedData {
       );
 
       // Separate events by status
-      const plannedEvents = sortedEvents.filter(
-        (event) => event.status === "planned"
-      );
       const teacherConfirmationEvents = sortedEvents.filter(
         (event) => event.status === "teacherConfirmation"
       );
@@ -576,7 +560,7 @@ export function useWhiteboardBackend(data: WhiteboardData): ProcessedData {
         });
       });
 
-      const availableLessonsFromBookings = todayBookings
+      const availableLessonsFromBookings = selectedDateBookings
         .filter((processedBooking) => {
           const packageDuration = processedBooking.packageDuration;
           const totalKiteTime = processedBooking.totalKiteTime;
@@ -615,15 +599,23 @@ export function useWhiteboardBackend(data: WhiteboardData): ProcessedData {
                 lessonKiteHoursCompleted += kiteEvent.duration / 60;
               });
 
+              // Find teacher - this should always exist
+              const teacher = teachers.find(t => t.model.name === lesson.teacherName);
+              if (!teacher) {
+                console.error(`❌ Teacher not found for lesson ${lesson.id}:`, {
+                  lessonTeacherName: lesson.teacherName,
+                  availableTeachers: teachers.map(t => t.model.name)
+                });
+                return null; // Skip this lesson instead of creating invalid data
+              }
+
               return {
                 lesson_id: lesson.id,
                 booking_id: booking.model.id,
-                student_names: allBookingStudents.map(
-                  (student: any) => student.name
-                ),
-                student_ids: allBookingStudents.map(
-                  (student: any) => student.id
-                ),
+                students: allBookingStudents.map((student: any) => ({
+                  id: student.id,
+                  name: student.name
+                })),
                 hours_remaining: Math.max(
                   0,
                   (processedBooking.packageDuration -
@@ -632,17 +624,20 @@ export function useWhiteboardBackend(data: WhiteboardData): ProcessedData {
                 ),
                 kite_events_count: lessonKiteEventsCount,
                 kite_hours_completed: lessonKiteHoursCompleted,
-                teacher_name: lesson.teacherName,
+                teacher: {
+                  id: teacher.model.id,
+                  name: teacher.model.name
+                },
                 status: lesson.status,
+                pph: processedBooking.pricePerHour
               };
-            });
+            })
+            .filter((lesson): lesson is NonNullable<typeof lesson> => lesson !== null); // Remove any null lessons where teacher wasn't found
         });
 
       return {
-        todayBookings,
         todayTeacherLessonsEvent,
         totalEvents: sortedEvents,
-        plannedEvents,
         teacherConfirmationEvents,
         availableLessonsFromBookings,
       };

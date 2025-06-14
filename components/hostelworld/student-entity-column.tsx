@@ -1,29 +1,7 @@
 import React from 'react';
 import { HeadsetIcon } from '@/assets/svg/HeadsetIcon';
 import { HelmetIcon } from '@/assets/svg/HelmetIcon';
-
-interface LessonWithStudents {
-  lesson_id: string;
-  booking_id: string;
-  student_names: string[];
-  student_ids: string[];
-  hours_remaining: number;
-  kite_events_count: number;
-  kite_hours_completed: number;
-  teacher_name?: string;
-  status?: string;
-}
-
-interface StudentEntityColumnProps {
-  lessons?: LessonWithStudents[];
-  onEntityClick?: (entityId: string, entityType: 'teacher' | 'student' | 'lesson') => void;
-  selectedLessons?: Array<{
-    lessonId: string;
-    studentNames: string[];
-    teacherName: string;
-    teacherId: string;
-  }>;
-}
+import { LessonWithStudents, StudentEntityColumnProps, StudentModel } from './types';
 
 export function StudentEntityColumn({
   lessons = [],
@@ -32,7 +10,7 @@ export function StudentEntityColumn({
 }: StudentEntityColumnProps) {
   console.log('lessons i see....', lessons);
 
-  const renderStudent = (student: { id: string; name: string }) => {
+  const renderStudent = (student: StudentModel) => {
     if (!student) return null;
 
     return (
@@ -47,12 +25,12 @@ export function StudentEntityColumn({
   };
 
   const renderLesson = (lesson: LessonWithStudents) => {
-    const isSelected = selectedLessons.some(l => l.lessonId === lesson.lesson_id);
+    const isSelected = selectedLessons.some(l => l.lesson_id === lesson.lesson_id);
 
     return (
       <div
-        key={`${lesson.lesson_id}-${lesson.student_ids.join('-')}`}
-        onClick={() => onEntityClick?.(lesson.lesson_id, 'lesson')}
+        key={`${lesson.lesson_id}-abc`}
+        onClick={() => onEntityClick?.(lesson.lesson_id)}
         className={`border rounded-lg p-3 space-y-2 cursor-pointer transition-colors ${isSelected
           ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
           : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -63,12 +41,10 @@ export function StudentEntityColumn({
           {/* Additional lesson info */}
           <div className="flex items-center justify-between">
             <span className="text-gray-600 dark:text-gray-300 flex">
-              {lesson.teacher_name && (
-                <span className="flex items-center gap-1 mr-1">
-                  <HeadsetIcon className="w-3 h-3" />
-                  {lesson.teacher_name}
-                </span>
-              )}
+              <span className="flex items-center gap-1 mr-1">
+                <HeadsetIcon className="w-3 h-3" />
+                {lesson.teacher.name}
+              </span>
               <span>[-{lesson.status}-]</span>
             </span>
             <span className={`px-2 py-1 rounded-full font-medium text-xs ${lesson.hours_remaining > 0
@@ -82,12 +58,7 @@ export function StudentEntityColumn({
 
         {/* Students in this lesson */}
         <div className="flex flex-wrap">
-          {lesson.student_names.map((studentName, index) =>
-            renderStudent({
-              id: lesson.student_ids[index],
-              name: studentName
-            })
-          )}
+          {lesson.students.map(student => renderStudent(student))}
         </div>
       </div>
     );

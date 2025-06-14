@@ -199,7 +199,7 @@ export class TeacherEventLinkedList {
 
         // Add events to their respective teachers
         kiteEvents.forEach(event => {
-            const teacherNode = this.teachers.get(event.teacher_id);
+            const teacherNode = this.teachers.get(event.teacher.id);
             if (teacherNode) {
                 teacherNode.addEvent(event);
             }

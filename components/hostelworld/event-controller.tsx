@@ -8,10 +8,10 @@ import { TimeUtils } from '@/lib/utils';
 import { SelectedLessonsDisplay } from './selected-lessons-display';
 import { EventControllerActions } from './event-controller-actions';
 import { SchedulingSummary } from './scheduling-summary';
-import { 
-    EventControllerProps, 
-    DurationSettings, 
-    TeacherAvailability 
+import {
+    EventControllerProps,
+    DurationSettings,
+    TeacherAvailability
 } from './types';
 
 export function EventController({
@@ -20,7 +20,8 @@ export function EventController({
     onRemoveLesson,
     onClearAll,
     teacherEventLinkedList,
-    earliestTime
+    earliestTime,
+    todayKiteEvents
 }: EventControllerProps) {
     // State management
     const [submitTime, setSubmitTime] = useState(earliestTime);
@@ -83,10 +84,10 @@ export function EventController({
     useEffect(() => {
         if (selectedLessons.length > 0 && teacherEventLinkedList) {
             const lessonsByTeacher = selectedLessons.reduce((acc, lesson) => {
-                if (!acc[lesson.teacherId]) {
-                    acc[lesson.teacherId] = [];
+                if (!acc[lesson.teacher.id]) {
+                    acc[lesson.teacher.id] = [];
                 }
-                acc[lesson.teacherId].push(lesson);
+                acc[lesson.teacher.id].push(lesson);
                 return acc;
             }, {} as Record<string, any[]>);
 
@@ -122,10 +123,10 @@ export function EventController({
             const calculatedAvailability: Record<string, TeacherAvailability> = {};
 
             const lessonsByTeacher = selectedLessons.reduce((acc, lesson) => {
-                if (!acc[lesson.teacherId]) {
-                    acc[lesson.teacherId] = [];
+                if (!acc[lesson.teacher.id]) {
+                    acc[lesson.teacher.id] = [];
                 }
-                acc[lesson.teacherId].push(lesson);
+                acc[lesson.teacher.id].push(lesson);
                 return acc;
             }, {} as Record<string, any[]>);
 
@@ -133,7 +134,7 @@ export function EventController({
                 let currentTime = submitTime;
 
                 teacherLessons.forEach((lesson, index) => {
-                    const lessonDuration = lesson.studentNames.length > 1 ? durations.multiple : durations.single;
+                    const lessonDuration = lesson.students.length > 1 ? durations.multiple : durations.single;
 
                     let calculatedTime: string;
                     let conflicts: any[] = [];
@@ -150,7 +151,7 @@ export function EventController({
 
                     const endTime = TimeUtils.calculateEndTime(calculatedTime, lessonDuration);
 
-                    calculatedAvailability[lesson.lessonId] = {
+                    calculatedAvailability[lesson.lesson_id] = {
                         calculatedTime,
                         endTime,
                         conflicts,

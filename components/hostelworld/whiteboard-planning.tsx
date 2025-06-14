@@ -1,36 +1,44 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { WhiteboardNavigation } from "./whiteboard-navigation";
 import { WhiteboardCalendar } from "./whiteboard-calendar";
-import { WhiteboardControl } from "./whiteboard-control";
 import { WhiteboardPins } from "./whiteboard-pins";
 import { EventController } from "./event-controller";
 import { StudentEntityColumn } from "./student-entity-column";
-import { TeacherEntityColumn } from "./teacher-entity-column";
 import { TeacherEventLinkedList } from "./teacher-event-linked-list";
 import { useAdmin } from "@/components/providers/AdminProvider";
 import { DrizzleData } from "@/rails/types";
 import { BookingType } from "@/rails/model/BookingModel";
 import { useWhiteboardBackend } from "./whiteboard-backend";
+import { LessonWithStudents } from "./types";
 
 export default function WhiteboardPlanning() {
     const { bookingsData, teachersData } = useAdmin();
     const [selectedDate, setSelectedDate] = useState(new Date());
 
-    // Form state for selected lessons
-    const [selectedLessonsForEvent, setSelectedLessonsForEvent] = useState<Array<{
-        lessonId: string;
-        studentNames: string[];
-        teacherName: string;
-        teacherId: string;
-    }>>([]);
+    // Load selected date from localStorage on mount
+    useEffect(() => {
+        const savedDate = localStorage.getItem('whiteboard-selected-date');
+        if (savedDate) {
+            const parsedDate = new Date(savedDate);
+            // Check if the parsed date is valid and not older than 30 days
+            const now = new Date();
+            const daysDiff = Math.abs((now.getTime() - parsedDate.getTime()) / (1000 * 60 * 60 * 24));
+            if (!isNaN(parsedDate.getTime()) && daysDiff <= 30) {
+                setSelectedDate(parsedDate);
+            }
+        }
+    }, []);
 
-    // Form state for selected teachers
-    const [selectedTeachersForEvent, setSelectedTeachersForEvent] = useState<Array<{
-        teacherId: string;
-        teacherName: string;
-    }>>([]);
+    // Save selected date to localStorage when it changes
+    const handleDateChange = (date: Date) => {
+        setSelectedDate(date);
+        localStorage.setItem('whiteboard-selected-date', date.toISOString());
+    };
+
+    // Form state for selected lessons
+    const [selectedLessonsForEvent, setSelectedLessonsForEvent] = useState<LessonWithStudents[]>([]);
 
     // Use the whiteboard backend to process data
     const whiteboardData = useWhiteboardBackend({
@@ -58,11 +66,8 @@ export default function WhiteboardPlanning() {
     // Get date-specific data from the backend
     const dateData = whiteboardData.getDateData(selectedDate);
     const {
-        todayBookings,
         todayTeacherLessonsEvent,
         totalEvents,
-        plannedEvents,
-        teacherConfirmationEvents,
         availableLessonsFromBookings
     } = dateData;
 
@@ -87,7 +92,7 @@ export default function WhiteboardPlanning() {
     }, [teacherEventLinkedList]);
 
     const handleRemoveLesson = (lessonId: string) => {
-        setSelectedLessonsForEvent(prev => prev.filter(l => l.lessonId !== lessonId));
+        setSelectedLessonsForEvent(prev => prev.filter(l => l.lesson_id !== lessonId));
     };
 
     const handleClearAllLessons = () => {
@@ -96,46 +101,38 @@ export default function WhiteboardPlanning() {
 
     const onStudentColumnClick = (lessonId: string) => {
         const lesson = availableLessonsFromBookings.find(l => l.lesson_id === lessonId);
+        console.log('🔍 Click Debug:', {
+            lessonId,
+            foundLesson: lesson,
+            hasTeacher: lesson?.teacher,
+            teacherId: lesson?.teacher?.id,
+            teacherName: lesson?.teacher?.name
+        });
         if (lesson) {
-            // Find the teacher ID by matching the teacher name
-            const teacher = teachersData.find(t => t.model.name === lesson.teacher_name);
-            const teacherId = teacher?.model.id || lesson.teacher_name || 'unknown';
-
-            const newLesson = {
-                lessonId: lesson.lesson_id,
-                studentNames: lesson.student_names, // Keep as array instead of joining
-                teacherName: lesson.teacher_name || 'Unknown Teacher',
-                teacherId: teacherId,
-            };
-
             setSelectedLessonsForEvent(prev => {
-                const exists = prev.some(l => l.lessonId === newLesson.lessonId);
+                const exists = prev.some(l => l.lesson_id === lessonId);
                 if (exists) {
-                    return prev.filter(l => l.lessonId !== newLesson.lessonId);
+                    return prev.filter(l => l.lesson_id !== lessonId);
                 }
-                return [...prev, newLesson];
+                return [...prev, lesson];
             });
         }
     };
 
-    const onTeacherColumnClick = (teacherId: string) => {
-        // Teacher confirmation clicks are handled differently
-        // For now, we'll just log the click
-        console.log('Teacher clicked:', teacherId);
-    };
 
+    console.log("Todays Events:", totalEvents);
     return (
         <div className="dark:bg-gray-900 rounded-lg shadow-lg border dark:border-gray-800">
             <WhiteboardNavigation
                 selectedDate={selectedDate}
-                onDateChange={setSelectedDate}
+                onDateChange={handleDateChange}
             />
 
             <div className="flex flex-col gap-2 p-2">
                 <WhiteboardPins 
                     bookingsData={filteredBookings} 
                     selectedDate={selectedDate}
-                    whiteboardData={whiteboardData}
+                    todayKiteEvents={totalEvents}
                 />
                 
                 <EventController
@@ -170,15 +167,15 @@ export default function WhiteboardPlanning() {
                             selectedLessons={selectedLessonsForEvent}
                         />
 
+                        {/* // this needs to change. it is the teachers that have a kite evnet toady and the status of that event is = teacherConfirmation // */}
                         {/* Teacher Entity Column - Only show if there are teachers with confirmation events */}
-                        {teacherConfirmationEvents && teacherConfirmationEvents.length > 0 && (
+                        {/* {teacherConfirmationEvents && teacherConfirmationEvents.length > 0 && (
                             <TeacherEntityColumn
                                 teachers={teacherConfirmationEvents
                                     .filter(tce => tce.teacher && tce.teacher.model)
                                     .map(tce => ({
                                         teacher_id: tce.teacher.model.id,
                                         teacher_name: tce.teacher.model.name,
-                                        available_hours: 8, // Default available hours
                                         total_events: tce.events?.length || 0,
                                         status: 'active',
                                         confirmation_status: tce.confirmation_status as 'pending' | 'confirmed' | 'declined'
@@ -186,7 +183,7 @@ export default function WhiteboardPlanning() {
                                 onEntityClick={onTeacherColumnClick}
                                 selectedTeachers={selectedTeachersForEvent}
                             />
-                        )}
+                        )} */}
                     </div>
                 </div>
             </div>

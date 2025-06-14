@@ -13,13 +13,13 @@ export const SelectedLessonsDisplay = ({
 }: SelectedLessonsDisplayProps) => {
     const lessonsByTeacher = useMemo(() => {
         return selectedLessons.reduce((acc, lesson) => {
-            if (!acc[lesson.teacherId]) {
-                acc[lesson.teacherId] = {
-                    teacherName: lesson.teacherName,
+            if (!acc[lesson.teacher.id]) {
+                acc[lesson.teacher.id] = {
+                    teacherName: lesson.teacher.name,
                     lessons: []
                 };
             }
-            acc[lesson.teacherId].lessons.push(lesson);
+            acc[lesson.teacher.id].lessons.push(lesson);
             return acc;
         }, {} as Record<string, { teacherName: string; lessons: any[] }>);
     }, [selectedLessons]);
@@ -41,15 +41,15 @@ export const SelectedLessonsDisplay = ({
 
                         <div className="space-y-2">
                             {lessons.map((lesson, index) => {
-                                const availability = teacherAvailability[lesson.lessonId];
+                                const availability = teacherAvailability[lesson.lesson_id];
                                 const calculatedTime = availability?.calculatedTime;
                                 const endTime = availability?.endTime;
                                 const hasConflicts = availability?.conflicts && availability.conflicts.length > 0;
-                                const duration = lesson.studentNames.length > 1 ? durations.multiple : durations.single;
+                                const duration = lesson.students.length > 1 ? durations.multiple : durations.single;
 
                                 return (
                                     <div
-                                        key={lesson.lessonId}
+                                        key={lesson.lesson_id}
                                         className={`p-2 rounded border ${hasConflicts
                                                 ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700'
                                                 : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600'
@@ -62,14 +62,14 @@ export const SelectedLessonsDisplay = ({
                                                         #{index + 1}
                                                     </span>
                                                     <span className="text-xs font-mono bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1 py-0.5 rounded">
-                                                        {lesson.lessonId.slice(-4)}
+                                                        {lesson.lesson_id.slice(-4)}
                                                     </span>
                                                     {hasConflicts && (
                                                         <span className="text-xs text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-1 py-0.5 rounded">
                                                             ⚠️
                                                         </span>
                                                     )}
-                                                    <div><strong>Students:</strong> {Array.isArray(lesson.studentNames) ? lesson.studentNames.join(', ') : lesson.studentNames}</div>
+                                                    <div><strong>Students:</strong> {lesson.students.map(s => s.name).join(', ')}</div>
                                                     <div><strong>Location:</strong> {location}</div>
                                                     <div><strong>Duration:</strong> {duration / 60}h</div>
                                                     <div>
@@ -91,7 +91,7 @@ export const SelectedLessonsDisplay = ({
 
                                             <button
                                                 type="button"
-                                                onClick={() => onRemoveLesson(lesson.lessonId)}
+                                                onClick={() => onRemoveLesson(lesson.lesson_id)}
                                                 className="ml-2 text-red-500 hover:text-red-700 px-1 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-xs"
                                             >
                                                 ×
