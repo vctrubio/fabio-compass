@@ -32,8 +32,6 @@ export default function WhiteboardPlanning() {
         return bookingsData.filter((booking) => isBookingOnDate(booking, selectedDate));
     }, [bookingsData, selectedDate]);
 
-    const formattedDate = formatDateNow(selectedDate);
-
     return (
         <div className="dark:bg-gray-900 rounded-lg shadow-lg border dark:border-gray-800">
             <WhiteboardNavigation
@@ -41,16 +39,9 @@ export default function WhiteboardPlanning() {
                 onDateChange={setSelectedDate}
             />
 
-            <div className="p-6 space-y-4">
-                <BookingDebugShow
-                    bookings={filteredBookings}
-                    formattedDate={formattedDate}
-                />
-            </div>
-
             <div className="flex flex-col gap-2 p-2">
                 <WhiteboardPins bookingsData={filteredBookings} />
-                <WhiteboardControl bookingsData={filteredBookings} />
+                <WhiteboardControl />
                 <WhiteboardCalendar bookingsData={filteredBookings} />
             </div>
         </div>
