@@ -6,6 +6,7 @@ import { BookingType } from "@/rails/model/BookingModel";
 import { ENTITY_CONFIGS } from "@/config/entities";
 import { BookingCard } from "@/rails/view/card/BookingCard";
 import { BookingStr } from "@/rails/view/str/BookingStr";
+import { WhiteboardStyles } from "./whiteboard-classes";
 
 // Type declaration for the lambda values from BookingDrizzle
 interface BookingLambdas {
@@ -99,7 +100,10 @@ function BookingsList({ bookingsData }: BookingsListProps) {
             key={booking.model.id}
             className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow transition-all hover:shadow-md border border-gray-200 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-800"
           >
-            <BookingCard booking={booking} />
+            <BookingCard 
+              booking={booking} 
+              headerClassName={WhiteboardStyles.getBookingHeaderClassBasic(booking)}
+            />
           </div>
         ))}
       </div>

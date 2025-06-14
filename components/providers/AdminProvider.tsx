@@ -6,7 +6,6 @@ import { BookingType } from "@/rails/model/BookingModel";
 import { TeacherType } from "@/rails/model/TeacherModel";
 import { StudentType } from "@/rails/model/StudentModel";
 import { createClient } from "@/lib/supabase/client";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { internalActionTracker } from "@/lib/internal-action-tracker";
 
