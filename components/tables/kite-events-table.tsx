@@ -1,13 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { drizzleKiteEvents } from "@/rails/controller";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ENTITY_CONFIGS } from "@/config/entities";
 
-export default async function KiteEventsTable() {
-    try {
-        const kiteEventsData = await drizzleKiteEvents();
+interface KiteEventsTableProps {
+    kiteEvents: any[];
+}
 
+export default function KiteEventsTable({ kiteEvents: kiteEventsData }: KiteEventsTableProps) {
+    try {
         return (
             <Card>
                 <CardHeader>

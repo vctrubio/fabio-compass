@@ -10,20 +10,46 @@ import PaymentsTable from "@/components/tables/payments-table";
 import TransactionsTable from "@/components/tables/transactions-table";
 import PackagesTable from "@/components/tables/packages-table";
 
-export default function MasterTable() {
+interface MasterTableProps {
+  users: any[];
+  students: any[];
+  teachers: any[];
+  packages: any[];
+  bookings: any[];
+  lessons: any[];
+  kiteEvents: any[];
+  payments: any[];
+  transactions: any[];
+  commissions: any[];
+  equipments: any[];
+}
+
+export default function MasterTable({
+  users,
+  students,
+  teachers,
+  packages,
+  bookings,
+  lessons,
+  kiteEvents,
+  payments,
+  transactions,
+  commissions,
+  equipments,
+}: MasterTableProps) {
     return (
         <div className="space-y-6">
-            <UsersTable />
-            <StudentsTable />
-            <TeachersTable />
-            <PackagesTable />
-            <BookingsTable />
-            <LessonsTable />
-            <KiteEventsTable />
-            <PaymentsTable />
-            <TransactionsTable />
-            <CommissionsTable />
-            <EquipmentsTable />
+            <UsersTable users={users} />
+            <StudentsTable students={students} />
+            <TeachersTable teachers={teachers} />
+            <PackagesTable packages={packages} />
+            <BookingsTable bookings={bookings} />
+            <LessonsTable lessons={lessons} />
+            <KiteEventsTable kiteEvents={kiteEvents} />
+            <PaymentsTable payments={payments} />
+            <TransactionsTable transactions={transactions} />
+            <CommissionsTable commissions={commissions} />
+            <EquipmentsTable equipments={equipments} />
         </div>
     );
 }

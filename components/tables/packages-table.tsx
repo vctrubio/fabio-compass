@@ -1,12 +1,13 @@
-import { drizzlePackages } from "@/rails/controller/PackageDrizzle";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ENTITY_CONFIGS } from "@/config/entities";
 
-export default async function PackagesTable() {
-    try {
-        const packagesData = await drizzlePackages();
+interface PackagesTableProps {
+    packages: any[];
+}
 
+export default function PackagesTable({ packages: packagesData }: PackagesTableProps) {
+    try {
         return (
             <Card>
                 <CardHeader>

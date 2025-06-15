@@ -1,13 +1,14 @@
-import { getAllUsers } from "@/rails/controller/UserDrizzle";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserType } from "@/rails/model";
 import { getRoleBadgeVariant, getRoleBadgeStyle } from "@/components/getters";
 
-export default async function UsersTable() {
-  try {
-    const users: UserType[] = await getAllUsers();
+interface UsersTableProps {
+  users: UserType[];
+}
 
+export default function UsersTable({ users }: UsersTableProps) {
+  try {
     return (
       <Card>
         <CardHeader>

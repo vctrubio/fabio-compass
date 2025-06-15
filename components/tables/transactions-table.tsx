@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { drizzleTransactions } from "@/rails/controller";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default async function TransactionsTable() {
-    try {
-        const transactionsData = await drizzleTransactions();
+interface TransactionsTableProps {
+    transactions: any[];
+}
 
+export default function TransactionsTable({ transactions: transactionsData }: TransactionsTableProps) {
+    try {
         return (
             <Card>
                 <CardHeader>

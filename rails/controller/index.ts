@@ -29,6 +29,11 @@ export {
   drizzleLessonById,
 } from "./LessonDrizzle";
 
+// Export all package controller functions
+export {
+  drizzlePackages,
+} from "./PackageDrizzle";
+
 // Export all payment controller functions
 export {
   drizzlePayments,

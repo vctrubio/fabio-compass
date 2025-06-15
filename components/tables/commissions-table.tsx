@@ -1,12 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { drizzleCommissions } from "@/rails/controller";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default async function CommissionsTable() {
-    try {
-        const commissionsData = await drizzleCommissions();
+interface CommissionsTableProps {
+    commissions: any[];
+}
 
+export default function CommissionsTable({ commissions: commissionsData }: CommissionsTableProps) {
+    try {
         return (
             <Card>
                 <CardHeader>

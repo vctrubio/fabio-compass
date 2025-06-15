@@ -1,12 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { drizzleBookings } from "@/rails/controller";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ENTITY_CONFIGS } from "@/config/entities";
 
-export default async function BookingsTable() {
-    try {
-        const bookingsData = await drizzleBookings();
+interface BookingsTableProps {
+    bookings: any[];
+}
 
+export default function BookingsTable({ bookings: bookingsData }: BookingsTableProps) {
+    try {
         return (
             <Card>
                 <CardHeader>

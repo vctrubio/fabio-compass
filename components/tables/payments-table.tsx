@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { drizzlePayments } from "@/rails/controller";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ENTITY_CONFIGS } from "@/config/entities";
 
-export default async function PaymentsTable() {
-    try {
-        const paymentsData = await drizzlePayments();
+interface PaymentsTableProps {
+    payments: any[];
+}
 
+export default function PaymentsTable({ payments: paymentsData }: PaymentsTableProps) {
+    try {
         return (
             <Card>
                 <CardHeader>

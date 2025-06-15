@@ -1,13 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { drizzleLessons } from "@/rails/controller";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ENTITY_CONFIGS } from "@/config/entities";
 
-export default async function LessonsTable() {
-    try {
-        const lessonsData = await drizzleLessons();
+interface LessonsTableProps {
+    lessons: any[];
+}
 
+export default function LessonsTable({ lessons: lessonsData }: LessonsTableProps) {
+    try {
         return (
             <Card>
                 <CardHeader>

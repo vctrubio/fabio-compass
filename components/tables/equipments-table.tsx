@@ -1,13 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { drizzleEquipments } from "@/rails/controller";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ENTITY_CONFIGS } from "@/config/entities";
 
-export default async function EquipmentsTable() {
-    try {
-        const equipmentsData = await drizzleEquipments();
+interface EquipmentsTableProps {
+    equipments: any[];
+}
 
+export default function EquipmentsTable({ equipments: equipmentsData }: EquipmentsTableProps) {
+    try {
         return (
             <Card>
                 <CardHeader>

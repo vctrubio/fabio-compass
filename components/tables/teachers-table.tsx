@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { drizzleTeachers } from "@/rails/controller/TeacherDrizzle";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getLanguageBadge, getRoleBadgeVariant, getRoleBadgeStyle } from "@/components/getters";
 import { ENTITY_CONFIGS } from "@/config/entities";
 
-export default async function TeachersTable() {
-    try {
-        const teachersData = await drizzleTeachers();
+interface TeachersTableProps {
+    teachers: any[];
+}
 
+export default function TeachersTable({ teachers: teachersData }: TeachersTableProps) {
+    try {
         return (
             <Card>
                 <CardHeader>
