@@ -211,7 +211,7 @@ const TeacherRow = ({
                 const nextStartMinutes = nextHours * 60 + nextMins;
                 const gapMinutes = nextStartMinutes - currentEndMinutes;
 
-                if (gapMinutes > 30) { // Only show significant gaps
+                if (gapMinutes > 15) { // Only show significant gaps
                     eventsWithGaps.push({
                         type: 'gap',
                         time: currentEndTime,
@@ -254,10 +254,10 @@ const TeacherRow = ({
                                 />
                             ) : (
                                 // Gap
-                                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-dashed border-yellow-300 dark:border-yellow-600 rounded-lg p-2 min-h-[80px] flex items-center justify-center">
-                                    <div className="text-center text-yellow-600 dark:text-yellow-400 text-xs">
+                                <div className="h-full bg-yellow-50 dark:bg-yellow-900/20 border border-dashed border-yellow-300 dark:border-yellow-600 rounded-lg p-2 min-h-[80px] flex items-center justify-center">
+                                    <div className="text-center text-yellow-600 dark:text-yellow-400">
                                         <div className="font-medium">Gap</div>
-                                        <div className="text-xs">{item.time}</div>
+                                        <div className="text-xs mt-1">{item.gapMinutes}mins</div>
                                     </div>
                                 </div>
                             )
@@ -536,7 +536,7 @@ export function WhiteboardCalendar({
 
     const handleShare = () => {
         try {
-            const dateStr = selectedDate.toLocaleDateString('en-US', {
+            const dateStr = selectedDate.toLocaleDateString('es-ES', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'

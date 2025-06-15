@@ -81,3 +81,23 @@ export const getTime = (date: Date) => {
     const minutes = date.getMinutes().toString().padStart(2, "0");
     return `${hours}:${minutes}`;
 };
+
+/**
+ * Creates a Date object that when converted to ISO string, maintains the Madrid time correctly
+ * This function handles the timezone conversion properly for database storage
+ */
+export const createMadridDateTime = (baseDate: Date, timeString: string): Date => {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    
+    // Get the date components from baseDate
+    const year = baseDate.getFullYear();
+    const month = baseDate.getMonth();
+    const day = baseDate.getDate();
+    
+    // Create a date string in Madrid timezone format (ISO format interpreted as local time)
+    // We need to create the date as if it's UTC so when it gets stored in database as UTC,
+    // it will display correctly in Madrid timezone
+    const madridDateString = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00.000Z`;
+    
+    return new Date(madridDateString);
+};

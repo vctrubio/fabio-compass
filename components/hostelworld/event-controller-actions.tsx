@@ -1,17 +1,12 @@
 'use client';
 
-import { PushbackEvents } from './pushback-events';
-import { LessonForScheduling, DurationSettings } from './types';
+import { LessonWithStudents } from './types';
 
 interface EventControllerActionsProps {
-    selectedLessons: LessonForScheduling[];
+    selectedLessons: LessonWithStudents[];
     onClearAll: () => void;
     onCreateEvents: () => void;
     isLoading: boolean;
-    teacherEventLinkedList?: any;
-    durations: DurationSettings;
-    location: string;
-    selectedDate: Date;
 }
 
 export const EventControllerActions = ({
@@ -19,20 +14,10 @@ export const EventControllerActions = ({
     onClearAll,
     onCreateEvents,
     isLoading,
-    teacherEventLinkedList,
-    durations,
-    location,
-    selectedDate
+
 }: EventControllerActionsProps) => {
     return (
         <div className="flex justify-end gap-2 mt-4">
-            <PushbackEvents
-                teacherEventLinkedList={teacherEventLinkedList}
-                durations={durations}
-                location={location}
-                selectedDate={selectedDate}
-            />
-            
             <button
                 type="button"
                 onClick={onClearAll}
