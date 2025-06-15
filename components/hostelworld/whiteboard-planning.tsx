@@ -6,6 +6,7 @@ import { WhiteboardCalendar } from "./whiteboard-calendar";
 import { WhiteboardPins } from "./whiteboard-pins";
 import { EventController } from "./event-controller";
 import { StudentEntityColumn } from "./student-entity-column";
+import { TeacherEntityColumn } from "./teacher-entity-column";
 import { TeacherEventLinkedList } from "./teacher-event-linked-list";
 import { useAdmin } from "@/providers/AdminProvider";
 import { DrizzleData } from "@/rails/types";
@@ -68,6 +69,7 @@ export default function WhiteboardPlanning() {
     const {
         todayTeacherLessonsEvent,
         totalEvents,
+        teacherConfirmationEvents,
         availableLessonsFromBookings
     } = dateData;
 
@@ -145,9 +147,9 @@ export default function WhiteboardPlanning() {
                     todayKiteEvents={totalEvents}
                 />
 
-                <div className="grid grid-cols-12 gap-4">
+                <div className="grid grid-cols-12 gap-4 min-h-[600px]">
                     {/* Main Calendar/Planning Area */}
-                    <div className="col-span-12 lg:col-span-9">
+                    <div className="col-span-12 lg:col-span-9 h-full">
                         <WhiteboardCalendar 
                             selectedDate={selectedDate}
                             dateData={dateData}
@@ -156,32 +158,23 @@ export default function WhiteboardPlanning() {
                         />
                     </div>
 
-                    {/* Right Column */}
-                    <div className="col-span-12 lg:col-span-3 space-y-4">
-                        {/* Student Entity Column */}
-                        <StudentEntityColumn
-                            lessons={availableLessonsFromBookings}
-                            onEntityClick={onStudentColumnClick}
-                            selectedLessons={selectedLessonsForEvent}
-                        />
-
-                        {/* // this needs to change. it is the teachers that have a kite evnet toady and the status of that event is = teacherConfirmation // */}
-                        {/* Teacher Entity Column - Only show if there are teachers with confirmation events */}
-                        {/* {teacherConfirmationEvents && teacherConfirmationEvents.length > 0 && (
-                            <TeacherEntityColumn
-                                teachers={teacherConfirmationEvents
-                                    .filter(tce => tce.teacher && tce.teacher.model)
-                                    .map(tce => ({
-                                        teacher_id: tce.teacher.model.id,
-                                        teacher_name: tce.teacher.model.name,
-                                        total_events: tce.events?.length || 0,
-                                        status: 'active',
-                                        confirmation_status: tce.confirmation_status as 'pending' | 'confirmed' | 'declined'
-                                    }))}
-                                onEntityClick={onTeacherColumnClick}
-                                selectedTeachers={selectedTeachersForEvent}
+                    {/* Right Column - Student and Teacher Entities */}
+                    <div className="col-span-12 lg:col-span-3 flex flex-col gap-4 h-full">
+                        {/* Student Entity Column - Flex grow to take more space */}
+                        <div className="flex-grow min-h-0">
+                            <StudentEntityColumn
+                                lessons={availableLessonsFromBookings}
+                                onEntityClick={onStudentColumnClick}
+                                selectedLessons={selectedLessonsForEvent}
                             />
-                        )} */}
+                        </div>
+
+                        {/* Teacher Entity Column - Fixed size */}
+                        <div className="flex-shrink-0">
+                            <TeacherEntityColumn
+                                teacherConfirmationEvents={teacherConfirmationEvents}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

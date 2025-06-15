@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { EquipmentType } from '@/rails/model/EquipmentModel';
 import { Loader2 } from 'lucide-react';
 import { internalActionTracker } from '@/providers/AdminProvider';
+import { ClockIcon, LocationIcon } from '@/assets/svg';
 
 interface KiteEventFromRelation {
     id: string;
@@ -134,9 +135,17 @@ export function KiteEventTag({ kiteEvent, viewFull = true }: KiteEventTagProps) 
                     )}
                 </ATag>
                 
-                <div className="text-xs text-muted-foreground space-y-0.5">
-                    <div>Start: {getTime(dateObj)}</div>
-                    {kiteEvent.location && <div>Location: {kiteEvent.location}</div>}
+                <div className="text-lg text-muted-foreground space-y-1 pl-3">
+                    <div className="flex items-center gap-1.5">
+                        <ClockIcon className="w-4 h-4" />
+                        <span>{getTime(dateObj)}</span>
+                    </div>
+                    {kiteEvent.location && (
+                        <div className="flex items-center gap-1.5">
+                            <LocationIcon className="w-4 h-4" />
+                            <span>{kiteEvent.location}</span>
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -151,15 +160,20 @@ export function KiteEventTag({ kiteEvent, viewFull = true }: KiteEventTagProps) 
 
             <Separator orientation="vertical" className="h-4" />
 
-            <span>{getTime(dateObj)}</span>
-
+            <div className="flex items-center gap-1.5">
+                <ClockIcon className="w-4 h-4" />
+                <span>{getTime(dateObj)}</span>
+            </div>
 
             <span>{getDateString(dateObj)}</span>
 
             {kiteEvent.location && (
                 <>
                     <Separator orientation="vertical" className="h-4" />
-                    <span className="text-muted-foreground">{kiteEvent.location}</span>
+                    <div className="flex items-center gap-1.5">
+                        <LocationIcon className="w-4 h-4" />
+                        <span className="text-muted-foreground">{kiteEvent.location}</span>
+                    </div>
                 </>
             )}
 

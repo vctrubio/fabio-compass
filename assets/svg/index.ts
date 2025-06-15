@@ -10,6 +10,8 @@ export { FlagIcon } from './FlagIcon';
 export { HeadsetIcon } from './HeadsetIcon';
 export { PackageIcon } from './PackageIcon';
 export { PaymentIcon } from './PaymentIcon';
+export { ClockIcon } from './ClockIcon';
+export { LocationIcon } from './LocationIcon';
 
 // Re-export for easier imports
 export * from './HelmetIcon';
@@ -24,3 +26,5 @@ export * from './FlagIcon';
 export * from './HeadsetIcon';
 export * from './PackageIcon';
 export * from './PaymentIcon';
+export * from './ClockIcon';
+export * from './LocationIcon';

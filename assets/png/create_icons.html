@@ -1,0 +1,99 @@
+<\!DOCTYPE html>
+<html>
+<head>
+    <title>Icon to PNG Generator</title>
+</head>
+<body>
+    <\!-- Headset Icon -->
+    <canvas id="headsetCanvas" width="64" height="64" style="border: 1px solid #ccc; margin: 10px;"></canvas>
+    
+    <\!-- Helmet Icon -->
+    <canvas id="helmetCanvas" width="64" height="64" style="border: 1px solid #ccc; margin: 10px;"></canvas>
+    
+    <script>
+        // Headset Icon
+        const headsetCanvas = document.getElementById('headsetCanvas');
+        const headsetCtx = headsetCanvas.getContext('2d');
+        
+        // Create headset icon
+        headsetCtx.strokeStyle = '#65a30d';
+        headsetCtx.lineWidth = 3;
+        headsetCtx.lineCap = 'round';
+        headsetCtx.lineJoin = 'round';
+        
+        // Scale the paths to fit 64x64 canvas
+        const scale = 64 / 24;
+        headsetCtx.scale(scale, scale);
+        
+        // Draw headset path
+        headsetCtx.beginPath();
+        // Left ear cup
+        headsetCtx.roundRect(2, 8, 2, 6, 0.5);
+        headsetCtx.stroke();
+        
+        // Headband arc
+        headsetCtx.beginPath();
+        headsetCtx.arc(12, 9, 6, Math.PI, 0);
+        headsetCtx.stroke();
+        
+        // Right ear cup  
+        headsetCtx.beginPath();
+        headsetCtx.roundRect(20, 8, 2, 6, 0.5);
+        headsetCtx.stroke();
+        
+        // Microphone
+        headsetCtx.beginPath();
+        headsetCtx.moveTo(20, 16);
+        headsetCtx.lineTo(18, 18);
+        headsetCtx.lineTo(15, 18);
+        headsetCtx.stroke();
+        
+        // Create download link for headset
+        headsetCanvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'headset-icon.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+        
+        // Helmet Icon
+        const helmetCanvas = document.getElementById('helmetCanvas');
+        const helmetCtx = helmetCanvas.getContext('2d');
+        
+        // Draw helmet shape
+        helmetCtx.fillStyle = '#FEC602';
+        helmetCtx.beginPath();
+        helmetCtx.ellipse(32, 35, 28, 20, 0, 0, 2 * Math.PI);
+        helmetCtx.fill();
+        
+        // Add helmet details
+        helmetCtx.fillStyle = '#FFD255';
+        helmetCtx.beginPath();
+        helmetCtx.ellipse(25, 25, 8, 12, -0.2, 0, Math.PI);
+        helmetCtx.fill();
+        
+        helmetCtx.beginPath();
+        helmetCtx.ellipse(39, 25, 8, 12, 0.2, 0, Math.PI);
+        helmetCtx.fill();
+        
+        // Create download link for helmet
+        setTimeout(() => {
+            helmetCanvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'helmet-icon.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }, 100);
+    </script>
+</body>
+</html>
+EOF < /dev/null

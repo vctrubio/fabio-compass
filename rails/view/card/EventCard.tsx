@@ -2,6 +2,8 @@
 
 import { KiteEventTag } from "@/rails/view/tag/KiteEventTag";
 import { StudentTag } from "@/rails/view/tag/StudentTag";
+import { HelmetIcon } from "@/assets/svg/HelmetIcon";
+import { formatDuration } from "@/components/formatters";
 
 interface EventCardProps {
     event: {
@@ -31,23 +33,32 @@ export function EventCard({ event, viewMode = 'grid' }: EventCardProps) {
     };
 
     if (viewMode === 'print') {
-        const durationHours = Math.floor(event.duration / 60);
-        const durationMinutes = event.duration % 60;
-        const durationText = durationHours > 0 
-            ? `${durationHours}h ${durationMinutes}m` 
-            : `${durationMinutes}m`;
-
         return (
-            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-3 space-y-2">
-                <div className="text-sm font-medium">({durationText})</div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">{event.location}</div>
+            <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-700 rounded-lg p-3 space-y-3">
+                {/* Duration and Location Header */}
+                <div className="flex items-center justify-between px-3">
+                    <div className="text-lg font-bold text-blue-800 dark:text-blue-200">
+                        {formatDuration(event.duration)}
+                    </div>
+                    {event.location && (
+                        <div className="text-sm text-blue-600 dark:text-blue-300 font-medium">
+                            📍 {event.location}
+                        </div>
+                    )}
+                </div>
+                
+                {/* Students Section */}
                 {event.students.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                        {event.students.map(student => (
-                            <span key={student.id} className="text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 px-2 py-1 rounded">
-                                {student.name}
-                            </span>
-                        ))}
+                    <div className="space-y-2">
+                       
+                        <div className="flex flex-wrap gap-2">
+                            {event.students.map(student => (
+                                <div key={student.id} className="flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 px-3 py-1.5 rounded-full text-xl font-medium">
+                                    <HelmetIcon className="w-4 h-4" />
+                                    {student.name}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
             </div>
@@ -57,12 +68,11 @@ export function EventCard({ event, viewMode = 'grid' }: EventCardProps) {
     return (
         <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg w-full p-2">
             <KiteEventTag kiteEvent={kiteEventForTag} viewFull={false} />
-            
             {event.students.length > 0 && (
-                <div className="mt-2">
+                <div className="mt-2 ml-2">
                     {event.students.map(student => (
-                        <StudentTag 
-                            key={student.id} 
+                        <StudentTag
+                            key={student.id}
                             name={student.name}
                         />
                     ))}
