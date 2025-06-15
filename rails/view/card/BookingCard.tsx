@@ -96,7 +96,7 @@ export function BookingCard({ booking, headerClassName }: BookingCardProps) {
                         {students.map((student) => (
                             <StudentTag
                                 key={student.id}
-                                student={student}
+                                name={student.name}
                             />
                         ))}
                         {needsMoreStudents && (

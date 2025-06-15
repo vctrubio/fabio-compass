@@ -8,6 +8,7 @@ import KiteEventsTable from "@/components/tables/kite-events-table";
 import LessonsTable from "@/components/tables/lessons-table";
 import PaymentsTable from "@/components/tables/payments-table";
 import TransactionsTable from "@/components/tables/transactions-table";
+import PackagesTable from "@/components/tables/packages-table";
 
 export default function MasterTable() {
     return (
@@ -15,6 +16,7 @@ export default function MasterTable() {
             <UsersTable />
             <StudentsTable />
             <TeachersTable />
+            <PackagesTable />
             <BookingsTable />
             <LessonsTable />
             <KiteEventsTable />

@@ -7,7 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { FlagIcon } from '@/assets/svg/FlagIcon';
 import { ALink } from '@/rails/view/link/ALink';
 import { Loader2 } from 'lucide-react';
-import { useAdmin, internalActionTracker } from '@/components/providers/AdminProvider';
+import { useAdmin, internalActionTracker } from '@/providers/AdminProvider';
 
 export interface TeacherParams {
   id: string;

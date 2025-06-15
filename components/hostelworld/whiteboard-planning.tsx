@@ -7,7 +7,7 @@ import { WhiteboardPins } from "./whiteboard-pins";
 import { EventController } from "./event-controller";
 import { StudentEntityColumn } from "./student-entity-column";
 import { TeacherEventLinkedList } from "./teacher-event-linked-list";
-import { useAdmin } from "@/components/providers/AdminProvider";
+import { useAdmin } from "@/providers/AdminProvider";
 import { DrizzleData } from "@/rails/types";
 import { BookingType } from "@/rails/model/BookingModel";
 import { useWhiteboardBackend } from "./whiteboard-backend";

@@ -5,9 +5,11 @@ export default function WithInitLayout({
 }) {
   return (
     <div className="min-h-screen bg-background">
-      <div className="space-y-6">
-        {children}
-      </div>
+      {children}
     </div>
   );
 }
+
+
+
+// to do is create WalletProvider.tsx

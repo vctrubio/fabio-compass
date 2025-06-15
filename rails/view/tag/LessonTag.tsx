@@ -9,7 +9,7 @@ import { LessonStatusEnum } from '@/rails/model/EnumModel';
 import { DropdownTag } from './DropdownTag';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
-import { internalActionTracker } from '@/components/providers/AdminProvider';
+import { internalActionTracker } from '@/providers/AdminProvider';
 import { formatDuration } from '@/components/formatters';
 import { KiteIcon } from '@/assets/svg/KiteIcon';
 

@@ -12,7 +12,7 @@ import { DropdownTag } from './DropdownTag';
 import { toast } from 'sonner';
 import { EquipmentType } from '@/rails/model/EquipmentModel';
 import { Loader2 } from 'lucide-react';
-import { internalActionTracker } from '@/components/providers/AdminProvider';
+import { internalActionTracker } from '@/providers/AdminProvider';
 
 interface KiteEventFromRelation {
     id: string;

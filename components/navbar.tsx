@@ -13,7 +13,7 @@ export default function Navbar() {
           </Link>
 
           {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="md:flex items-center space-x-6">
             {MAIN_ROUTES.map((route) => (
               <Link
                 key={route.path}

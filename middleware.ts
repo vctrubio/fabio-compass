@@ -1,5 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 // Do not run code between createServerClient and
 // supabase.auth.getUser(). A simple mistake could make it very hard to debug
@@ -9,6 +9,9 @@ export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
+
+  console.log("dev:middleware:running", request.nextUrl.pathname);
+  return NextResponse.next();
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -38,7 +41,7 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  console.log('dev:middleware:ran');
+  console.log("dev:middleware:ran");
 
   if (process.env.DEBUG) {
     console.log("dev:debug:middleware: user", user);
@@ -59,8 +62,11 @@ export async function middleware(request: NextRequest) {
     console.log("dev:middleware:redirecting to", url.toString());
     return NextResponse.redirect(url);
   }
-  
-  console.log("dev:middleware:continuing with request", request.nextUrl.pathname);
+
+  console.log(
+    "dev:middleware:continuing with request",
+    request.nextUrl.pathname
+  );
   return supabaseResponse;
 }
 

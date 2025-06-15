@@ -54,7 +54,6 @@ function calculateLambdaValues(booking: any) {
     booking.bookingStudents?.map((bookingStudent: any) => ({
       id: bookingStudent.student?.id,
       name: bookingStudent.student?.name,
-      languages: bookingStudent.student?.languages,
     })) || [];
 
   const totalLessons = booking.lessons?.length || 0;
@@ -75,6 +74,7 @@ export async function drizzleBookings(): Promise<DrizzleData<BookingType>[]> {
   try {
     if (process.env.DEBUG) console.log("(dev:drizzle:server) getting table name: Bookings");
     const bookings = await db.query.Booking.findMany(bookingWithSort);
+    if (process.env.DEBUG) console.log("222222");
     const result = bookings.map(parseBooking);
     if (process.env.DEBUG) console.log("(dev:drizzle:server) parse completed: Bookings");
     return result;

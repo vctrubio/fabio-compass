@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { HelmetIcon } from '@/assets/svg/HelmetIcon';
 import { ALink } from '@/rails/view/link/ALink';
 import { Loader2 } from 'lucide-react';
-import { useAdmin, internalActionTracker } from '@/components/providers/AdminProvider';
+import { useAdmin, internalActionTracker } from '@/providers/AdminProvider';
 import { addStudentToBooking } from '@/actions/booking-student-actions';
 
 export interface StudentParams {
