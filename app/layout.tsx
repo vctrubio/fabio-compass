@@ -1,9 +1,10 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
-import WatchBar from "@/components/watchbar/WatchBar";
+import WatchBar from "@/components/userStatus/WatchBar";
 import Navbar from "@/components/navbar";
 import { Toaster } from "sonner";
+import { WalletProvider } from "@/providers/WalletProvider";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -29,10 +30,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
-          <WatchBar />
-          {children}
-          <Toaster richColors position="top-left" />
+          <WalletProvider>
+            <Navbar />
+            {/* <WatchBar /> */} 
+            {children}
+            <Toaster richColors position="top-left" />
+          </WalletProvider>
         </ThemeProvider>
       </body>
     </html>
