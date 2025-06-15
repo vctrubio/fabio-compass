@@ -24,7 +24,7 @@ export async function createBookingFromClient(
         package_id: bookingData.package_id,
         date_start: bookingData.date_start,
         date_end: bookingData.date_end,
-        signer_pk: bookingData.signer_pk, // User wallet ID who signed the booking
+        signer_pk: "9352027b-e9c5-4b2f-b6d6-375addd816ea", // Default signer_pk for admin
       })
       .select()
       .single();

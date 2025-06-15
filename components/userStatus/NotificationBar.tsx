@@ -162,7 +162,7 @@ export default function NotificationBar({
                 <Bell className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="font-medium text-foreground mb-2">No notifications</h3>
                 <p className="text-sm text-muted-foreground">
-                  You're all caught up! New notifications will appear here.
+                  You&apos;re all caught up! New notifications will appear here.
                 </p>
               </div>
             ) : (
