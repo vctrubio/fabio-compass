@@ -333,7 +333,7 @@ export function WhiteboardPins({ bookingsData, selectedDate, todayKiteEvents = [
                     return true;
 
                 case 'available':
-                    // Show bookings that are waiting (have lessons, no events today, not completed)
+                    // Show bookings that are waiting (have lessons OR no lessons, no events today, not completed)
                     const totalMinutesAvailable = getTotalKiteMinutes(booking);
                     const packageDurationAvailable = getPackageDuration(booking);
                     const hasKiteEventsToday = bookingsWithKiteEventsToday.has(booking.model.id);
@@ -341,11 +341,12 @@ export function WhiteboardPins({ bookingsData, selectedDate, todayKiteEvents = [
                         lesson.status === 'cancelled' || lesson.status === 'delegated'
                     );
 
-                    // Must have lessons, not kiting today, not completed/over, not cancelled
-                    return lessons.length > 0 &&
-                        !hasKiteEventsToday &&
-                        !(packageDurationAvailable > 0 && totalMinutesAvailable >= packageDurationAvailable) &&
-                        !hasCancelledLessons;
+                    // Include bookings with no lessons OR bookings with lessons that are not kiting today, not completed/over, not cancelled
+                    return (lessons.length === 0 || 
+                        (lessons.length > 0 &&
+                         !hasKiteEventsToday &&
+                         !(packageDurationAvailable > 0 && totalMinutesAvailable >= packageDurationAvailable) &&
+                         !hasCancelledLessons));
 
                 case 'onboard':
                     // Show bookings that have kite events today
@@ -425,9 +426,9 @@ export function WhiteboardPins({ bookingsData, selectedDate, todayKiteEvents = [
         {
             key: 'available' as FilterType,
             label: 'Available',
-            count: statusBreakdown.waiting.count,
+            count: statusBreakdown.waiting.count + statusBreakdown.noLessons.count,
             color: 'bg-orange-500',
-            desc: 'Lessons looking to Kite'
+            desc: 'Lessons looking to Kite or needing an instructor'
         },
         {
             key: 'onboard' as FilterType,

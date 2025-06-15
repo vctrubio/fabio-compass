@@ -27,6 +27,33 @@ export async function updateKiteEventStatus(
     }
 
     console.log('Kite event status updated successfully:', data);
+    
+    return { success: true, data };
+  });
+}
+
+export async function updateKiteEventLocation(
+  kiteEventId: string,
+  newLocation: 'Los Lances' | 'Valdevaqueros'
+): Promise<ApiAction> {
+  return withInternalActionTracking(async () => {
+    const supabase = await createClient();
+    
+    console.log('Updating kite event location via Supabase:', kiteEventId, newLocation);
+    
+    const { data, error } = await supabase
+      .from('kite_event')
+      .update({ location: newLocation })
+      .eq('id', kiteEventId)
+      .select();
+
+    if (error) {
+      console.error('Supabase kite event location update error:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('Kite event location updated successfully:', data);
+    
     return { success: true, data };
   });
 }
@@ -137,9 +164,6 @@ export async function createKiteEventsWithCalculatedTimeAction(data: {
           createdEvents 
         };
       }
-
-      // Revalidate the page to refresh data
-      revalidatePath('/admin/fabio');
 
       return { success: true, events: createdEvents };
     } catch (error: any) {
@@ -252,13 +276,35 @@ export async function updateKiteEventsWithCalculatedTimeAction(data: {
         };
       }
 
-      // Revalidate the page to refresh data
-      revalidatePath('/admin/fabio');
-
       return { success: true, events: updatedEvents };
     } catch (error: any) {
       console.error('Error updating kite events with calculated time:', error);
       return { success: false, error: error.message || 'Failed to update kite events' };
     }
+  });
+}
+
+export async function deleteKiteEvent(
+  kiteEventId: string
+): Promise<ApiAction> {
+  return withInternalActionTracking(async () => {
+    const supabase = await createClient();
+    
+    console.log('Deleting kite event via Supabase:', kiteEventId);
+    
+    const { data, error } = await supabase
+      .from('kite_event')
+      .delete()
+      .eq('id', kiteEventId)
+      .select();
+
+    if (error) {
+      console.error('Supabase kite event delete error:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('Kite event deleted successfully:', data);
+    
+    return { success: true, data };
   });
 }

@@ -17,6 +17,7 @@ import { LessonWithStudents } from "./types";
 export default function WhiteboardPlanning() {
     const { bookingsData, teachersData } = useAdmin();
     const [selectedDate, setSelectedDate] = useState(new Date());
+    const [selectedLessonsForEvent, setSelectedLessonsForEvent] = useState<LessonWithStudents[]>([]);
 
     // Load selected date from localStorage on mount
     useEffect(() => {
@@ -37,9 +38,6 @@ export default function WhiteboardPlanning() {
         setSelectedDate(date);
         localStorage.setItem('whiteboard-selected-date', date.toISOString());
     };
-
-    // Form state for selected lessons
-    const [selectedLessonsForEvent, setSelectedLessonsForEvent] = useState<LessonWithStudents[]>([]);
 
     // Use the whiteboard backend to process data
     const whiteboardData = useWhiteboardBackend({
@@ -73,6 +71,19 @@ export default function WhiteboardPlanning() {
         availableLessonsFromBookings
     } = dateData;
 
+    // Filter lessons that have no kite events for the selected date
+    const availableStudentsFromBookings = useMemo(() => {
+        return availableLessonsFromBookings.filter(lesson => {
+            // Check if this lesson has any kite events in totalEvents (today's events)
+            const hasKiteEventsToday = totalEvents.some(event => 
+                event.lesson_id === lesson.lesson_id
+            );
+            
+            // Return lessons that have NO kite events today
+            return !hasKiteEventsToday;
+        });
+    }, [availableLessonsFromBookings, totalEvents]);
+
     // Create the TeacherEventLinkedList
     const teacherEventLinkedList = useMemo(() => {
         return new TeacherEventLinkedList(todayTeacherLessonsEvent, totalEvents);
@@ -102,7 +113,7 @@ export default function WhiteboardPlanning() {
     };
 
     const onStudentColumnClick = (lessonId: string) => {
-        const lesson = availableLessonsFromBookings.find(l => l.lesson_id === lessonId);
+        const lesson = availableStudentsFromBookings.find(l => l.lesson_id === lessonId);
         console.log('🔍 Click Debug:', {
             lessonId,
             foundLesson: lesson,
@@ -163,7 +174,7 @@ export default function WhiteboardPlanning() {
                         {/* Student Entity Column - Flex grow to take more space */}
                         <div className="flex-grow min-h-0">
                             <StudentEntityColumn
-                                lessons={availableLessonsFromBookings}
+                                lessons={availableStudentsFromBookings}
                                 onEntityClick={onStudentColumnClick}
                                 selectedLessons={selectedLessonsForEvent}
                             />
