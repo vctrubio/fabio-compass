@@ -73,14 +73,23 @@ function calculateLambdaValues(booking: any) {
 export async function drizzleBookings(): Promise<DrizzleData<BookingType>[]> {
   try {
     if (process.env.DEBUG) console.log("(dev:drizzle:server) getting table name: Bookings");
+    
+    // Use the capitalized table name as defined in schema
     const bookings = await db.query.Booking.findMany(bookingWithSort);
+    
     if (process.env.DEBUG) console.log("222222");
     const result = bookings.map(parseBooking);
     if (process.env.DEBUG) console.log("(dev:drizzle:server) parse completed: Bookings");
     return result;
-  } catch (error) {
+  } catch (error: any) {
+    // Check for Supabase/database connection errors
+    if (error?.cause?.code === 'XX000' || error?.message?.includes('Tenant or user not found')) {
+      console.warn("⚠️ Supabase database error. Please check connection and try again.");
+      return []; // Return empty array instead of throwing
+    }
+    
     console.error("Error fetching bookings with Drizzle:", error);
-    throw new Error("Failed to fetch bookings");
+    return []; // Return empty array instead of throwing
   }
 }
 
@@ -98,8 +107,14 @@ export async function drizzleBookingById(
     }
 
     return parseBooking(booking);
-  } catch (error) {
+  } catch (error: any) {
+    // Check for Supabase/database connection errors
+    if (error?.cause?.code === 'XX000' || error?.message?.includes('Tenant or user not found')) {
+      console.warn("⚠️ Supabase database error. Please check connection and try again.");
+      return null; // Return null instead of throwing
+    }
+    
     console.error("Error fetching booking by ID with Drizzle:", error);
-    throw new Error("Failed to fetch booking");
+    return null; // Return null instead of throwing
   }
 }
