@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AuthButton } from "@/components/with-init/auth-button";
 import { MAIN_ROUTES } from "@/config/routes";
+import { Separator } from "@/components/ui/separator";
 
 export default function Navbar() {
   return (
@@ -14,7 +15,17 @@ export default function Navbar() {
 
           {/* Navigation Links */}
           <div className="md:flex items-center space-x-6">
-            {MAIN_ROUTES.map((route) => (
+            {MAIN_ROUTES.slice(0, 3).map((route) => (
+              <Link
+                key={route.path}
+                href={route.path}
+                className="text-foreground/70 hover:text-foreground transition-colors"
+              >
+                {route.label}
+              </Link>
+            ))}
+            <Separator orientation="vertical" className="h-6" />
+            {MAIN_ROUTES.slice(3).map((route) => (
               <Link
                 key={route.path}
                 href={route.path}

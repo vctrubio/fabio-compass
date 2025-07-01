@@ -1,7 +1,7 @@
 export const MAIN_ROUTES = [
-  { path: "/fabio", label: "Admin" },
-  { path: "/student", label: "Student" },
-  { path: "/teacher", label: "Teacher" },
+  { path: "/whiteboard", label: "Admin" },
+  { path: "/bookings", label: "Bookings" },
+  { path: "/events", label: "Events" },
   { path: "/tables", label: "Tables" },
   { path: "/forms", label: "Forms" },
 ];
