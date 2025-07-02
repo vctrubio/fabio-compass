@@ -4,7 +4,13 @@ import { KiteEventTag } from "@/rails/view/tag/KiteEventTag";
 import { StudentTag } from "@/rails/view/tag/StudentTag";
 import { HelmetIcon } from "@/assets/svg/HelmetIcon";
 import { formatDuration } from "@/components/formatters";
-import { MoreHorizontal, MapPin, Trash2 } from "lucide-react";
+import {
+    MoreHorizontal,
+    MapPin,
+    Trash2,
+    Clock,
+    MapPin as LocationIcon,
+} from "lucide-react";
 import { useState } from "react";
 import {
     DropdownMenu,
@@ -16,7 +22,10 @@ import {
     DropdownMenuSubTrigger,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { updateKiteEventLocation, deleteKiteEvent } from "@/actions/kite-actions";
+import {
+    updateKiteEventLocation,
+    deleteKiteEvent,
+} from "@/actions/kite-actions";
 
 interface EventCardProps {
     event: {
@@ -31,44 +40,47 @@ interface EventCardProps {
             name: string;
         }>;
     };
-    viewMode?: 'grid' | 'print';
+    viewMode?: "grid" | "print";
     showDropdown?: boolean;
 }
 
-export function EventCard({ 
-    event, 
-    viewMode = 'grid', 
-    showDropdown = true 
+export function EventCard({
+    event,
+    viewMode = "grid",
+    showDropdown = true,
 }: EventCardProps) {
     const [isLoading, setIsLoading] = useState(false);
-    
+
     const handleLocationUpdate = async (newLocation: string) => {
         if (newLocation === event.location) return;
-        
+
         setIsLoading(true);
         try {
-            const result = await updateKiteEventLocation(event.id, newLocation as 'Los Lances' | 'Valdevaqueros');
+            const result = await updateKiteEventLocation(
+                event.id,
+                newLocation as "Los Lances" | "Valdevaqueros",
+            );
             if (!result.success) {
-                console.error('Failed to update location:', result.error);
+                console.error("Failed to update location:", result.error);
             }
         } catch (error) {
-            console.error('Failed to update location:', error);
+            console.error("Failed to update location:", error);
         } finally {
             setIsLoading(false);
         }
     };
 
     const handleDelete = async () => {
-        if (!confirm('Are you sure you want to delete this event?')) return;
-        
+        if (!confirm("Are you sure you want to delete this event?")) return;
+
         setIsLoading(true);
         try {
             const result = await deleteKiteEvent(event.id);
             if (!result.success) {
-                console.error('Failed to delete event:', result.error);
+                console.error("Failed to delete event:", result.error);
             }
         } catch (error) {
-            console.error('Failed to delete event:', error);
+            console.error("Failed to delete event:", error);
         } finally {
             setIsLoading(false);
         }
@@ -81,10 +93,10 @@ export function EventCard({
         date: event.date,
         status: event.status,
         location: event.location,
-        equipments: []
+        equipments: [],
     };
 
-    if (viewMode === 'print') {
+    if (viewMode === "print") {
         return (
             <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-700 rounded-lg p-3 space-y-3">
                 {/* Duration and Location Header */}
@@ -98,14 +110,16 @@ export function EventCard({
                         </div>
                     )}
                 </div>
-                
+
                 {/* Students Section */}
                 {event.students.length > 0 && (
                     <div className="space-y-2">
-                       
                         <div className="flex flex-wrap gap-2">
-                            {event.students.map(student => (
-                                <div key={student.id} className="flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 px-3 py-1.5 rounded-full text-xl font-medium">
+                            {event.students.map((student) => (
+                                <div
+                                    key={student.id}
+                                    className="flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 px-3 py-1.5 rounded-full text-xl font-medium"
+                                >
                                     <HelmetIcon className="w-4 h-4" />
                                     {student.name}
                                 </div>

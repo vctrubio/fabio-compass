@@ -9,7 +9,10 @@ export interface BookingCsvData {
   package_duration: number;
   package_price: number;
   lesson_count: number;
+  used_minutes: number;
   created_at: string;
+  start_date: string;
+  end_date: string;
 }
 
 const bookingCsvQuery = {
@@ -33,6 +36,15 @@ const bookingCsvQuery = {
     lessons: {
       columns: {
         id: true,
+        duration: true,
+      },
+      with: {
+        kiteEvents: {
+          columns: {
+            id: true,
+            duration: true,
+          },
+        },
       },
     },
   },
@@ -47,6 +59,20 @@ function parseBookingForCsv(booking: any): BookingCsvData[] {
   const packagePrice = booking.package?.price || 0;
   const lessonCount = booking.lessons?.length || 0;
   
+  // Calculate used minutes from lessons and kite events
+  let usedMinutes = 0;
+  booking.lessons?.forEach((lesson: any) => {
+    if (lesson.kiteEvents?.length > 0) {
+      // If lesson has kite events, sum their durations
+      lesson.kiteEvents.forEach((event: any) => {
+        usedMinutes += event.duration || 0;
+      });
+    } else {
+      // If no kite events, use lesson duration
+      usedMinutes += lesson.duration || 0;
+    }
+  });
+  
   // Return one row per student in the booking
   return booking.bookingStudents?.map((bookingStudent: any) => ({
     booking_id: booking.id,
@@ -55,7 +81,10 @@ function parseBookingForCsv(booking: any): BookingCsvData[] {
     package_duration: packageDuration,
     package_price: packagePrice,
     lesson_count: lessonCount,
+    used_minutes: usedMinutes,
     created_at: booking.created_at,
+    start_date: booking.start_date || booking.created_at,
+    end_date: booking.end_date || booking.created_at,
   })) || [];
 }
 

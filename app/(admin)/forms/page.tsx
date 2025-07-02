@@ -23,10 +23,15 @@ export default function Page() {
 
     return (
         <div className="container mx-auto py-8 space-y-8">
-            
-            <div className="space-y-1">
-                <StudentCreate4Admin onSubmit={handleStudentCreated} />
-                <TeacherCreate4Admin onSubmit={handleTeacherCreated} />
+            <div className="flex flex-wrap gap-6">
+                <div className="flex-1 min-w-[300px]">
+                    <StudentCreate4Admin onSubmit={handleStudentCreated} />
+                </div>
+                <div className="flex-1 min-w-[300px]">
+                    <TeacherCreate4Admin onSubmit={handleTeacherCreated} />
+                </div>
+            </div>
+            <div>
                 <BookingCreate4AdminForm onSubmit={handleBookingCreated} />
             </div>
         </div>

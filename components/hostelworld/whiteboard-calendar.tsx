@@ -5,7 +5,7 @@ import { TeacherEventLinkedList } from "./teacher-event-linked-list";
 import { getDateString } from "@/components/getters";
 import { formatDuration, formatDateNow } from "@/components/formatters";
 import { HeadsetIcon } from "@/assets/svg/HeadsetIcon";
-import { Printer, Grid, Share, FlagIcon } from "lucide-react";
+import { Printer, Grid, Share, FlagIcon, Mail, MessageCircle } from "lucide-react";
 import { WhiteboardCalendarProps, TeacherEvent } from "./types";
 import { EventCard } from "@/rails/view/card/EventCard";
 
@@ -17,6 +17,8 @@ interface CalendarHeaderProps {
     onViewModeChange: (mode: 'grid' | 'print') => void;
     onPrint: () => void;
     onShare: () => void;
+    onCommunicate: () => void;
+    onWhatsApp: () => void;
 }
 
 interface TeacherRowProps {
@@ -43,7 +45,9 @@ const CalendarHeader = ({
     viewMode,
     onViewModeChange,
     onPrint,
-    onShare
+    onShare,
+    onCommunicate,
+    onWhatsApp
 }: CalendarHeaderProps) => (
     <div className="mb-4 flex justify-between items-center">
         <div className="flex items-center gap-4">
@@ -78,6 +82,20 @@ const CalendarHeader = ({
             >
                 <Share className="w-4 h-4" />
                 Share
+            </button>
+            <button
+                onClick={onCommunicate}
+                className="flex items-center gap-2 px-3 py-2 bg-orange-500 text-white rounded-lg text-sm hover:bg-orange-600"
+            >
+                <Mail className="w-4 h-4" />
+                Communicate
+            </button>
+            <button
+                onClick={onWhatsApp}
+                className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700"
+            >
+                <MessageCircle className="w-4 h-4" />
+                WhatsApp
             </button>
         </div>
     </div>
@@ -595,6 +613,117 @@ export function WhiteboardCalendar({
         }
     };
 
+    const handleCommunicate = () => {
+        try {
+            const dateStr = selectedDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            // Count total kite events
+            const totalKiteEvents = dateData.totalEvents.length;
+
+            // Get all students with their passport numbers from kite events
+            const studentsWithPassports: Array<{name: string, passport: string | null}> = [];
+            
+            dateData.totalEvents.forEach((event: any) => {
+                if (event.students && event.students.length > 0) {
+                    event.students.forEach((student: any) => {
+                        // Check if student already added
+                        if (!studentsWithPassports.find(s => s.name === student.name)) {
+                            studentsWithPassports.push({
+                                name: student.name,
+                                passport: student.passport_number || null
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Create email content
+            let emailBody = `Tarifa Kite Hostel\n\n`;
+            emailBody += `Selected Date: ${dateStr}\n`;
+            emailBody += `Number of students with kite events: ${studentsWithPassports.length}\n\n`;
+            
+            if (studentsWithPassports.length > 0) {
+                emailBody += `Student Details:\n`;
+                studentsWithPassports.forEach((student, index) => {
+                    emailBody += `${index + 1}. ${student.name}`;
+                    if (student.passport) {
+                        emailBody += ` - Passport: ${student.passport}`;
+                    } else {
+                        emailBody += ` - Passport: Not provided`;
+                    }
+                    emailBody += `\n`;
+                });
+            } else {
+                emailBody += `No students scheduled for kite events on this date.\n`;
+            }
+
+            // Create mailto URL
+            const subject = encodeURIComponent(`Tarifa Kite Hostel - ${dateStr} Student Information`);
+            const body = encodeURIComponent(emailBody);
+            const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
+
+            // Open default email client
+            window.location.href = mailtoUrl;
+
+        } catch (error: any) {
+            console.error('Error creating email:', error);
+            alert('Error creating email');
+        }
+    };
+
+    const handleWhatsApp = () => {
+        try {
+            const dateStr = selectedDate.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            let whatsappText = `*${dateStr} - Tarifa Kite Hostel Lesson Schedule*\n\n`;
+
+            // Get teachers with events
+            const teachersWithEvents = allTeachers.filter((teacher: TeacherEvent) => {
+                const teacherNode = teacherEventLinkedList.getTeacherById(teacher.teacher.model.id);
+                if (!teacherNode) return false;
+                return teacherNode.hasEvents();
+            });
+
+            teachersWithEvents.forEach((teacher: TeacherEvent) => {
+                const teacherNode = teacherEventLinkedList.getTeacherById(teacher.teacher.model.id);
+                if (!teacherNode) return;
+
+                whatsappText += `*Teacher: ${teacher.teacher.model.name}*\n`;
+
+                let current = teacherNode.eventHead;
+                while (current) {
+                    const event = current.event;
+                    const durationFormatted = formatDuration(event.duration);
+                    const studentsText = event.students && event.students.length > 0
+                        ? event.students.map((student: any) => student.name).join(', ')
+                        : 'No students';
+
+                    whatsappText += `- ${event.time} - ${durationFormatted} (${event.location || 'No location'}) - ${studentsText}\n`;
+                    current = current.next;
+                }
+                whatsappText += '\n';
+            });
+
+            // Create WhatsApp URL - avoid double encoding
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
+
+            // Open WhatsApp
+            window.open(whatsappUrl, '_blank');
+
+        } catch (error: any) {
+            console.error('Error sharing to WhatsApp:', error);
+            alert('Error sharing to WhatsApp');
+        }
+    };
+
     return (
         <div className="bg-white dark:bg-gray-800 border rounded-lg p-4 h-full" id="lesson-planning">
             <CalendarHeader
@@ -604,6 +733,8 @@ export function WhiteboardCalendar({
                 onViewModeChange={setViewMode}
                 onPrint={handlePrint}
                 onShare={handleShare}
+                onCommunicate={handleCommunicate}
+                onWhatsApp={handleWhatsApp}
             />
 
             <CalendarGrid

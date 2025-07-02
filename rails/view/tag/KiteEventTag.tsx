@@ -113,17 +113,17 @@ export function KiteEventTag({ kiteEvent, viewFull = true }: KiteEventTagProps) 
         }));
 
     if (!viewFull) {
-        // Compact view: duration, dropdown, and below: start time and location
+        // Compact view: duration, dropdown, and below: time and location side by side
         return (
             <div className="space-y-1">
                 <ATag
-                    icon={isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <KiteEventIcon className="w-4 h-4" />}
+                    icon={isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <KiteEventIcon className="w-3 h-3" />}
                 >
-                    <span>{formatDuration(kiteEvent.duration)}</span>
+                    <span className="text-xs">{formatDuration(kiteEvent.duration)}</span>
                     
                     {kiteEvent.status && (
                         <>
-                            <Separator orientation="vertical" className="h-4" />
+                            <Separator orientation="vertical" className="h-3" />
                             <DropdownTag
                                 currentValue={kiteEvent.status}
                                 options={statusOptions}
@@ -135,17 +135,19 @@ export function KiteEventTag({ kiteEvent, viewFull = true }: KiteEventTagProps) 
                     )}
                 </ATag>
                 
-                <div className="text-lg text-muted-foreground space-y-1 pl-3">
-                    <div className="flex items-center gap-1.5">
-                        <ClockIcon className="w-4 h-4" />
-                        <span>{getTime(dateObj)}</span>
-                    </div>
-                    {kiteEvent.location && (
-                        <div className="flex items-center gap-1.5">
-                            <LocationIcon className="w-4 h-4" />
-                            <span>{kiteEvent.location}</span>
+                <div className="text-xs text-muted-foreground pl-2">
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1">
+                            <ClockIcon className="w-3 h-3" />
+                            <span>{getTime(dateObj)}</span>
                         </div>
-                    )}
+                        {kiteEvent.location && (
+                            <div className="flex items-center gap-1">
+                                <LocationIcon className="w-3 h-3" />
+                                <span>{kiteEvent.location}</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         );

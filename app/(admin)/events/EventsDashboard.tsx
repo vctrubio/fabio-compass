@@ -1,9 +1,63 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MonthPicker } from "@/components/pickers/month-picker";
 import { KiteEventCsvData } from "@/rails/controller/KiteEventCsv";
+import { Input } from "@/components/ui/input";
+import { ChevronUp, ChevronDown } from "lucide-react";
+
+type SortOrder = 'asc' | 'desc';
+type SortableEventField = keyof KiteEventCsvData;
+
+const STATUS_STYLES = {
+  completed: 'bg-green-100 text-green-800',
+  planned: 'bg-blue-100 text-blue-800',
+  plannedAuto: 'bg-purple-100 text-purple-800',
+  teacherConfirmation: 'bg-yellow-100 text-yellow-800',
+  default: 'bg-gray-100 text-gray-800'
+} as const;
+
+function StatusBadge({ status }: { status: string }) {
+  const statusStyle = STATUS_STYLES[status as keyof typeof STATUS_STYLES] || STATUS_STYLES.default;
+  
+  return (
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusStyle}`}>
+      {status}
+    </span>
+  );
+}
+
+function SortableHeader({ 
+  children, 
+  column, 
+  sortBy, 
+  sortOrder, 
+  onSort 
+}: { 
+  children: React.ReactNode;
+  column: string;
+  sortBy: string;
+  sortOrder: SortOrder;
+  onSort: (column: string) => void;
+}) {
+  const getSortIcon = () => {
+    if (sortBy !== column) return null;
+    return sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />;
+  };
+
+  return (
+    <th 
+      className="text-left p-4 font-medium cursor-pointer hover:bg-muted/70 select-none"
+      onClick={() => onSort(column)}
+    >
+      <div className="flex items-center gap-2">
+        {children}
+        {getSortIcon()}
+      </div>
+    </th>
+  );
+}
 
 interface EventsDashboardProps {
   allEvents: KiteEventCsvData[];
@@ -11,9 +65,12 @@ interface EventsDashboardProps {
 
 interface EventsTableProps {
   events: KiteEventCsvData[];
+  sortBy: string;
+  sortOrder: SortOrder;
+  onSort: (column: string) => void;
 }
 
-function EventsTable({ events }: EventsTableProps) {
+function EventsTable({ events, sortBy, sortOrder, onSort }: EventsTableProps) {
   if (events.length === 0) {
     return (
       <Card>
@@ -31,13 +88,25 @@ function EventsTable({ events }: EventsTableProps) {
           <table className="w-full">
             <thead>
               <tr className="border-b bg-muted/50">
-                <th className="text-left p-4 font-medium">Date</th>
-                <th className="text-left p-4 font-medium">Start Time</th>
-                <th className="text-left p-4 font-medium">Duration</th>
-                <th className="text-left p-4 font-medium">Location</th>
-                <th className="text-left p-4 font-medium">Status</th>
-                <th className="text-left p-4 font-medium">Teacher</th>
+                <SortableHeader column="date" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort}>
+                  Date
+                </SortableHeader>
+                <SortableHeader column="teacher_name" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort}>
+                  Teacher
+                </SortableHeader>
+                <SortableHeader column="start_time" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort}>
+                  Start Time
+                </SortableHeader>
+                <SortableHeader column="duration" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort}>
+                  Duration
+                </SortableHeader>
+                <SortableHeader column="location" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort}>
+                  Location
+                </SortableHeader>
                 <th className="text-left p-4 font-medium">Students</th>
+                <SortableHeader column="status" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort}>
+                  Status
+                </SortableHeader>
               </tr>
             </thead>
             <tbody>
@@ -46,24 +115,16 @@ function EventsTable({ events }: EventsTableProps) {
                   <td className="p-4 font-medium">
                     {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </td>
+                  <td className="p-4">{event.teacher_name}</td>
                   <td className="p-4">
                     {new Date(event.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
                   </td>
                   <td className="p-4">{Math.round(event.duration / 60 * 10) / 10}h</td>
                   <td className="p-4">{event.location}</td>
-                  <td className="p-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      event.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      event.status === 'planned' ? 'bg-blue-100 text-blue-800' :
-                      event.status === 'plannedAuto' ? 'bg-purple-100 text-purple-800' :
-                      event.status === 'teacherConfirmation' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {event.status}
-                    </span>
-                  </td>
-                  <td className="p-4">{event.teacher_name}</td>
                   <td className="p-4 text-sm">{event.students}</td>
+                  <td className="p-4">
+                    <StatusBadge status={event.status} />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -113,24 +174,91 @@ export default function EventsDashboard({ allEvents }: EventsDashboardProps) {
   
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
 
-  // Filter events by selected month (client-side filtering)
-  const filteredEvents = useMemo(() => {
-    return allEvents.filter(event => {
+  // Load selected month from localStorage on mount
+  useEffect(() => {
+    const savedMonth = localStorage.getItem('events-selected-month');
+    if (savedMonth) {
+      // Validate the month format (YYYY-MM)
+      const monthRegex = /^\d{4}-\d{2}$/;
+      if (monthRegex.test(savedMonth)) {
+        setSelectedMonth(savedMonth);
+      }
+    }
+  }, []);
+
+  // Save selected month to localStorage when it changes
+  const handleMonthChange = useCallback((month: string) => {
+    setSelectedMonth(month);
+    localStorage.setItem('events-selected-month', month);
+  }, []);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+
+  const handleSort = useCallback((column: string) => {
+    if (sortBy === column) {
+      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortOrder('asc');
+    }
+  }, [sortBy]);
+
+  // Filter and sort events
+  const filteredAndSortedEvents = useMemo(() => {
+    let filtered = allEvents.filter(event => {
       const eventDate = new Date(event.date);
       const eventMonth = `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, '0')}`;
-      return eventMonth === selectedMonth;
+      const matchesMonth = eventMonth === selectedMonth;
+      
+      // Search in teacher name and student names
+      const matchesSearch = searchTerm === '' || 
+        event.teacher_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.students.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      return matchesMonth && matchesSearch;
     });
-  }, [allEvents, selectedMonth]);
+
+    // Sort the filtered results
+    filtered.sort((a, b) => {
+      let aValue: any = a[sortBy as keyof KiteEventCsvData];
+      let bValue: any = b[sortBy as keyof KiteEventCsvData];
+
+      // Handle date sorting
+      if (sortBy === 'date') {
+        aValue = new Date(aValue).getTime();
+        bValue = new Date(bValue).getTime();
+      }
+
+      // Handle start time sorting (comparing time strings like "13:00" and "21:00")
+      if (sortBy === 'start_time') {
+        aValue = new Date(a.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+        bValue = new Date(b.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+      }
+
+      // Handle string sorting
+      if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return filtered;
+  }, [allEvents, selectedMonth, searchTerm, sortBy, sortOrder]);
 
   // Calculate stats for filtered events
   const stats = useMemo(() => {
-    const totalEvents = filteredEvents.length;
-    const totalDuration = filteredEvents.reduce((sum, event) => sum + event.duration, 0);
+    const totalEvents = filteredAndSortedEvents.length;
+    const totalDuration = filteredAndSortedEvents.reduce((sum, event) => sum + event.duration, 0);
     const totalHours = Math.round((totalDuration / 60) * 10) / 10;
     
     // Count unique students across all events
     const allStudents = new Set<string>();
-    filteredEvents.forEach(event => {
+    filteredAndSortedEvents.forEach(event => {
       if (event.students !== "No students") {
         event.students.split(", ").forEach(student => allStudents.add(student.trim()));
       }
@@ -141,26 +269,39 @@ export default function EventsDashboard({ allEvents }: EventsDashboardProps) {
       totalHours,
       uniqueStudents: allStudents.size
     };
-  }, [filteredEvents]);
+  }, [filteredAndSortedEvents]);
 
   return (
-    <main className="min-h-screen w-full p-8">
+    <main className="min-h-screen w-full p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         <Card className="mb-6">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-3xl">Events</CardTitle>
-              <MonthPicker 
-                selectedMonth={selectedMonth} 
-                onMonthChange={setSelectedMonth} 
-              />
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle className="text-2xl sm:text-3xl">Events</CardTitle>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+                <Input
+                  placeholder="Search by teacher or student name..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full sm:w-72"
+                />
+                <MonthPicker 
+                  selectedMonth={selectedMonth} 
+                  onMonthChange={handleMonthChange} 
+                />
+              </div>
             </div>
           </CardHeader>
         </Card>
 
         <StatsCards stats={stats} />
         
-        <EventsTable events={filteredEvents} />
+        <EventsTable 
+          events={filteredAndSortedEvents} 
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={handleSort}
+        />
       </div>
     </main>
   );
