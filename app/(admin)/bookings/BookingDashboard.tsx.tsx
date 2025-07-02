@@ -45,12 +45,21 @@ function BookingsTable({ bookings, sortBy, sortOrder, onSort }: BookingsTablePro
             <thead>
               <tr className="border-b bg-muted/50">
                 <th 
-                  className="text-left p-4 font-medium cursor-pointer hover:bg-muted/70 select-none"
+                  className="text-left p-2 font-medium cursor-pointer hover:bg-muted/70 select-none w-20"
                   onClick={() => onSort('created_at')}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     Created
                     {getSortIcon('created_at')}
+                  </div>
+                </th>
+                <th 
+                  className="text-left p-4 font-medium cursor-pointer hover:bg-muted/70 select-none"
+                  onClick={() => onSort('start_date')}
+                >
+                  <div className="flex items-center gap-2">
+                    Starting
+                    {getSortIcon('start_date')}
                   </div>
                 </th>
                 <th 
@@ -80,33 +89,24 @@ function BookingsTable({ bookings, sortBy, sortOrder, onSort }: BookingsTablePro
                     {getSortIcon('package_price')}
                   </div>
                 </th>
-                <th 
-                  className="text-left p-4 font-medium cursor-pointer hover:bg-muted/70 select-none"
-                  onClick={() => onSort('start_date')}
-                >
-                  <div className="flex items-center gap-2">
-                    DateSpan
-                    {getSortIcon('start_date')}
-                  </div>
-                </th>
-                <th className="text-left p-4 font-medium">Progress</th>
+                <th className="text-left p-4 font-medium">Status</th>
               </tr>
             </thead>
             <tbody>
               {bookings.map((booking, index) => (
                 <tr key={`${booking.booking_id}-${index}`} className="border-b hover:bg-muted/30">
-                  <td className="p-4 text-muted-foreground">
+                  <td className="p-2 text-muted-foreground">
                     {new Date(booking.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </td>
-                  <td className="p-4 font-medium">{booking.student_name}</td>
-                  <td className="p-4">{booking.package_description}</td>
-                  <td className="p-4">€{booking.package_price}</td>
                   <td className="p-4">
                     <FormatDateRange 
                       startDate={booking.start_date} 
                       endDate={booking.end_date} 
                     />
                   </td>
+                  <td className="p-4 font-medium">{booking.student_name}</td>
+                  <td className="p-4">{booking.package_description}</td>
+                  <td className="p-4">€{booking.package_price}</td>
                   <td className="p-4">
                     <div className="min-w-[100px] max-w-[180px]">
                       <ProgressBar

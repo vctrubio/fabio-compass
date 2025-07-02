@@ -5,7 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MonthPicker } from "@/components/pickers/month-picker";
 import { KiteEventCsvData } from "@/rails/controller/KiteEventCsv";
 import { Input } from "@/components/ui/input";
-import { ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronUp, ChevronDown, Loader2 } from "lucide-react";
+import { DropdownTag } from "@/rails/view/tag/DropdownTag";
+import { getKiteEventStatusColor, updateKiteEventIdStatus } from "@/actions/enums";
+import { KiteEventStatusEnum } from "@/rails/model/EnumModel";
+import { toast } from "sonner";
+import { internalActionTracker } from "@/providers/AdminProvider";
 
 type SortOrder = 'asc' | 'desc';
 type SortableEventField = keyof KiteEventCsvData;
@@ -18,13 +23,84 @@ const STATUS_STYLES = {
   default: 'bg-gray-100 text-gray-800'
 } as const;
 
-function StatusBadge({ status }: { status: string }) {
-  const statusStyle = STATUS_STYLES[status as keyof typeof STATUS_STYLES] || STATUS_STYLES.default;
-  
+function StatusDropdown({ 
+  event, 
+  onStatusUpdate 
+}: { 
+  event: KiteEventCsvData;
+  onStatusUpdate: (eventId: string, newStatus: string) => Promise<void>;
+}) {
+  const [isLoading, setIsLoading] = useState(false);
+  const statusColor = event.status ? getKiteEventStatusColor(event.status) : undefined;
+
+  // Monitor the internal action tracker to coordinate UI state
+  useEffect(() => {
+    let unmounted = false;
+    let timer: NodeJS.Timeout | null = null;
+
+    // Only set up monitoring if we're currently loading
+    if (!isLoading) return;
+
+    const checkComplete = () => {
+      // Only proceed if the component is still mounted and we're in loading state
+      if (unmounted) return;
+      
+      // If the action is no longer executing, that means the server action has completed
+      if (!internalActionTracker.isExecuting()) {
+        // Use a longer delay to ensure complete refresh
+        timer = setTimeout(() => {
+          if (!unmounted) {
+            setIsLoading(false);
+          }
+        }, 800); // Longer delay to ensure router has completely refreshed
+      } else {
+        // Keep checking while action is executing
+        timer = setTimeout(checkComplete, 100);
+      }
+    };
+    
+    // Start the checking process
+    timer = setTimeout(checkComplete, 100);
+    
+    // Clean up on unmount or when loading state changes
+    return () => {
+      unmounted = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [isLoading]);
+
+  const handleStatusClick = async (newStatus: string) => {
+    if (isLoading || newStatus === event.status) return;
+
+    setIsLoading(true);
+    try {
+      await onStatusUpdate(event.event_id, newStatus);
+    } catch (error) {
+      console.error('Error updating event status:', error);
+      setIsLoading(false);
+    }
+  };
+
+  const statusOptions = KiteEventStatusEnum.options
+    .filter(status => status !== 'plannedAuto')
+    .map((status) => ({
+      value: status,
+      label: status,
+      colorClass: getKiteEventStatusColor(status)
+    }));
+
+  if (isLoading) {
+    return <Loader2 className="w-4 h-4 animate-spin" />;
+  }
+
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusStyle}`}>
-      {status}
-    </span>
+    <DropdownTag
+      currentValue={event.status}
+      options={statusOptions}
+      onSelect={handleStatusClick}
+      currentColorClass={statusColor!}
+      disabled={isLoading}
+    />
   );
 }
 
@@ -68,9 +144,10 @@ interface EventsTableProps {
   sortBy: string;
   sortOrder: SortOrder;
   onSort: (column: string) => void;
+  onStatusUpdate: (eventId: string, newStatus: string) => Promise<void>;
 }
 
-function EventsTable({ events, sortBy, sortOrder, onSort }: EventsTableProps) {
+function EventsTable({ events, sortBy, sortOrder, onSort, onStatusUpdate }: EventsTableProps) {
   if (events.length === 0) {
     return (
       <Card>
@@ -123,7 +200,7 @@ function EventsTable({ events, sortBy, sortOrder, onSort }: EventsTableProps) {
                   <td className="p-4">{event.location}</td>
                   <td className="p-4 text-sm">{event.students}</td>
                   <td className="p-4">
-                    <StatusBadge status={event.status} />
+                    <StatusDropdown event={event} onStatusUpdate={onStatusUpdate} />
                   </td>
                 </tr>
               ))}
@@ -203,6 +280,32 @@ export default function EventsDashboard({ allEvents }: EventsDashboardProps) {
       setSortOrder('asc');
     }
   }, [sortBy]);
+
+  const handleStatusUpdate = useCallback(async (eventId: string, newStatus: string) => {
+    console.log(`Event status update requested for ${eventId}: → ${newStatus}`);
+
+    try {
+      const eventToUpdate = {
+        id: eventId,
+        status: allEvents.find(e => e.event_id === eventId)?.status || 'planned'
+      };
+
+      const result = await updateKiteEventIdStatus(eventToUpdate, newStatus);
+
+      if (!result.success) {
+        console.error('Failed to update event status:', result.error);
+        toast.error(`Failed to update event status: ${result.error}`);
+        throw new Error(result.error);
+      } else {
+        console.log('Event status updated successfully:', result.data);
+        toast.success('Event status updated successfully');
+      }
+    } catch (error) {
+      console.error('Error updating event status:', error);
+      toast.error(`Error updating event status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw error;
+    }
+  }, [allEvents]);
 
   // Filter and sort events
   const filteredAndSortedEvents = useMemo(() => {
@@ -301,6 +404,7 @@ export default function EventsDashboard({ allEvents }: EventsDashboardProps) {
           sortBy={sortBy}
           sortOrder={sortOrder}
           onSort={handleSort}
+          onStatusUpdate={handleStatusUpdate}
         />
       </div>
     </main>

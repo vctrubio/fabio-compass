@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 
 export default function Navbar() {
+  const SEP = 3;
   return (
     <nav className="w-full py-2 border-b border-border bg-background/95 backdrop-blur-sm sticky top-0 z-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,7 +20,7 @@ export default function Navbar() {
 
           {/* Navigation Links */}
           <div className="md:flex items-center space-x-6">
-            {MAIN_ROUTES.slice(0, 4).map((route) => (
+            {MAIN_ROUTES.slice(0, SEP).map((route) => (
               <Link
                 key={route.path}
                 href={route.path}
@@ -29,7 +30,7 @@ export default function Navbar() {
               </Link>
             ))}
             <Separator orientation="vertical" className="h-6" />
-            {MAIN_ROUTES.slice(4).map((route) => (
+            {MAIN_ROUTES.slice(SEP).map((route) => (
               <Link
                 key={route.path}
                 href={route.path}

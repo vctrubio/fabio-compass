@@ -13,6 +13,7 @@ export interface BookingCsvData {
   created_at: string;
   start_date: string;
   end_date: string;
+  status: string;
 }
 
 const bookingCsvQuery = {
@@ -85,6 +86,7 @@ function parseBookingForCsv(booking: any): BookingCsvData[] {
     created_at: booking.created_at,
     start_date: booking.start_date || booking.created_at,
     end_date: booking.end_date || booking.created_at,
+    status: booking.status || "active",
   })) || [];
 }
 
