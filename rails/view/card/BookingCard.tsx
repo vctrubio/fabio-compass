@@ -39,6 +39,15 @@ export function BookingCard({ booking, headerClassName }: BookingCardProps) {
     // Get current student IDs for filtering
     const currentStudentIds = students.map(student => student.id);
 
+    // Get the latest lesson (most recent by creation date)
+    const latestLesson = lessons.length > 0 ? 
+        lessons.reduce((latest, current) => 
+            new Date(current.created_at || 0) > new Date(latest.created_at || 0) ? current : latest
+        ) : null;
+
+    // Check if latest lesson is delegated
+    const isLatestLessonDelegated = latestLesson?.status === 'delegated';
+
     return (
         <div className="flex flex-col gap-2 border rounded-sm">
             <div className={cn("flex items-center gap-2 pr-2 pl-1 py-2 border-b", headerClassName)}>
@@ -69,6 +78,11 @@ export function BookingCard({ booking, headerClassName }: BookingCardProps) {
                                 lesson={lesson}
                             />
                         ))}
+                        {isLatestLessonDelegated && (
+                            <LinkTeacherToLesson
+                                bookingId={booking.model.id}
+                            />
+                        )}
                     </div>
                 ) : (
                     <div className="flex flex-wrap gap-1">

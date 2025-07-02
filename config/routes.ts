@@ -3,6 +3,7 @@ export const MAIN_ROUTES = [
   // { path: "/h2world", label: "Planning" },
   { path: "/bookings", label: "Bookings" },
   { path: "/events", label: "Events" },
+  { path: "/teachers", label: "Teachers" },
   // { path: "/tables", label: "Tables" },
   { path: "/forms", label: "Forms" },
 ];
