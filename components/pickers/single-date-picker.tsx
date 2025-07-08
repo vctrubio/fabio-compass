@@ -15,13 +15,17 @@ export function SingleDatePicker({ selectedDate }: SingleDatePickerProps) {
   const updateDate = (newDate: string) => {
     setTempDate(newDate);
     
-    // Update URL with new date
-    const params = new URLSearchParams();
+    // Get current search params and preserve existing ones
+    const currentParams = new URLSearchParams(window.location.search);
+    
     if (newDate) {
-      params.set('date', newDate);
+      currentParams.set('date', newDate);
+    } else {
+      currentParams.delete('date');
     }
     
-    const newUrl = `${pathname}${newDate ? `?${params.toString()}` : ''}`;
+    const queryString = currentParams.toString();
+    const newUrl = `${pathname}${queryString ? `?${queryString}` : ''}`;
     router.push(newUrl);
   };
 

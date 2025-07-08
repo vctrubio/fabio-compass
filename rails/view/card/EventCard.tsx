@@ -191,7 +191,7 @@ export function EventCard({
                 )}
             </div>
             {event.students.length > 0 && (
-                <div className="mt-2 ml-2">
+                <div className="mt-2 ml-2 flex gap-2">
                     {event.students.map(student => (
                         <StudentTag
                             key={student.id}
