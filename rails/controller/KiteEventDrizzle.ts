@@ -1,8 +1,8 @@
 import db from "@/drizzle";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, asc } from "drizzle-orm";
 import { KiteEvent } from "@/drizzle/migrations/schema";
 import { KiteEventType } from "@/rails/model/KiteEventModel";
-import { DrizzleData } from "@/rails/types";
+import { DrizzleData, KiteEventWithRelations } from "@/rails/types";
 
 const kiteEventsWithRelations = {
   with: {
@@ -58,6 +58,11 @@ const kiteEventWithSort = {
   orderBy: desc(KiteEvent.created_at), // Sort by newest first
 };
 
+const kiteEventWithDateSort = {
+  ...kiteEventsWithRelations,
+  orderBy: asc(KiteEvent.date), // Sort by event date ascending
+};
+
 function calculateLambdaValues(kiteEvent: any) {
   // Extract students from lesson -> booking -> bookingStudents
   const students = kiteEvent.lesson?.booking?.bookingStudents?.map((bs: any) => bs.student) || [];
@@ -76,7 +81,7 @@ function calculateLambdaValues(kiteEvent: any) {
 }
 
 export async function drizzleKiteEvents(): Promise<
-  DrizzleData<KiteEventType>[]
+  KiteEventWithRelations[]
 > {
   try {
     if (process.env.DEBUG) console.log("(dev:drizzle:server) getting table name: KiteEvents");
@@ -90,9 +95,24 @@ export async function drizzleKiteEvents(): Promise<
   }
 }
 
+export async function drizzleKiteEventsSortedByDate(): Promise<
+  KiteEventWithRelations[]
+> {
+  try {
+    if (process.env.DEBUG) console.log("(dev:drizzle:server) getting table name: KiteEvents sorted by date");
+    const kiteEvents = await db.query.KiteEvent.findMany(kiteEventWithDateSort);
+    const result = kiteEvents.map(parseKiteEvent);
+    if (process.env.DEBUG) console.log("(dev:drizzle:server) parse completed: KiteEvents sorted by date");
+    return result;
+  } catch (error) {
+    console.error("Error fetching kite events with Drizzle:", error);
+    throw new Error("Failed to fetch kite events");
+  }
+}
+
 export async function drizzleKiteEventById(
   id: string
-): Promise<DrizzleData<KiteEventType> | null> {
+): Promise<KiteEventWithRelations | null> {
   try {
     const kiteEvent = await db.query.KiteEvent.findFirst({
       where: eq(KiteEvent.id, id),

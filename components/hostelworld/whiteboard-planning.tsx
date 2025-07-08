@@ -17,16 +17,20 @@ import { LessonWithStudents } from "./types";
 export default function WhiteboardPlanning() {
     const { bookingsData, teachersData } = useAdmin();
     const [selectedDate, setSelectedDate] = useState(new Date());
-    const [selectedLessonsForEvent, setSelectedLessonsForEvent] = useState<LessonWithStudents[]>([]);
+    const [selectedLessonsForEvent, setSelectedLessonsForEvent] = useState<
+        LessonWithStudents[]
+    >([]);
 
     // Load selected date from localStorage on mount
     useEffect(() => {
-        const savedDate = localStorage.getItem('whiteboard-selected-date');
+        const savedDate = localStorage.getItem("whiteboard-selected-date");
         if (savedDate) {
             const parsedDate = new Date(savedDate);
             // Check if the parsed date is valid and not older than 30 days
             const now = new Date();
-            const daysDiff = Math.abs((now.getTime() - parsedDate.getTime()) / (1000 * 60 * 60 * 24));
+            const daysDiff = Math.abs(
+                (now.getTime() - parsedDate.getTime()) / (1000 * 60 * 60 * 24),
+            );
             if (!isNaN(parsedDate.getTime()) && daysDiff <= 30) {
                 setSelectedDate(parsedDate);
             }
@@ -36,13 +40,13 @@ export default function WhiteboardPlanning() {
     // Save selected date to localStorage when it changes
     const handleDateChange = (date: Date) => {
         setSelectedDate(date);
-        localStorage.setItem('whiteboard-selected-date', date.toISOString());
+        localStorage.setItem("whiteboard-selected-date", date.toISOString());
     };
 
     // Use the whiteboard backend to process data
     const whiteboardData = useWhiteboardBackend({
         bookings: bookingsData || [],
-        teachers: teachersData || []
+        teachers: teachersData || [],
     });
 
     const isBookingOnDate = (booking: DrizzleData<BookingType>, date: Date) => {
@@ -59,7 +63,9 @@ export default function WhiteboardPlanning() {
     };
 
     const filteredBookings = useMemo(() => {
-        return bookingsData.filter((booking) => isBookingOnDate(booking, selectedDate));
+        return bookingsData.filter((booking) =>
+            isBookingOnDate(booking, selectedDate),
+        );
     }, [bookingsData, selectedDate]);
 
     // Get date-specific data from the backend
@@ -68,17 +74,17 @@ export default function WhiteboardPlanning() {
         todayTeacherLessonsEvent,
         totalEvents,
         teacherConfirmationEvents,
-        availableLessonsFromBookings
+        availableLessonsFromBookings,
     } = dateData;
 
     // Filter lessons that have no kite events for the selected date
     const availableStudentsFromBookings = useMemo(() => {
-        return availableLessonsFromBookings.filter(lesson => {
+        return availableLessonsFromBookings.filter((lesson) => {
             // Check if this lesson has any kite events in totalEvents (today's events)
-            const hasKiteEventsToday = totalEvents.some(event => 
-                event.lesson_id === lesson.lesson_id
+            const hasKiteEventsToday = totalEvents.some(
+                (event) => event.lesson_id === lesson.lesson_id,
             );
-            
+
             // Return lessons that have NO kite events today
             return !hasKiteEventsToday;
         });
@@ -91,8 +97,8 @@ export default function WhiteboardPlanning() {
 
     // Calculate the earliest time from all events
     const earliestTime = useMemo(() => {
-        let earliest = '23:59';
-        teacherEventLinkedList.getTeachers().forEach(teacher => {
+        let earliest = "23:59";
+        teacherEventLinkedList.getTeachers().forEach((teacher) => {
             let current = teacher.eventHead;
             while (current) {
                 if (current.event.time < earliest) {
@@ -101,11 +107,13 @@ export default function WhiteboardPlanning() {
                 current = current.next;
             }
         });
-        return earliest === '23:59' ? '11:00' : earliest; // Default to 11:00 if no events
+        return earliest === "23:59" ? "11:00" : earliest; // Default to 11:00 if no events
     }, [teacherEventLinkedList]);
 
     const handleRemoveLesson = (lessonId: string) => {
-        setSelectedLessonsForEvent(prev => prev.filter(l => l.lesson_id !== lessonId));
+        setSelectedLessonsForEvent((prev) =>
+            prev.filter((l) => l.lesson_id !== lessonId),
+        );
     };
 
     const handleClearAllLessons = () => {
@@ -113,25 +121,26 @@ export default function WhiteboardPlanning() {
     };
 
     const onStudentColumnClick = (lessonId: string) => {
-        const lesson = availableStudentsFromBookings.find(l => l.lesson_id === lessonId);
-        console.log('🔍 Click Debug:', {
+        const lesson = availableStudentsFromBookings.find(
+            (l) => l.lesson_id === lessonId,
+        );
+        console.log("🔍 Click Debug:", {
             lessonId,
             foundLesson: lesson,
             hasTeacher: lesson?.teacher,
             teacherId: lesson?.teacher?.id,
-            teacherName: lesson?.teacher?.name
+            teacherName: lesson?.teacher?.name,
         });
         if (lesson) {
-            setSelectedLessonsForEvent(prev => {
-                const exists = prev.some(l => l.lesson_id === lessonId);
+            setSelectedLessonsForEvent((prev) => {
+                const exists = prev.some((l) => l.lesson_id === lessonId);
                 if (exists) {
-                    return prev.filter(l => l.lesson_id !== lessonId);
+                    return prev.filter((l) => l.lesson_id !== lessonId);
                 }
                 return [...prev, lesson];
             });
         }
     };
-
 
     console.log("Todays Events:", totalEvents);
     return (
@@ -142,12 +151,12 @@ export default function WhiteboardPlanning() {
             />
 
             <div className="flex flex-col gap-2 p-2">
-                <WhiteboardPins 
-                    bookingsData={filteredBookings} 
+                <WhiteboardPins
+                    bookingsData={filteredBookings}
                     selectedDate={selectedDate}
                     todayKiteEvents={totalEvents}
                 />
-                
+
                 <EventController
                     selectedLessons={selectedLessonsForEvent}
                     selectedDate={selectedDate}
@@ -159,16 +168,15 @@ export default function WhiteboardPlanning() {
                 />
 
                 <div className="grid grid-cols-12 gap-4 min-h-[600px]">
-                    {/* Main Calendar/Planning Area */}
+                    {/* Main Calendar/Planning Area */}{" "}
                     <div className="col-span-12 lg:col-span-9 h-full">
-                        <WhiteboardCalendar 
+                        <WhiteboardCalendar
                             selectedDate={selectedDate}
                             dateData={dateData}
                             teacherEventLinkedList={teacherEventLinkedList}
                             earliestTime={earliestTime}
                         />
                     </div>
-
                     {/* Right Column - Student and Teacher Entities */}
                     <div className="col-span-12 lg:col-span-3 flex flex-col gap-4 h-full">
                         {/* Student Entity Column - Flex grow to take more space */}
