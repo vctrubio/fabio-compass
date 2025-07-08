@@ -1,13 +1,41 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { BookingWithRelations } from '@/rails/types';
-import { BookingCard } from '@/rails/view/card/BookingCard';
+import { BookingWithRelations } from "@/rails/types";
+import { BookingCard } from "@/rails/view/card/BookingCard";
+
 import { WhiteboardStyles } from "@/components/hostelworld/whiteboard-classes";
 import { Eye, EyeOff } from "lucide-react";
 import { BookingIcon } from "@/assets/svg";
 
-type FilterType = 'all' | 'available' | 'onboard' | 'offboard' | 'no-lessons' | 'cancelled' | 'completed' | 'overbooking';
+
+/**
+ * Get header class name for a booking based on its status and selected date.
+ */
+function getBookingHeaderColor(
+    booking: DrizzleData<BookingType>,
+    bookingsWithKiteEventsToday: Set<string>
+): string {
+    const hasKiteEventsToday = bookingsWithKiteEventsToday.has(booking.model.id);
+
+    if (hasKiteEventsToday) {
+        // Green: Booking has kite events for today
+        return WhiteboardStyles.CLASSES.HAS_KITE_EVENTS_TODAY;
+    }
+
+    // Default styling (grey if no kite events today)
+    return WhiteboardStyles.CLASSES.DEFAULT;
+}
+
+type FilterType =
+  | "all"
+  | "available"
+  | "onboard"
+  | "offboard"
+  | "no-lessons"
+  | "cancelled"
+  | "completed"
+  | "overbooking";
 
 interface AdminBookingsProps {
   bookings: BookingWithRelations[];
@@ -53,148 +81,191 @@ interface FilterButton {
   desc: string;
 }
 
-export default function AdminBookings({ bookings, selectedDate, filteredKiteEvents }: AdminBookingsProps) {
-  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+export default function AdminBookings({
+  bookings,
+  selectedDate,
+  filteredKiteEvents,
+}: AdminBookingsProps) {
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const [isSimpleView, setIsSimpleView] = useState(false);
 
   // Load filter from localStorage on mount
   useEffect(() => {
-    const savedFilter = localStorage.getItem('admin-bookings-filter');
-    if (savedFilter && ['all', 'available', 'onboard', 'offboard', 'no-lessons', 'cancelled', 'completed', 'overbooking'].includes(savedFilter)) {
+    const savedFilter = localStorage.getItem("admin-bookings-filter");
+    if (
+      savedFilter &&
+      [
+        "all",
+        "available",
+        "onboard",
+        "offboard",
+        "no-lessons",
+        "cancelled",
+        "completed",
+        "overbooking",
+      ].includes(savedFilter)
+    ) {
       setActiveFilter(savedFilter as FilterType);
     }
 
     // Load simple view state
-    const savedSimpleView = localStorage.getItem('admin-bookings-simple-view');
+    const savedSimpleView = localStorage.getItem("admin-bookings-simple-view");
     if (savedSimpleView !== null) {
-      setIsSimpleView(savedSimpleView === 'true');
+      setIsSimpleView(savedSimpleView === "true");
     }
   }, []);
 
   // Save filter to localStorage when it changes
   const handleFilterChange = (filter: FilterType) => {
     setActiveFilter(filter);
-    localStorage.setItem('admin-bookings-filter', filter);
+    localStorage.setItem("admin-bookings-filter", filter);
   };
 
   // Toggle simple view and save to localStorage
   const toggleSimpleView = () => {
     const newSimpleView = !isSimpleView;
     setIsSimpleView(newSimpleView);
-    localStorage.setItem('admin-bookings-simple-view', newSimpleView.toString());
+    localStorage.setItem(
+      "admin-bookings-simple-view",
+      newSimpleView.toString(),
+    );
   };
 
   // Create a set of booking IDs that have kite events today for efficient lookup
   const bookingsWithKiteEventsToday = useMemo(() => {
     const bookingIds = new Set<string>();
-    filteredKiteEvents.forEach(event => {
+    filteredKiteEvents.forEach((event) => {
       bookingIds.add(event.booking.model.id);
     });
     return bookingIds;
   }, [filteredKiteEvents]);
 
   // Helper function to calculate total kite minutes for a booking
-  const getTotalKiteMinutes = useMemo(() => 
-    (booking: BookingWithRelations): number => {
-      const lessons = booking.relations?.lessons || [];
-      let totalMinutes = 0;
+  const getTotalKiteMinutes = useMemo(
+    () =>
+      (booking: BookingWithRelations): number => {
+        const lessons = booking.relations?.lessons || [];
+        let totalMinutes = 0;
 
-      lessons.forEach((lesson) => {
-        const kiteEvents = lesson.kiteEvents || [];
-        kiteEvents.forEach((event) => {
-          if (event.duration && typeof event.duration === 'number') {
-            totalMinutes += event.duration;
-          }
+        lessons.forEach((lesson) => {
+          const kiteEvents = lesson.kiteEvents || [];
+          kiteEvents.forEach((event) => {
+            if (event.duration && typeof event.duration === "number") {
+              totalMinutes += event.duration;
+            }
+          });
         });
-      });
 
-      return totalMinutes;
-    }, 
-  []);
+        return totalMinutes;
+      },
+    [],
+  );
 
   // Helper function to get package duration for a booking
-  const getPackageDuration = useMemo(() =>
-    (booking: BookingWithRelations): number => {
-      const packageData = booking.relations?.package;
-      return packageData?.duration || 0;
-    },
-  []);
+  const getPackageDuration = useMemo(
+    () =>
+      (booking: BookingWithRelations): number => {
+        const packageData = booking.relations?.package;
+        return packageData?.duration || 0;
+      },
+    [],
+  );
 
   // Filter bookings based on lesson status
   const filteredBookings = useMemo(() => {
-    return bookings.filter(booking => {
+    return bookings.filter((booking) => {
       const lessons = booking.relations?.lessons || [];
 
       switch (activeFilter) {
-        case 'all':
+        case "all":
           return true;
 
-        case 'available':
+        case "available":
           // Show bookings that are waiting (have lessons OR no lessons, no events today, not completed)
           const totalMinutesAvailable = getTotalKiteMinutes(booking);
           const packageDurationAvailable = getPackageDuration(booking);
-          const hasKiteEventsToday = bookingsWithKiteEventsToday.has(booking.model.id);
-          const hasCancelledLessons = lessons.some((lesson) =>
-            lesson.status === 'cancelled' || lesson.status === 'delegated'
+          const hasKiteEventsToday = bookingsWithKiteEventsToday.has(
+            booking.model.id,
+          );
+          const hasCancelledLessons = lessons.some(
+            (lesson) =>
+              lesson.status === "cancelled" || lesson.status === "delegated",
           );
 
           // Include bookings with no lessons OR bookings with lessons that are not kiting today, not completed/over, not cancelled
-          return (lessons.length === 0 || 
+          return (
+            lessons.length === 0 ||
             (lessons.length > 0 &&
-             !hasKiteEventsToday &&
-             !(packageDurationAvailable > 0 && totalMinutesAvailable >= packageDurationAvailable) &&
-             !hasCancelledLessons));
+              !hasKiteEventsToday &&
+              !(
+                packageDurationAvailable > 0 &&
+                totalMinutesAvailable >= packageDurationAvailable
+              ) &&
+              !hasCancelledLessons)
+          );
 
-        case 'onboard':
+        case "onboard":
           // Show bookings that have kite events today
           return bookingsWithKiteEventsToday.has(booking.model.id);
 
-        case 'no-lessons':
+        case "no-lessons":
           // Show bookings with no lessons at all
           return lessons.length === 0;
 
-        case 'cancelled':
+        case "cancelled":
           // Show bookings with lessons that are cancelled or delegated
-          return lessons.some((lesson) =>
-            lesson.status === 'cancelled' || lesson.status === 'delegated'
+          return lessons.some(
+            (lesson) =>
+              lesson.status === "cancelled" || lesson.status === "delegated",
           );
 
-        case 'completed':
+        case "completed":
           // Show bookings where total kite minutes >= package duration
           const totalMinutes = getTotalKiteMinutes(booking);
           const packageDuration = getPackageDuration(booking);
           return packageDuration > 0 && totalMinutes >= packageDuration;
 
-        case 'overbooking':
+        case "overbooking":
           // Show bookings where total kite minutes > package duration (not equal)
           const overTotalMinutes = getTotalKiteMinutes(booking);
           const overPackageDuration = getPackageDuration(booking);
-          return overPackageDuration > 0 && overTotalMinutes > overPackageDuration;
+          return (
+            overPackageDuration > 0 && overTotalMinutes > overPackageDuration
+          );
 
         default:
           return true;
       }
     });
-  }, [bookings, activeFilter, bookingsWithKiteEventsToday, getTotalKiteMinutes, getPackageDuration]);
+  }, [
+    bookings,
+    activeFilter,
+    bookingsWithKiteEventsToday,
+    getTotalKiteMinutes,
+    getPackageDuration,
+  ]);
 
   // Calculate status breakdown for visualization
   const statusBreakdown = useMemo(() => {
     const breakdown: StatusBreakdown = {
-      waiting: { count: 0, color: 'bg-orange-500', label: 'Available' },
-      onboard: { count: 0, color: 'bg-green-500', label: 'OnBoard' },
-      noLessons: { count: 0, color: 'bg-yellow-500', label: 'No Lessons' },
-      cancelled: { count: 0, color: 'bg-red-500', label: 'Cancelled' },
-      completed: { count: 0, color: 'bg-blue-500', label: 'Completed' },
-      overbooking: { count: 0, color: 'bg-orange-500', label: 'Over Booking' }
+      waiting: { count: 0, color: "bg-orange-500", label: "Available" },
+      onboard: { count: 0, color: "bg-green-500", label: "OnBoard" },
+      noLessons: { count: 0, color: "bg-yellow-500", label: "No Lessons" },
+      cancelled: { count: 0, color: "bg-red-500", label: "Cancelled" },
+      completed: { count: 0, color: "bg-blue-500", label: "Completed" },
+      overbooking: { count: 0, color: "bg-orange-500", label: "Over Booking" },
     };
 
-    bookings.forEach(booking => {
+    bookings.forEach((booking) => {
       const lessons = booking.relations?.lessons || [];
       const totalMinutes = getTotalKiteMinutes(booking);
       const packageDuration = getPackageDuration(booking);
-      const hasKiteEventsToday = bookingsWithKiteEventsToday.has(booking.model.id);
-      const hasCancelledLessons = lessons.some((lesson) =>
-        lesson.status === 'cancelled' || lesson.status === 'delegated'
+      const hasKiteEventsToday = bookingsWithKiteEventsToday.has(
+        booking.model.id,
+      );
+      const hasCancelledLessons = lessons.some(
+        (lesson) =>
+          lesson.status === "cancelled" || lesson.status === "delegated",
       );
 
       // Mutually exclusive categories (priority: onboard status first, then completion status)
@@ -215,52 +286,63 @@ export default function AdminBookings({ bookings, selectedDate, filteredKiteEven
     });
 
     return breakdown;
-  }, [bookings, bookingsWithKiteEventsToday, getTotalKiteMinutes, getPackageDuration]);
+  }, [
+    bookings,
+    bookingsWithKiteEventsToday,
+    getTotalKiteMinutes,
+    getPackageDuration,
+  ]);
 
   const filterButtons: FilterButton[] = [
-    { key: 'all' as FilterType, label: 'All', count: bookings.length, color: '', desc: 'All bookings in the system' },
     {
-      key: 'available' as FilterType,
-      label: 'Available',
+      key: "all" as FilterType,
+      label: "All",
+      count: bookings.length,
+      color: "",
+      desc: "All bookings in the system",
+    },
+    {
+      key: "available" as FilterType,
+      label: "Available",
       count: statusBreakdown.waiting.count + statusBreakdown.noLessons.count,
-      color: 'bg-orange-500',
-      desc: 'Lessons looking to Kite or needing an instructor'
+      color: "bg-orange-500",
+      desc: "Lessons looking to Kite or needing an instructor",
     },
     {
-      key: 'onboard' as FilterType,
-      label: 'OnBoard',
+      key: "onboard" as FilterType,
+      label: "OnBoard",
       count: statusBreakdown.onboard.count,
-      color: 'bg-green-500',
-      desc: 'Lessons that are kiting today'
+      color: "bg-green-500",
+      desc: "Lessons that are kiting today",
     },
     {
-      key: 'no-lessons' as FilterType,
-      label: 'No Lessons',
+      key: "no-lessons" as FilterType,
+      label: "No Lessons",
       count: statusBreakdown.noLessons.count,
-      color: 'bg-yellow-500',
-      desc: 'Lessons looking for an instructor'
+      color: "bg-yellow-500",
+      desc: "Lessons looking for an instructor",
     },
     {
-      key: 'cancelled' as FilterType,
-      label: 'Cancelled',
+      key: "cancelled" as FilterType,
+      label: "Cancelled",
       count: statusBreakdown.cancelled.count,
-      color: 'bg-red-500',
-      desc: 'Cancelled or delegated lessons'
+      color: "bg-red-500",
+      desc: "Cancelled or delegated lessons",
     },
     {
-      key: 'completed' as FilterType,
-      label: 'Completed',
+      key: "completed" as FilterType,
+      label: "Completed",
       count: statusBreakdown.completed.count,
-      color: 'bg-blue-500',
-      desc: 'Completed bookings, but not paid'
+      color: "bg-blue-500",
+      desc: "Completed bookings, but not paid",
     },
     {
-      key: 'overbooking' as FilterType,
-      label: 'Over Booking',
+      key: "overbooking" as FilterType,
+      label: "Over Booking",
       count: statusBreakdown.overbooking.count,
-      color: 'bg-orange-500',
-      desc: 'Lessons with too many hours, and too little money'
-    }
+      color: "bg-orange-500",
+      desc: "Lessons with too many hours, and too little money",
+    },
   ];
 
   const getSelectedDateObj = () => {
@@ -284,13 +366,17 @@ export default function AdminBookings({ bookings, selectedDate, filteredKiteEven
         <div className="flex items-center gap-3">
           <BookingIcon className="w-6 h-6 text-primary" />
           <h3 className="font-medium text-primary">
-            {activeFilter === 'all' ? 'All Bookings' : filterButtons.find(f => f.key === activeFilter)?.desc}
-            <span className="ml-2 text-sm text-muted-foreground">({filteredBookings.length})</span>
+            {activeFilter === "all"
+              ? "All Bookings"
+              : filterButtons.find((f) => f.key === activeFilter)?.desc}
+            <span className="ml-2 text-sm text-muted-foreground">
+              ({filteredBookings.length})
+            </span>
           </h3>
           <button
             onClick={toggleSimpleView}
             className="p-3 rounded-lg transition-all duration-200 text-muted-foreground hover:text-primary transform hover:scale-110 hover:bg-muted/20"
-            title={isSimpleView ? 'Show filters' : 'Hide filters'}
+            title={isSimpleView ? "Show filters" : "Hide filters"}
           >
             {isSimpleView ? <EyeOff size={26} /> : <Eye size={26} />}
           </button>
@@ -298,11 +384,12 @@ export default function AdminBookings({ bookings, selectedDate, filteredKiteEven
       </div>
 
       {/* Main Content - Animated Container */}
-      <div className={`transition-all duration-500 ease-in-out ${
-        isSimpleView 
-          ? 'max-h-0 opacity-0 translate-y-[-10px]' 
-          : 'max-h-[2000px] opacity-100 translate-y-0'
-      } overflow-hidden`}>
+      <div
+        className={`transition-all duration-500 ease-in-out ${isSimpleView
+          ? "max-h-0 opacity-0 translate-y-[-10px]"
+          : "max-h-[2000px] opacity-100 translate-y-0"
+          } overflow-hidden`}
+      >
         <div className="px-4 pb-4">
           {/* Status Overview */}
           <div className="mb-4">
@@ -313,23 +400,28 @@ export default function AdminBookings({ bookings, selectedDate, filteredKiteEven
             {/* Status Bar */}
             <div className="flex rounded-lg overflow-hidden h-6 mb-3 bg-gray-300 dark:bg-gray-600 border transition-transform duration-300 delay-150">
               {Object.entries(statusBreakdown).map(([key, status]) => {
-                const percentage = bookings.length > 0 ? (status.count / bookings.length) * 100 : 0;
-                const filterKey = key === 'waiting' ? 'available' :
-                  key === 'noLessons' ? 'no-lessons' :
-                    key;
+                const percentage =
+                  bookings.length > 0
+                    ? (status.count / bookings.length) * 100
+                    : 0;
+                const filterKey =
+                  key === "waiting"
+                    ? "available"
+                    : key === "noLessons"
+                      ? "no-lessons"
+                      : key;
                 const isActive = activeFilter === filterKey;
                 return status.count > 0 ? (
                   <button
                     key={key}
                     onClick={() => handleFilterChange(filterKey as FilterType)}
-                    className={`transition-all duration-200 relative group hover:opacity-80 ${
-                      isActive
-                        ? 'bg-primary border-2 border-primary-foreground'
-                        : 'bg-muted hover:bg-muted/80'
-                    }`}
+                    className={`transition-all duration-200 relative group hover:opacity-80 ${isActive
+                      ? "bg-primary border-2 border-primary-foreground"
+                      : "bg-muted hover:bg-muted/80"
+                      }`}
                     style={{
                       width: `${percentage}%`,
-                      boxSizing: 'border-box'
+                      boxSizing: "border-box",
                     }}
                     title={`${status.label}: ${status.count} (${percentage.toFixed(1)}%)`}
                   >
@@ -345,26 +437,33 @@ export default function AdminBookings({ bookings, selectedDate, filteredKiteEven
 
             {/* Filter Buttons */}
             <div className="flex flex-wrap gap-2 transition-transform duration-300 delay-200">
-              {filterButtons.map(filter => {
-                const statusKey = filter.key === 'available' ? 'waiting' :
-                  filter.key === 'no-lessons' ? 'noLessons' :
-                    filter.key === 'onboard' ? 'onboard' :
-                      filter.key === 'cancelled' ? 'cancelled' :
-                        filter.key === 'completed' ? 'completed' :
-                          filter.key === 'overbooking' ? 'overbooking' :
-                            filter.key;
-                const statusData = statusBreakdown[statusKey as keyof typeof statusBreakdown];
+              {filterButtons.map((filter) => {
+                const statusKey =
+                  filter.key === "available"
+                    ? "waiting"
+                    : filter.key === "no-lessons"
+                      ? "noLessons"
+                      : filter.key === "onboard"
+                        ? "onboard"
+                        : filter.key === "cancelled"
+                          ? "cancelled"
+                          : filter.key === "completed"
+                            ? "completed"
+                            : filter.key === "overbooking"
+                              ? "overbooking"
+                              : filter.key;
+                const statusData =
+                  statusBreakdown[statusKey as keyof typeof statusBreakdown];
 
                 return (
                   <button
                     key={filter.key}
                     onClick={() => handleFilterChange(filter.key)}
                     title={filter.desc}
-                    className={`relative px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2 border-2 transform hover:scale-105 ${
-                      activeFilter === filter.key
-                        ? `bg-primary text-primary-foreground shadow-sm ${filter.color?.replace('bg-', 'border-').replace('500', '500') || 'border-primary'}`
-                        : 'bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground border-transparent'
-                    }`}
+                    className={`relative px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2 border-2 transform hover:scale-105 ${activeFilter === filter.key
+                      ? `bg-primary text-primary-foreground shadow-sm ${filter.color?.replace("bg-", "border-").replace("500", "500") || "border-primary"}`
+                      : "bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground border-transparent"
+                      }`}
                   >
                     {/* Color indicator */}
                     {filter.color && (
@@ -384,18 +483,20 @@ export default function AdminBookings({ bookings, selectedDate, filteredKiteEven
           <div className="transition-opacity duration-300 delay-250">
             {filteredBookings.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
-                No bookings found for -{filterButtons.find(f => f.key === activeFilter)?.label}- filter
+                No bookings found for -
+                {filterButtons.find((f) => f.key === activeFilter)?.label}-
+                filter
               </div>
             ) : (
               <div className="max-h-[600px] overflow-y-auto pr-1">
                 <div className="flex flex-wrap gap-3">
-                  {filteredBookings.map(booking => (
+                  {filteredBookings.map((booking) => (
                     <BookingCard
                       key={booking.model.id}
                       booking={booking}
-                      headerClassName={WhiteboardStyles.getBookingHeaderClass(
+                      headerClassName={getBookingHeaderColor(
                         booking,
-                        getSelectedDateObj(),
+                        bookingsWithKiteEventsToday,
                       )}
                     />
                   ))}

@@ -38,23 +38,36 @@ export default function AdminDashboard({ allBookings }: AdminDashboardProps) {
 
   // Extract kite events from bookings relations
   const allKiteEvents = useMemo(() => {
-    const kiteEvents: KiteEventFromBooking[] = [];
-    
+    const events: any[] = [];
+
     allBookings.forEach(booking => {
       booking.relations.lessons?.forEach(lesson => {
+        // Ensure we have the necessary teacher info before proceeding
+        if (!lesson.teacher_id || !lesson.teacher?.name) {
+          return; 
+        }
+
         lesson.kiteEvents?.forEach(kiteEvent => {
-          kiteEvents.push({
-            ...kiteEvent,
-            lesson,
-            booking,
-            students: booking.lambdas.students
+          events.push({
+            id: kiteEvent.id,
+            date: kiteEvent.date,
+            duration: kiteEvent.duration,
+            location: kiteEvent.location,
+            status: kiteEvent.status,
+            lesson_id: kiteEvent.lesson_id,
+            teacher: {
+              id: lesson.teacher_id,
+              name: lesson.teacher.name,
+            },
+            booking: booking, // Pass the whole booking for stats calculation
+            students: booking.lambdas.students || [],
           });
         });
       });
     });
     
     // Sort by date
-    return kiteEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [allBookings]);
 
   // Filter bookings based on selected date
@@ -101,11 +114,19 @@ export default function AdminDashboard({ allBookings }: AdminDashboardProps) {
   // Calculate stats for AdminStats component
   const statsData = useMemo(() => {
     const totalLessons = filteredKiteEvents.length;
-    const totalMinutes = filteredKiteEvents.reduce((sum, event) => sum + event.duration, 0);
+    const totalMinutes = filteredKiteEvents.reduce((sum, event) => sum + (event.duration || 0), 0);
+    
     const totalRevenue = filteredKiteEvents.reduce((sum, event) => {
-      const durationHours = event.duration / 60;
-      const pricePerHour = 50; // Default price per hour - you may want to get this from event data
-      return sum + (durationHours * pricePerHour);
+      const packagePrice = event.booking?.relations?.package?.price;
+      const packageDuration = event.booking?.relations?.package?.duration;
+      const eventDuration = event.duration;
+
+      if (packagePrice && packageDuration && eventDuration && packageDuration > 0) {
+        const revenueForEvent = (eventDuration / packageDuration) * packagePrice;
+        return sum + revenueForEvent;
+      }
+      
+      return sum;
     }, 0);
 
     return { totalLessons, totalMinutes, totalRevenue };
@@ -116,14 +137,9 @@ export default function AdminDashboard({ allBookings }: AdminDashboardProps) {
       <div className="max-w-7xl mx-auto">
         <AdminHeader selectedDate={selectedDate} />
         <AdminStartingTime filteredKiteEvents={filteredKiteEvents} />
-        <AdminStats
-          totalLessons={statsData.totalLessons}
-          totalMinutes={statsData.totalMinutes}
-          totalRevenue={statsData.totalRevenue}
-        />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <AdminStats filteredKiteEvents={filteredKiteEvents} />
+        <div className="grid grid-cols-1 gap-6 mt-6">
           <AdminBookings bookings={filteredBookings} selectedDate={selectedDate} filteredKiteEvents={filteredKiteEvents} />
-          <AdminEvents events={filteredKiteEvents} selectedDate={selectedDate} />
         </div>
         <div className="mt-6">
           <AdminSlotBoard filteredKiteEvents={filteredKiteEvents} />
