@@ -9,6 +9,8 @@ import AdminBookings from './AdminBookings';
 import AdminEvents from './AdminEvents';
 import AdminStartingTime from './AdminStartingTime';
 import AdminSlotBoard from './AdminSlotBoard';
+import { AdminDebugPanel } from '@/components/admin/AdminDebugPanel';
+import { AdminShareEvents } from '@/components/admin/AdminShareEvents';
 
 interface AdminDashboardProps {
   allBookings: BookingWithRelations[];
@@ -137,6 +139,7 @@ export default function AdminDashboard({ allBookings }: AdminDashboardProps) {
       <div className="max-w-7xl mx-auto">
         <AdminHeader selectedDate={selectedDate} />
         <AdminStartingTime filteredKiteEvents={filteredKiteEvents} />
+        <AdminShareEvents filteredKiteEvents={filteredKiteEvents} />
         <AdminStats filteredKiteEvents={filteredKiteEvents} />
         <div className="grid grid-cols-1 gap-6 mt-6">
           <AdminBookings bookings={filteredBookings} selectedDate={selectedDate} filteredKiteEvents={filteredKiteEvents} />
@@ -144,6 +147,7 @@ export default function AdminDashboard({ allBookings }: AdminDashboardProps) {
         <div className="mt-6">
           <AdminSlotBoard filteredKiteEvents={filteredKiteEvents} />
         </div>
+        <AdminDebugPanel filteredBookings={filteredBookings} />
       </div>
     </main>
   );

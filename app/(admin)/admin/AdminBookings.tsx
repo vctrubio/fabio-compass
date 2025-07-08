@@ -9,23 +9,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { BookingIcon } from "@/assets/svg";
 
 
-/**
- * Get header class name for a booking based on its status and selected date.
- */
-function getBookingHeaderColor(
-    booking: DrizzleData<BookingType>,
-    bookingsWithKiteEventsToday: Set<string>
-): string {
-    const hasKiteEventsToday = bookingsWithKiteEventsToday.has(booking.model.id);
 
-    if (hasKiteEventsToday) {
-        // Green: Booking has kite events for today
-        return WhiteboardStyles.CLASSES.HAS_KITE_EVENTS_TODAY;
-    }
-
-    // Default styling (grey if no kite events today)
-    return WhiteboardStyles.CLASSES.DEFAULT;
-}
 
 type FilterType =
   | "all"
@@ -345,6 +329,33 @@ export default function AdminBookings({
     },
   ];
 
+  const getBookingStatusColor = (booking: BookingWithRelations): string => {
+    const lessons = booking.relations?.lessons || [];
+    const totalMinutes = getTotalKiteMinutes(booking);
+    const packageDuration = getPackageDuration(booking);
+    const hasKiteEventsToday = bookingsWithKiteEventsToday.has(
+      booking.model.id,
+    );
+    const hasCancelledLessons = lessons.some(
+      (lesson) =>
+        lesson.status === "cancelled" || lesson.status === "delegated",
+    );
+
+    if (hasCancelledLessons) {
+      return statusBreakdown.cancelled.color;
+    } else if (lessons.length === 0) {
+      return statusBreakdown.noLessons.color;
+    } else if (hasKiteEventsToday) {
+      return statusBreakdown.onboard.color;
+    } else if (packageDuration > 0 && totalMinutes > packageDuration) {
+      return statusBreakdown.overbooking.color;
+    } else if (packageDuration > 0 && totalMinutes >= packageDuration) {
+      return statusBreakdown.completed.color;
+    } else {
+      return statusBreakdown.waiting.color;
+    }
+  };
+
   const getSelectedDateObj = () => {
     return selectedDate ? new Date(selectedDate) : undefined;
   };
@@ -494,10 +505,7 @@ export default function AdminBookings({
                     <BookingCard
                       key={booking.model.id}
                       booking={booking}
-                      headerClassName={getBookingHeaderColor(
-                        booking,
-                        bookingsWithKiteEventsToday,
-                      )}
+                      headerClassName={getBookingStatusColor(booking)}
                     />
                   ))}
                 </div>
