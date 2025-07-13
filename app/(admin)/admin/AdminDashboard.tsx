@@ -149,8 +149,6 @@ export default function AdminDashboard({ allBookings }: AdminDashboardProps) {
 
   const [selectedLessons, setSelectedLessons] = useState<any[]>([]);
 
-  
-
   const handleLessonClick = useCallback((lessonId: string) => {
     setSelectedLessons((prevSelectedLessons) => {
       if (prevSelectedLessons.includes(lessonId)) {
@@ -176,6 +174,11 @@ export default function AdminDashboard({ allBookings }: AdminDashboardProps) {
           setEventPlanning={setEventPlanning}
           selectedLessons={selectedLessons}
         />
+        <SelectedLessonsDisplay
+          selectedLessons={selectedLessons}
+          allBookings={allBookings}
+          eventPlanning={eventPlanning}
+        />
         <div className="mt-6">
           <AdminTeacherLessonStudentMap
             allBookings={filteredBookings}
@@ -191,3 +194,88 @@ export default function AdminDashboard({ allBookings }: AdminDashboardProps) {
     </main>
   );
 }
+
+interface SelectedLessonsDisplayProps {
+  selectedLessons: string[];
+  allBookings: BookingWithRelations[];
+  eventPlanning: {
+    singleDuration: number;
+    groupDuration: number;
+    location: 'Los Lances' | 'Valdevaqueros';
+    submitTime: string;
+    gapDuration: number;
+  };
+}
+
+const SelectedLessonsDisplay: React.FC<SelectedLessonsDisplayProps> = ({
+  selectedLessons,
+  allBookings,
+  eventPlanning,
+}) => {
+  const lessonsByTeacher = useMemo(() => {
+    const groupedLessons = new Map<string, any[]>();
+
+    selectedLessons.forEach((lessonId) => {
+      allBookings.forEach((booking) => {
+        booking.relations.lessons?.forEach((lesson) => {
+          if (lesson.id === lessonId) {
+            const teacherName = lesson.teacher?.name || 'N/A';
+            const isGroupLesson = (booking.lambdas.students?.length || 0) > 1; // Assuming group if more than 1 student
+            const duration = isGroupLesson ? eventPlanning.groupDuration : eventPlanning.singleDuration;
+
+            // Calculate potential start time
+            const [submitHours, submitMinutes] = eventPlanning.submitTime.split(':').map(Number);
+            const startTime = new Date();
+            startTime.setHours(submitHours, submitMinutes, 0, 0);
+
+            // You can add more sophisticated time calculation here if needed
+            // For now, it's just the submitTime from eventPlanning
+            const calculatedStartTime = startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+
+            if (!groupedLessons.has(teacherName)) {
+              groupedLessons.set(teacherName, []);
+            }
+            groupedLessons.get(teacherName)?.push({
+              id: lesson.id,
+              packageId: booking.relations.package?.id || 'N/A',
+              students: booking.lambdas.students?.map(s => s.name).join(', ') || 'No students',
+              capacity: booking.relations.package?.capacity || 'N/A',
+              lessonType: isGroupLesson ? 'Group' : 'Single',
+              location: eventPlanning.location,
+              calculatedStartTime: calculatedStartTime,
+            });
+          }
+        });
+      });
+    });
+    return Array.from(groupedLessons.entries());
+  }, [selectedLessons, allBookings, eventPlanning]);
+
+  if (selectedLessons.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-6 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+      <h3 className="text-lg font-bold mb-4">Selected Lessons</h3>
+      {lessonsByTeacher.map(([teacherName, lessons]) => (
+        <div key={teacherName} className="mb-6 last:mb-0">
+          <h4 className="text-md font-semibold mb-3 p-2 bg-gray-200 dark:bg-gray-700 rounded-md">Teacher: {teacherName}</h4>
+          <ul className="space-y-2">
+            {lessons.map((lesson) => (
+              <li key={lesson.id} className="p-3 bg-gray-100 dark:bg-gray-700 rounded-md">
+                <p className="text-sm font-medium">Lesson ID: {lesson.id}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Package ID: {lesson.packageId}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Students: {lesson.students}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Capacity: {lesson.capacity}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Lesson Type: {lesson.lessonType}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Location: {lesson.location}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Calculated Start Time: {lesson.calculatedStartTime}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+};
