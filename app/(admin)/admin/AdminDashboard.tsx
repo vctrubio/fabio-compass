@@ -147,14 +147,14 @@ export default function AdminDashboard({ allBookings }: AdminDashboardProps) {
     gapDuration: 0,
   }));
 
-  const [selectedLessons, setSelectedLessons] = useState<any[]>([]);
+  const [selectedLessonsId, setSelectedLessonsId] = useState<string[]>([]);
 
   const handleLessonClick = useCallback((lessonId: string) => {
-    setSelectedLessons((prevSelectedLessons) => {
-      if (prevSelectedLessons.includes(lessonId)) {
-        return prevSelectedLessons.filter((id) => id !== lessonId);
+    setSelectedLessonsId((prevSelectedLessonsId) => {
+      if (prevSelectedLessonsId.includes(lessonId)) {
+        return prevSelectedLessonsId.filter((id) => id !== lessonId);
       } else {
-        return [...prevSelectedLessons, lessonId];
+        return [...prevSelectedLessonsId, lessonId];
       }
     });
   }, []);
@@ -172,10 +172,10 @@ export default function AdminDashboard({ allBookings }: AdminDashboardProps) {
           startingTime={startingTime} 
           eventPlanning={eventPlanning}
           setEventPlanning={setEventPlanning}
-          selectedLessons={selectedLessons}
+          selectedLessons={selectedLessonsId}
         />
         <SelectedLessonsDisplay
-          selectedLessons={selectedLessons}
+          selectedLessonsId={selectedLessonsId}
           allBookings={allBookings}
           eventPlanning={eventPlanning}
         />
@@ -196,7 +196,7 @@ export default function AdminDashboard({ allBookings }: AdminDashboardProps) {
 }
 
 interface SelectedLessonsDisplayProps {
-  selectedLessons: string[];
+  selectedLessonsId: string[];
   allBookings: BookingWithRelations[];
   eventPlanning: {
     singleDuration: number;
@@ -208,17 +208,21 @@ interface SelectedLessonsDisplayProps {
 }
 
 const SelectedLessonsDisplay: React.FC<SelectedLessonsDisplayProps> = ({
-  selectedLessons,
+  selectedLessonsId,
   allBookings,
   eventPlanning,
 }) => {
   const lessonsByTeacher = useMemo(() => {
     const groupedLessons = new Map<string, any[]>();
 
-    selectedLessons.forEach((lessonId) => {
+    selectedLessonsId.forEach((lessonId) => {
       allBookings.forEach((booking) => {
         booking.relations.lessons?.forEach((lesson) => {
           if (lesson.id === lessonId) {
+            // Skip lessons that have kite events
+            if (lesson.kiteEvents && lesson.kiteEvents.length > 0) {
+              return;
+            }
             const teacherName = lesson.teacher?.name || 'N/A';
             const isGroupLesson = (booking.lambdas.students?.length || 0) > 1; // Assuming group if more than 1 student
             const duration = isGroupLesson ? eventPlanning.groupDuration : eventPlanning.singleDuration;
@@ -249,9 +253,9 @@ const SelectedLessonsDisplay: React.FC<SelectedLessonsDisplayProps> = ({
       });
     });
     return Array.from(groupedLessons.entries());
-  }, [selectedLessons, allBookings, eventPlanning]);
+  }, [selectedLessonsId, allBookings, eventPlanning]);
 
-  if (selectedLessons.length === 0) {
+  if (selectedLessonsId.length === 0) {
     return null;
   }
 
