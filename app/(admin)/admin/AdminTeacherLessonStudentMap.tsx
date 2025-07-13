@@ -12,6 +12,19 @@ export default function AdminTeacherLessonStudentMap({ allBookings, onLessonClic
     const map = new Map<string, { teacherName: string, lessons: any[] }>();
 
     allBookings.forEach((booking) => {
+      const totalPackageMinutes = booking.relations.package?.duration || 0;
+      let usedMinutes = 0;
+      booking.relations.lessons?.forEach((l: any) => {
+        l.kiteEvents?.forEach((kiteEvent: any) => {
+          usedMinutes += kiteEvent.duration || 0;
+        });
+      });
+      const remainingMinutes = totalPackageMinutes - usedMinutes;
+      const rawHoursRemaining = remainingMinutes / 60;
+      const formattedHoursRemaining = Number.isInteger(rawHoursRemaining)
+        ? `${rawHoursRemaining}h`
+        : `${rawHoursRemaining.toFixed(1)}h`;
+
       booking.relations.lessons?.forEach((lesson) => {
         if (!lesson.teacher_id || !lesson.teacher?.name) {
           return;
@@ -26,28 +39,17 @@ export default function AdminTeacherLessonStudentMap({ allBookings, onLessonClic
 
         const teacherData = map.get(lesson.teacher_id);
         if (teacherData) {
-          const studentsWithHours = (booking.lambdas.students || []).map((student: any) => {
-            const totalPackageMinutes = booking.relations.package?.duration || 0;
-            
-            let usedMinutes = 0;
-            booking.relations.lessons?.forEach((lesson: any) => {
-              lesson.kiteEvents?.forEach((kiteEvent: any) => {
-                usedMinutes += kiteEvent.duration || 0;
-              });
-            });
-
-            const remainingMinutes = totalPackageMinutes - usedMinutes;
-            const hoursRemaining = (remainingMinutes / 60).toFixed(1);
+          const students = (booking.lambdas.students || []).map((student: any) => {
             return {
               id: student.id,
               name: student.name,
-              hoursRemaining: `${hoursRemaining}h`,
             };
           });
 
           teacherData.lessons.push({
             lessonId: lesson.id,
-            students: studentsWithHours,
+            students: students,
+            hoursRemaining: formattedHoursRemaining,
           });
         }
       });

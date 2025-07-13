@@ -9,7 +9,8 @@ interface StudentInfo {
 
 interface LessonInfo {
   lessonId: string;
-  students: StudentInfo[];
+  students: Omit<StudentInfo, 'hoursRemaining'>[];
+  hoursRemaining: string;
 }
 
 interface TeacherLessonDivProps {
@@ -33,12 +34,12 @@ export const TeacherLessonDiv: React.FC<TeacherLessonDivProps> = ({
         {lessons.map((lesson) => (
           <li key={lesson.lessonId} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors duration-200"
               onClick={() => onLessonClick(lesson.lessonId)}>
-            <span className="font-semibold text-gray-700 dark:text-gray-300">Lesson:</span>
+            <span className="font-semibold text-gray-700 dark:text-gray-300">Lesson: ({lesson.hoursRemaining})</span>
             <ul className="list-disc list-inside ml-4 text-gray-600 dark:text-gray-400">
               {lesson.students.map((student) => (
                 <li key={student.id} className="flex items-center">
                   <HelmetIcon className="w-4 h-4 mr-2 text-orange-400" />
-                  {student.name} ({student.hoursRemaining})
+                  {student.name}
                 </li>
               ))}
             </ul>
