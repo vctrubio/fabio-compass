@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { BookingWithRelations } from "@/rails/types";
 import AdminHeader from "./AdminHeader";
@@ -9,10 +9,8 @@ import AdminBookings from "./AdminBookings";
 import AdminEvents from "./AdminEvents";
 import AdminStartingTime from "./AdminStartingTime";
 import AdminSlotBoard from "./AdminSlotBoard";
-import AdminTeacherLessonStudentMap from "./AdminTeacherLessonStudentMap";
 import { AdminDebugPanel } from "@/components/admin/AdminDebugPanel";
 import { AdminShareEvents } from "@/components/admin/AdminShareEvents";
-import { AdminEventBoard } from "./AdminEventBoard";
 
 interface AdminDashboardProps {
   allBookings: BookingWithRelations[];
@@ -117,76 +115,22 @@ export default function AdminDashboard({ allBookings }: AdminDashboardProps) {
     });
   }, [allKiteEvents, selectedDate]);
 
-  const startingTime = useMemo(() => {
-    if (filteredKiteEvents.length === 0) {
-      return '13:00'; // Default to 13:00 if no events
-    }
-
-    const earliestEvent = filteredKiteEvents.reduce((earliest, current) => {
-      const earliestDate = new Date(earliest.date);
-      const currentDate = new Date(current.date);
-      return earliestDate < currentDate ? earliest : current;
-    });
-
-    return new Date(earliestEvent.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
-  }, [filteredKiteEvents]);
-
-  interface EventPlanning {
-    singleDuration: number;
-    groupDuration: number;
-    location: 'Los Lances' | 'Valdevaqueros';
-    submitTime: string;
-    gapDuration: number;
-  }
-
-  const [eventPlanning, setEventPlanning] = useState<EventPlanning>(() => ({
-    singleDuration: 120,
-    groupDuration: 180,
-    location: 'Los Lances',
-    submitTime: startingTime, // Initialize with startingTime
-    gapDuration: 0,
-  }));
-
-  const [selectedLessons, setSelectedLessons] = useState<any[]>([]);
-
-  
-
-  const handleLessonClick = useCallback((lessonId: string) => {
-    setSelectedLessons((prevSelectedLessons) => {
-      if (prevSelectedLessons.includes(lessonId)) {
-        return prevSelectedLessons.filter((id) => id !== lessonId);
-      } else {
-        return [...prevSelectedLessons, lessonId];
-      }
-    });
-  }, []);
   return (
     <main className="min-h-screen w-full p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         <AdminHeader selectedDate={selectedDate} />
         <AdminStats filteredKiteEvents={filteredKiteEvents} />
+        <AdminStartingTime filteredKiteEvents={filteredKiteEvents} />
+        <AdminShareEvents filteredKiteEvents={filteredKiteEvents} />
         <AdminBookings
           bookings={filteredBookings}
           selectedDate={selectedDate}
           filteredKiteEvents={filteredKiteEvents}
         />
-        <AdminEventBoard 
-          startingTime={startingTime} 
-          eventPlanning={eventPlanning}
-          setEventPlanning={setEventPlanning}
-          selectedLessons={selectedLessons}
-        />
         <div className="mt-6">
-          <AdminTeacherLessonStudentMap
-            allBookings={filteredBookings}
-            onLessonClick={handleLessonClick}
-          />
           <AdminSlotBoard filteredKiteEvents={filteredKiteEvents} />
         </div>
-
         <AdminDebugPanel filteredBookings={filteredBookings} />
-        <AdminShareEvents filteredKiteEvents={filteredKiteEvents} />
-        <AdminStartingTime filteredKiteEvents={filteredKiteEvents} />
       </div>
     </main>
   );

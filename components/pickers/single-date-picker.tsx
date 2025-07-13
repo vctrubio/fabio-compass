@@ -98,6 +98,15 @@ export function SingleDatePicker({ selectedDate }: SingleDatePickerProps) {
             {relativeLabel}
           </span>
         )}
+        {selectedDate && selectedDate !== new Date().toISOString().split('T')[0] && (
+          <button
+            onClick={() => updateDate(new Date().toISOString().split('T')[0])}
+            className="text-xs bg-blue-100 hover:bg-blue-200 px-2 py-1 rounded-md text-blue-700 transition-colors"
+            title="Go to today"
+          >
+            Go to Today
+          </button>
+        )}
       </label>
       <div className="flex items-center gap-1">
         <button

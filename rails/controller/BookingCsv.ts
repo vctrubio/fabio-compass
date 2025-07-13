@@ -84,8 +84,8 @@ function parseBookingForCsv(booking: any): BookingCsvData[] {
     lesson_count: lessonCount,
     used_minutes: usedMinutes,
     created_at: booking.created_at,
-    start_date: booking.start_date || booking.created_at,
-    end_date: booking.end_date || booking.created_at,
+    start_date: booking.date_start,
+    end_date: booking.date_end,
     status: booking.status || "active",
   })) || [];
 }

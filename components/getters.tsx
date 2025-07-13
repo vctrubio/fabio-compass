@@ -58,7 +58,7 @@ export const getRoleBadgeStyle = (role: UserType['role']) => {
 
 // Date string getters - Spanish months with ES timezone
 export const getDateString = (date: Date) => {
-    const month = date.toLocaleString("es-ES", { month: "long", timeZone: "Europe/Madrid" });
+    const month = date.toLocaleString("en-US", { month: "long", timeZone: "Europe/Madrid" });
     const day = date.getDate();
     const year = date.getFullYear();
     const currentYear = new Date().getFullYear();

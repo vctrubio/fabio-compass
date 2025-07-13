@@ -8,9 +8,6 @@ import { WhiteboardStyles } from "@/components/hostelworld/whiteboard-classes";
 import { Eye, EyeOff } from "lucide-react";
 import { BookingIcon } from "@/assets/svg";
 
-
-
-
 type FilterType =
   | "all"
   | "available"
@@ -505,7 +502,7 @@ export default function AdminBookings({
                     <BookingCard
                       key={booking.model.id}
                       booking={booking}
-                      headerClassName={getBookingStatusColor(booking)}
+                    // headerClassName={getBookingStatusColor(booking)}
                     />
                   ))}
                 </div>

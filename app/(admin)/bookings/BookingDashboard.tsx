@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MonthPicker } from "@/components/pickers/month-picker";
 import { BookingCsvData } from "@/rails/controller/BookingCsv";
@@ -8,7 +8,7 @@ import { ProgressBar, FormatDateRange } from "@/components/formatters";
 import { Input } from "@/components/ui/input";
 import { ChevronUp, ChevronDown } from "lucide-react";
 
-type SortOrder = 'asc' | 'desc';
+type SortOrder = "asc" | "desc";
 type SortableBookingField = keyof BookingCsvData;
 
 interface BookingsDashboardProps {
@@ -22,16 +22,27 @@ interface BookingsTableProps {
   onSort: (column: string) => void;
 }
 
-function BookingsTable({ bookings, sortBy, sortOrder, onSort }: BookingsTableProps) {
+function BookingsTable({
+  bookings,
+  sortBy,
+  sortOrder,
+  onSort,
+}: BookingsTableProps) {
   const getSortIcon = (column: string) => {
     if (sortBy !== column) return null;
-    return sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />;
+    return sortOrder === "asc" ? (
+      <ChevronUp className="w-4 h-4" />
+    ) : (
+      <ChevronDown className="w-4 h-4" />
+    );
   };
   if (bookings.length === 0) {
     return (
       <Card>
         <CardContent className="p-6">
-          <p className="text-muted-foreground">No bookings found for this month.</p>
+          <p className="text-muted-foreground">
+            No bookings found for this month.
+          </p>
         </CardContent>
       </Card>
     );
@@ -44,49 +55,49 @@ function BookingsTable({ bookings, sortBy, sortOrder, onSort }: BookingsTablePro
           <table className="w-full">
             <thead>
               <tr className="border-b bg-muted/50">
-                <th 
+                <th
                   className="text-left p-2 font-medium cursor-pointer hover:bg-muted/70 select-none w-20"
-                  onClick={() => onSort('created_at')}
+                  onClick={() => onSort("created_at")}
                 >
                   <div className="flex items-center gap-1">
                     Created
-                    {getSortIcon('created_at')}
+                    {getSortIcon("created_at")}
                   </div>
                 </th>
-                <th 
+                <th
                   className="text-left p-4 font-medium cursor-pointer hover:bg-muted/70 select-none"
-                  onClick={() => onSort('start_date')}
+                  onClick={() => onSort("start_date")}
                 >
                   <div className="flex items-center gap-2">
                     Starting
-                    {getSortIcon('start_date')}
+                    {getSortIcon("start_date")}
                   </div>
                 </th>
-                <th 
+                <th
                   className="text-left p-4 font-medium cursor-pointer hover:bg-muted/70 select-none"
-                  onClick={() => onSort('student_name')}
+                  onClick={() => onSort("student_name")}
                 >
                   <div className="flex items-center gap-2">
                     Student
-                    {getSortIcon('student_name')}
+                    {getSortIcon("student_name")}
                   </div>
                 </th>
-                <th 
+                <th
                   className="text-left p-4 font-medium cursor-pointer hover:bg-muted/70 select-none"
-                  onClick={() => onSort('package_description')}
+                  onClick={() => onSort("package_description")}
                 >
                   <div className="flex items-center gap-2">
                     Package
-                    {getSortIcon('package_description')}
+                    {getSortIcon("package_description")}
                   </div>
                 </th>
-                <th 
+                <th
                   className="text-left p-4 font-medium cursor-pointer hover:bg-muted/70 select-none"
-                  onClick={() => onSort('package_price')}
+                  onClick={() => onSort("package_price")}
                 >
                   <div className="flex items-center gap-2">
                     Price
-                    {getSortIcon('package_price')}
+                    {getSortIcon("package_price")}
                   </div>
                 </th>
                 <th className="text-left p-4 font-medium">Status</th>
@@ -94,14 +105,20 @@ function BookingsTable({ bookings, sortBy, sortOrder, onSort }: BookingsTablePro
             </thead>
             <tbody>
               {bookings.map((booking, index) => (
-                <tr key={`${booking.booking_id}-${index}`} className="border-b hover:bg-muted/30">
+                <tr
+                  key={`${booking.booking_id}-${index}`}
+                  className="border-b hover:bg-muted/30"
+                >
                   <td className="p-2 text-muted-foreground">
-                    {new Date(booking.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {new Date(booking.created_at).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })}
                   </td>
                   <td className="p-4">
-                    <FormatDateRange 
-                      startDate={booking.start_date} 
-                      endDate={booking.end_date} 
+                    <FormatDateRange
+                      startDate={booking.start_date}
+                      endDate={booking.end_date}
                     />
                   </td>
                   <td className="p-4 font-medium">{booking.student_name}</td>
@@ -158,15 +175,17 @@ function StatsCards({ stats }: StatsCardsProps) {
   );
 }
 
-export default function BookingsDashboard({ allBookings }: BookingsDashboardProps) {
+export default function BookingsDashboard({
+  allBookings,
+}: BookingsDashboardProps) {
   const currentDate = new Date();
-  const currentMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-  
+  const currentMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}`;
+
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
 
   // Load selected month from localStorage on mount
   useEffect(() => {
-    const savedMonth = localStorage.getItem('bookings-selected-month');
+    const savedMonth = localStorage.getItem("bookings-selected-month");
     if (savedMonth) {
       // Validate the month format (YYYY-MM)
       const monthRegex = /^\d{4}-\d{2}$/;
@@ -179,28 +198,33 @@ export default function BookingsDashboard({ allBookings }: BookingsDashboardProp
   // Save selected month to localStorage when it changes
   const handleMonthChange = useCallback((month: string) => {
     setSelectedMonth(month);
-    localStorage.setItem('bookings-selected-month', month);
+    localStorage.setItem("bookings-selected-month", month);
   }, []);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('created_at');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("created_at");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
 
-  const handleSort = useCallback((column: string) => {
-    if (sortBy === column) {
-      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(column);
-      setSortOrder('asc');
-    }
-  }, [sortBy]);
+  const handleSort = useCallback(
+    (column: string) => {
+      if (sortBy === column) {
+        setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+      } else {
+        setSortBy(column);
+        setSortOrder("asc");
+      }
+    },
+    [sortBy],
+  );
 
   // Filter and sort bookings
   const filteredAndSortedBookings = useMemo(() => {
-    let filtered = allBookings.filter(booking => {
+    const filtered = allBookings.filter((booking) => {
       const bookingDate = new Date(booking.created_at);
-      const bookingMonth = `${bookingDate.getFullYear()}-${String(bookingDate.getMonth() + 1).padStart(2, '0')}`;
+      const bookingMonth = `${bookingDate.getFullYear()}-${String(bookingDate.getMonth() + 1).padStart(2, "0")}`;
       const matchesMonth = bookingMonth === selectedMonth;
-      const matchesSearch = searchTerm === '' || booking.student_name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch =
+        searchTerm === "" ||
+        booking.student_name.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesMonth && matchesSearch;
     });
 
@@ -210,19 +234,19 @@ export default function BookingsDashboard({ allBookings }: BookingsDashboardProp
       let bValue: any = b[sortBy as keyof BookingCsvData];
 
       // Handle date sorting
-      if (sortBy === 'created_at' || sortBy === 'start_date') {
+      if (sortBy === "created_at" || sortBy === "start_date") {
         aValue = new Date(aValue).getTime();
         bValue = new Date(bValue).getTime();
       }
 
       // Handle string sorting
-      if (typeof aValue === 'string') {
+      if (typeof aValue === "string") {
         aValue = aValue.toLowerCase();
         bValue = bValue.toLowerCase();
       }
 
-      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
       return 0;
     });
 
@@ -232,13 +256,19 @@ export default function BookingsDashboard({ allBookings }: BookingsDashboardProp
   // Calculate stats for filtered bookings
   const stats = useMemo(() => {
     const totalBookings = filteredAndSortedBookings.length;
-    const totalDuration = filteredAndSortedBookings.reduce((sum, booking) => sum + booking.package_duration, 0);
-    const totalPrice = filteredAndSortedBookings.reduce((sum, booking) => sum + booking.package_price, 0);
-    
+    const totalDuration = filteredAndSortedBookings.reduce(
+      (sum, booking) => sum + booking.package_duration,
+      0,
+    );
+    const totalPrice = filteredAndSortedBookings.reduce(
+      (sum, booking) => sum + booking.package_price,
+      0,
+    );
+
     return {
       totalBookings,
       totalDuration: Math.round(totalDuration * 10) / 10,
-      totalPrice
+      totalPrice,
     };
   }, [filteredAndSortedBookings]);
 
@@ -256,9 +286,9 @@ export default function BookingsDashboard({ allBookings }: BookingsDashboardProp
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full sm:w-64"
                 />
-                <MonthPicker 
-                  selectedMonth={selectedMonth} 
-                  onMonthChange={handleMonthChange} 
+                <MonthPicker
+                  selectedMonth={selectedMonth}
+                  onMonthChange={handleMonthChange}
                 />
               </div>
             </div>
@@ -266,9 +296,9 @@ export default function BookingsDashboard({ allBookings }: BookingsDashboardProp
         </Card>
 
         <StatsCards stats={stats} />
-        
-        <BookingsTable 
-          bookings={filteredAndSortedBookings} 
+
+        <BookingsTable
+          bookings={filteredAndSortedBookings}
           sortBy={sortBy}
           sortOrder={sortOrder}
           onSort={handleSort}

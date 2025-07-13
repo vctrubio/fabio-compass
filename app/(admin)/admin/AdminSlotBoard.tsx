@@ -1,68 +1,75 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import { KiteEventData } from '@/components/hostelworld/types';
-import { getTime } from '@/components/getters';
-import { EventCard } from '@/rails/view/card/EventCard';
-import { HeadsetIcon } from '@/assets/svg/HeadsetIcon';
+import { useMemo } from "react";
+import { KiteEventData } from "@/components/hostelworld/types";
+import { getTime } from "@/components/getters";
+import { EventCard } from "@/rails/view/card/EventCard";
+import { HeadsetIcon } from "@/assets/svg/HeadsetIcon";
 
 interface AdminSlotBoardProps {
   filteredKiteEvents: any[];
 }
 
 interface TeacherWithEvents {
-  teacher: { id: string; name: string; };
+  teacher: { id: string; name: string };
   events: KiteEventData[];
 }
 
-const TIME_SLOT_MINUTES = 30;
-
 // --- Helper Functions ---
 const timeToMinutes = (time: string): number => {
-  if (!time || !time.includes(':')) return 0;
-  const [hours, minutes] = time.split(':').map(Number);
+  if (!time || !time.includes(":")) return 0;
+  const [hours, minutes] = time.split(":").map(Number);
   return hours * 60 + minutes;
 };
 
-const roundDown = (num: number, multiple: number) => Math.floor(num / multiple) * multiple;
-const roundUp = (num: number, multiple: number) => Math.ceil(num / multiple) * multiple;
+const roundDown = (num: number, multiple: number) =>
+  Math.floor(num / multiple) * multiple;
+const roundUp = (num: number, multiple: number) =>
+  Math.ceil(num / multiple) * multiple;
 
 // --- Components ---
 
-export default function AdminSlotBoard({ filteredKiteEvents }: AdminSlotBoardProps) {
+export default function AdminSlotBoard({
+  filteredKiteEvents,
+}: AdminSlotBoardProps) {
   const eventsByTeacher = useMemo(() => {
     // 1. Clean and transform the raw event data (already done in AdminDashboard, but ensure type safety)
-    const kiteEventData = filteredKiteEvents.map(event => {
-      // Ensure teacher data is present and correctly structured
-      if (!event.teacher?.id || !event.teacher?.name) {
-        console.warn('Kite event is missing complete teacher information, skipping:', event);
-        return null; 
-      }
-      return {
-        id: event.id,
-        lesson_id: event.lesson_id,
-        date: event.date,
-        time: getTime(new Date(event.date)), // Ensure time is formatted consistently
-        duration: event.duration,
-        location: event.location,
-        status: event.status,
-        teacher: {
-          id: event.teacher.id,
-          name: event.teacher.name,
-        },
-        students: event.students || [],
-        // pricePerHour: 50, // This is now handled by AdminDashboard for stats
-      };
-    }).filter(Boolean) as KiteEventData[];
+    const kiteEventData = filteredKiteEvents
+      .map((event) => {
+        // Ensure teacher data is present and correctly structured
+        if (!event.teacher?.id || !event.teacher?.name) {
+          console.warn(
+            "Kite event is missing complete teacher information, skipping:",
+            event,
+          );
+          return null;
+        }
+        return {
+          id: event.id,
+          lesson_id: event.lesson_id,
+          date: event.date,
+          time: getTime(new Date(event.date)), // Ensure time is formatted consistently
+          duration: event.duration,
+          location: event.location,
+          status: event.status,
+          teacher: {
+            id: event.teacher.id,
+            name: event.teacher.name,
+          },
+          students: event.students || [],
+          // pricePerHour: 50, // This is now handled by AdminDashboard for stats
+        };
+      })
+      .filter(Boolean) as KiteEventData[];
 
     // 2. Group events by teacher
     const grouped = new Map<string, TeacherWithEvents>();
-    kiteEventData.forEach(event => {
+    kiteEventData.forEach((event) => {
       const teacherId = event.teacher.id;
       if (!grouped.has(teacherId)) {
-        grouped.set(teacherId, { 
+        grouped.set(teacherId, {
           teacher: { id: teacherId, name: event.teacher.name },
-          events: [] 
+          events: [],
         });
       }
       grouped.get(teacherId)!.events.push(event);
@@ -70,8 +77,10 @@ export default function AdminSlotBoard({ filteredKiteEvents }: AdminSlotBoardPro
 
     // 3. Sort events for each teacher and return as an array
     const result = Array.from(grouped.values());
-    result.forEach(teacherGroup => {
-      teacherGroup.events.sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+    result.forEach((teacherGroup) => {
+      teacherGroup.events.sort(
+        (a, b) => timeToMinutes(a.time) - timeToMinutes(b.time),
+      );
     });
 
     return result;
@@ -98,7 +107,7 @@ export default function AdminSlotBoard({ filteredKiteEvents }: AdminSlotBoardPro
               <h3 className="text-lg font-medium">{teacher.name}</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {events.map(event => (
+              {events.map((event) => (
                 <EventCard key={event.id} event={event} viewMode="grid" />
               ))}
             </div>

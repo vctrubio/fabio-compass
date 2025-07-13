@@ -17,7 +17,7 @@ export function AdminShareEvents({ filteredKiteEvents }: AdminShareEventsProps) 
       });
 
       // Get all students with their passport numbers from kite events
-      const studentsWithPassports: Array<{ name: string; passport: string | null }> = [];
+      const studentsWithPassports: Array<{ name: string; passport?: string | null }> = [];
 
       filteredKiteEvents.forEach((event) => {
         if (event.students && event.students.length > 0) {
@@ -26,7 +26,7 @@ export function AdminShareEvents({ filteredKiteEvents }: AdminShareEventsProps) 
             if (!studentsWithPassports.find((s) => s.name === student.name)) {
               studentsWithPassports.push({
                 name: student.name,
-                passport: student.passport_number || null, // Assuming passport_number might be on student object
+                passport: student.passport_number || null,
               });
             }
           });
