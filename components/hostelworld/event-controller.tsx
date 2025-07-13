@@ -17,6 +17,7 @@ import { SelectedLessonsDisplay } from "./selected-lessons-display";
 import { EventControllerActions } from "./event-controller-actions";
 import { SchedulingSummary } from "./scheduling-summary";
 import { formatDuration } from "@/components/formatters";
+import { toast } from "sonner";
 import {
     EventControllerProps,
     DurationSettings,
@@ -143,6 +144,7 @@ const SelectedKiteEventsDisplay = ({
 
             if (result.success) {
                 console.log("✅ All events updated successfully");
+                toast.success("Events updated successfully!");
                 // Reset reordered events state since changes are now saved
                 setReorderedEvents({});
                 // Reset gaps since changes are now saved
@@ -154,6 +156,7 @@ const SelectedKiteEventsDisplay = ({
                 onClose();
                 // Optionally, you could trigger a refresh of the data here
             } else {
+                toast.error(result.error || "Failed to update events");
                 throw new Error(result.error || "Failed to update events");
             }
         } catch (error: any) {
