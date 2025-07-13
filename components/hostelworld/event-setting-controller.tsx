@@ -5,12 +5,10 @@ import {
     Clock,
     Timer,
     MapPin,
-    Calendar,
     ChevronUp,
     ChevronDown,
 } from "lucide-react";
 import { TimeUtils } from "./whiteboard-backend";
-import { KiteEventData } from "./types";
 
 // Time control component
 export const TimeControl = memo(
@@ -182,28 +180,3 @@ export const LocationControl = ({
         </div>
     </div>
 );
-
-// Pushback control component
-export const PushbackControl = ({
-    onClick,
-    todayKiteEvents,
-    isExpanded,
-}: {
-    onClick: () => void;
-    todayKiteEvents?: KiteEventData[];
-    isExpanded: boolean;
-}) => {
-    const eventCount = todayKiteEvents?.length || 0;
-
-    if (eventCount === 0) {
-        return <></>;
-    }
-
-    return (
-        <div className="">
-            <button onClick={onClick}>
-                <span className="ml-1">({eventCount})</span>
-            </button>
-        </div>
-    );
-};

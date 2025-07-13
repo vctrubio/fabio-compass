@@ -5,7 +5,6 @@ import {
     TimeControl,
     LocationControl,
     DurationControl,
-    PushbackControl,
 } from "./event-setting-controller";
 import {
     createKiteEventsWithCalculatedTimeAction,
@@ -13,9 +12,6 @@ import {
 } from "@/actions/kite-actions";
 import { LessonPreparation } from "./whiteboard-backend";
 import { TimeUtils } from "@/lib/utils";
-import { SelectedLessonsDisplay } from "./selected-lessons-display";
-import { EventControllerActions } from "./event-controller-actions";
-import { SchedulingSummary } from "./scheduling-summary";
 import { formatDuration } from "@/components/formatters";
 import { toast } from "sonner";
 import {
@@ -24,6 +20,7 @@ import {
     TeacherAvailability,
     KiteEventData,
 } from "./types";
+import { EventSubmission } from "./event-submission";
 
 // Selected Kite Events Display Component
 const SelectedKiteEventsDisplay = ({
@@ -106,7 +103,7 @@ const SelectedKiteEventsDisplay = ({
                         // Log gap information for this event
                         const eventGap = eventGaps[event.id] || 0;
                         console.log(
-                            `  � Event #${index + 1} (${event.id.slice(-4)}): ${originalTime} → ${event.newTime}${eventGap > 0 ? ` (gap: +${Math.floor(eventGap / 60)}h${eventGap % 60 > 0 ? ` ${eventGap % 60}m` : ""})` : ""}`,
+                            `   Event #${index + 1} (${event.id.slice(-4)}): ${originalTime} → ${event.newTime}${eventGap > 0 ? ` (gap: +${Math.floor(eventGap / 60)}h${eventGap % 60 > 0 ? ` ${eventGap % 60}m` : ""})` : ""}`,
                         );
 
                         eventsToUpdate.push({
@@ -702,6 +699,10 @@ export function EventController({
     >({});
     const [showPushbackEvents, setShowPushbackEvents] = useState(false);
 
+    // --- GAP STATE ---
+    // Store gaps for each lesson (in minutes)
+    const [gaps, setGaps] = useState<Record<string, number>>({});
+
     // Duration options
     const singleDurationOptions = [
         { value: 60, label: "1h" },
@@ -861,15 +862,44 @@ export function EventController({
 
     const createEventsWithCalculatedTime = async () => {
         setIsLoading(true);
-
         try {
-            const lessonsWithCalculatedTime =
-                LessonPreparation.prepareLessonsWithCalculatedTime(
-                    selectedLessons,
-                    teacherAvailability,
-                    submitTime,
-                    durations,
-                );
+            // Group lessons by teacher for gap calculation
+            const lessonsByTeacher: Record<string, LessonWithStudents[]> = {};
+            selectedLessons.forEach(lesson => {
+                if (!lessonsByTeacher[lesson.teacher.id]) lessonsByTeacher[lesson.teacher.id] = [];
+                lessonsByTeacher[lesson.teacher.id].push(lesson);
+            });
+
+            // For each teacher, calculate gap-adjusted start times
+            const lessonsWithCalculatedTime = selectedLessons.map(lesson => {
+                const teacherLessons = lessonsByTeacher[lesson.teacher.id];
+                const index = teacherLessons.findIndex(l => l.lesson_id === lesson.lesson_id);
+                const baseTime = teacherAvailability[lesson.lesson_id]?.calculatedTime || submitTime;
+                // Sum all previous gaps for this teacher
+                let totalGap = 0;
+                for (let i = 0; i < index; i++) {
+                    const prevLesson = teacherLessons[i];
+                    totalGap += gaps[prevLesson.lesson_id] || 0;
+                }
+                const thisGap = gaps[lesson.lesson_id] || 0;
+                const totalGapForThisLesson = totalGap + thisGap;
+                // Calculate adjusted start time
+                let adjustedTime = baseTime;
+                if (baseTime && totalGapForThisLesson > 0) {
+                    const [h, m] = baseTime.split(":").map(Number);
+                    const totalMinutes = h * 60 + m + totalGapForThisLesson;
+                    const newHours = Math.floor(totalMinutes / 60);
+                    const newMins = totalMinutes % 60;
+                    adjustedTime = `${newHours.toString().padStart(2, "0")}:${newMins.toString().padStart(2, "0")}`;
+                }
+                const lessonDuration = lesson.students.length > 1 ? durations.multiple : durations.single;
+                return {
+                    lessonId: lesson.lesson_id,
+                    teacherId: lesson.teacher.id,
+                    calculatedTime: adjustedTime,
+                    duration: lessonDuration,
+                };
+            });
 
             const result = await createKiteEventsWithCalculatedTimeAction({
                 lessons: lessonsWithCalculatedTime,
@@ -954,25 +984,17 @@ export function EventController({
                 </h3>
                 {selectedLessons.length > 0 && (
                     <div className="space-y-4">
-                        <SchedulingSummary
-                            selectedLessons={selectedLessons}
-                            selectedDate={selectedDate}
-                            submitTime={submitTime}
-                            teacherAvailability={teacherAvailability}
-                        />
-                        <SelectedLessonsDisplay
+                        <EventSubmission
                             selectedLessons={selectedLessons}
                             teacherAvailability={teacherAvailability}
-                            selectedDate={selectedDate}
                             location={location}
                             durations={durations}
                             onRemoveLesson={onRemoveLesson}
-                        />
-                        <EventControllerActions
-                            selectedLessons={selectedLessons}
                             onClearAll={onClearAll}
                             onCreateEvents={createEventsWithCalculatedTime}
                             isLoading={isLoading}
+                            gaps={gaps}
+                            setGaps={setGaps}
                         />
                     </div>
                 )}

@@ -2,6 +2,7 @@ import { User, GraduationCap } from "lucide-react";
 import { DatePickerRange } from "@/rails/types";
 import { getDateString, getTime } from "./getters";
 import { differenceInCalendarDays } from "date-fns";
+import { FlagIcon } from "@/assets/svg/FlagIcon";
 
 // Date type configurations
 const DATE_TYPES = {
@@ -457,3 +458,23 @@ export const formatDateNow = (date: Date): string => {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
 };
+
+/**
+ * Formatter: Flag icon, start time, separator, +duration
+ */
+export const FormatFlagTimeDuration = ({
+  startTime,
+  duration,
+  className = ""
+}: {
+  startTime: string;
+  duration: number;
+  className?: string;
+}) => (
+  <div className={`flex items-center gap-2 ${className}`}>
+    <FlagIcon className="w-4 h-4" />
+    <span className="font-mono text-sm">{startTime}</span>
+    <span className="mx-1 text-gray-400">|</span>
+    <span className="text-xs text-blue-700 dark:text-blue-300 font-semibold">+{formatDuration(duration)}</span>
+  </div>
+);
