@@ -5,7 +5,14 @@ import { TeacherEventLinkedList } from "./teacher-event-linked-list";
 import { getDateString } from "@/components/getters";
 import { formatDuration, formatDateNow } from "@/components/formatters";
 import { HeadsetIcon } from "@/assets/svg/HeadsetIcon";
-import { Printer, Grid, Share, FlagIcon, Mail, MessageCircle } from "lucide-react";
+import {
+    Printer,
+    Grid,
+    Share,
+    FlagIcon,
+    Mail,
+    MessageCircle,
+} from "lucide-react";
 import { WhiteboardCalendarProps, TeacherEvent } from "./types";
 import { EventCard } from "@/rails/view/card/EventCard";
 
@@ -13,8 +20,8 @@ import { EventCard } from "@/rails/view/card/EventCard";
 interface CalendarHeaderProps {
     selectedDate: Date;
     earliestTime: string;
-    viewMode: 'grid' | 'print';
-    onViewModeChange: (mode: 'grid' | 'print') => void;
+    viewMode: "grid" | "print";
+    onViewModeChange: (mode: "grid" | "print") => void;
     onPrint: () => void;
     onShare: () => void;
     onCommunicate: () => void;
@@ -25,7 +32,7 @@ interface TeacherRowProps {
     teacher: TeacherEvent;
     teacherEventLinkedList: TeacherEventLinkedList;
     maxSlots: number;
-    viewMode: 'grid' | 'print';
+    viewMode: "grid" | "print";
     addMinutesToTime: (time: string, minutes: number) => string;
 }
 
@@ -34,7 +41,7 @@ interface CalendarGridProps {
     maxEventSlots: number;
     teacherEventLinkedList: TeacherEventLinkedList;
     maxSlots: number;
-    viewMode: 'grid' | 'print';
+    viewMode: "grid" | "print";
     addMinutesToTime: (time: string, minutes: number) => string;
 }
 
@@ -47,27 +54,31 @@ const CalendarHeader = ({
     onPrint,
     onShare,
     onCommunicate,
-    onWhatsApp
+    onWhatsApp,
 }: CalendarHeaderProps) => (
     <div className="mb-4 flex justify-between items-center">
         <div className="flex items-center gap-4">
-            <h3 className="text-lg font-medium">
-                {formatDateNow(selectedDate)}
-            </h3>
             <div className="flex items-center gap-3 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                 <div className="text-lg font-semibold text-blue-600 dark:text-blue-400 flex gap-1 items-center">
-                    <FlagIcon />{earliestTime}
+                    <FlagIcon />
+                    {earliestTime}
                 </div>
-                <span className="text-sm text-blue-600 dark:text-blue-400">earliest</span>
+                <span className="text-sm text-blue-600 dark:text-blue-400">
+                    earliest
+                </span>
             </div>
         </div>
         <div className="flex gap-2 print-hidden">
             <button
-                onClick={() => onViewModeChange(viewMode === 'grid' ? 'print' : 'grid')}
+                onClick={() => onViewModeChange(viewMode === "grid" ? "print" : "grid")}
                 className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-600"
             >
-                {viewMode === 'grid' ? <Printer className="w-4 h-4" /> : <Grid className="w-4 h-4" />}
-                {viewMode === 'grid' ? 'Print View' : 'Grid View'}
+                {viewMode === "grid" ? (
+                    <Printer className="w-4 h-4" />
+                ) : (
+                    <Grid className="w-4 h-4" />
+                )}
+                {viewMode === "grid" ? "Print View" : "Grid View"}
             </button>
             <button
                 onClick={onPrint}
@@ -107,9 +118,11 @@ const TeacherRow = ({
     teacherEventLinkedList,
     maxSlots,
     viewMode,
-    addMinutesToTime
+    addMinutesToTime,
 }: TeacherRowProps) => {
-    const teacherNode = teacherEventLinkedList.getTeacherById(teacher.teacher.model.id);
+    const teacherNode = teacherEventLinkedList.getTeacherById(
+        teacher.teacher.model.id,
+    );
 
     // Get all events for this teacher in order
     const teacherEvents: Array<{
@@ -135,7 +148,7 @@ const TeacherRow = ({
         return null;
     }
 
-    if (viewMode === 'print') {
+    if (viewMode === "print") {
         // Print view logic for teacher row - each event takes exactly one slot matching its time
         if (teacherEvents.length === 0) {
             return null;
@@ -145,17 +158,17 @@ const TeacherRow = ({
         const allEventTimes = new Set<string>();
         // We need to get the global time slots, not just this teacher's times
         // This should match what's calculated in CalendarGrid
-        
+
         // Create a map of events by their start time
-        const eventsByTime = new Map<string, typeof teacherEvents[0]>();
-        teacherEvents.forEach(event => {
+        const eventsByTime = new Map<string, (typeof teacherEvents)[0]>();
+        teacherEvents.forEach((event) => {
             eventsByTime.set(event.time, event);
         });
 
         // Get the time slots from the parent context (we'll need to pass this down)
         // For now, let's collect all possible times from the linked list
         const allTeachers = teacherEventLinkedList.getTeachers();
-        
+
         allTeachers.forEach((tNode) => {
             let current = tNode.eventHead;
             while (current) {
@@ -170,7 +183,9 @@ const TeacherRow = ({
             <div
                 key={teacher.teacher.model.id}
                 className="grid gap-0 border-b border-gray-200 dark:border-gray-600 py-2"
-                style={{ gridTemplateColumns: `200px repeat(${timeSlots.length}, 1fr)` }}
+                style={{
+                    gridTemplateColumns: `200px repeat(${timeSlots.length}, 1fr)`,
+                }}
             >
                 {/* Teacher Name */}
                 <div className="font-medium text-xl truncate flex items-center gap-1 border-r border-gray-300 px-2">
@@ -184,7 +199,10 @@ const TeacherRow = ({
                     const isLastColumn = slotIndex === timeSlots.length - 1;
 
                     return (
-                        <div key={`${teacher.teacher.model.id}-${timeSlot}`} className={`min-h-[60px] p-2 ${!isLastColumn ? 'border-r border-gray-300' : ''}`}>
+                        <div
+                            key={`${teacher.teacher.model.id}-${timeSlot}`}
+                            className={`min-h-[60px] p-2 ${!isLastColumn ? "border-r border-gray-300" : ""}`}
+                        >
                             {event ? (
                                 <EventCard
                                     event={{
@@ -194,7 +212,7 @@ const TeacherRow = ({
                                         date: event.date,
                                         status: event.status,
                                         location: event.location,
-                                        students: event.students || []
+                                        students: event.students || [],
                                     }}
                                     viewMode={viewMode}
                                 />
@@ -207,7 +225,12 @@ const TeacherRow = ({
     }
 
     // Grid view logic for teacher row
-    const eventsWithGaps: Array<{ type: 'event' | 'gap', data?: any, time?: string, gapMinutes?: number }> = [];
+    const eventsWithGaps: Array<{
+        type: "event" | "gap";
+        data?: any;
+        time?: string;
+        gapMinutes?: number;
+    }> = [];
 
     if (teacherNode) {
         // Iterate through events using the linked list structure
@@ -215,25 +238,31 @@ const TeacherRow = ({
 
         while (current) {
             // Add the current event
-            eventsWithGaps.push({ type: 'event', data: current.event });
+            eventsWithGaps.push({ type: "event", data: current.event });
 
             // Check for gap to next event
             if (current.next) {
-                const currentEndTime = addMinutesToTime(current.event.time, current.event.duration);
+                const currentEndTime = addMinutesToTime(
+                    current.event.time,
+                    current.event.duration,
+                );
                 const nextStartTime = current.next.event.time;
 
                 // Calculate gap in minutes
-                const [currentHours, currentMins] = currentEndTime.split(':').map(Number);
-                const [nextHours, nextMins] = nextStartTime.split(':').map(Number);
+                const [currentHours, currentMins] = currentEndTime
+                    .split(":")
+                    .map(Number);
+                const [nextHours, nextMins] = nextStartTime.split(":").map(Number);
                 const currentEndMinutes = currentHours * 60 + currentMins;
                 const nextStartMinutes = nextHours * 60 + nextMins;
                 const gapMinutes = nextStartMinutes - currentEndMinutes;
 
-                if (gapMinutes > 15) { // Only show significant gaps
+                if (gapMinutes > 15) {
+                    // Only show significant gaps
                     eventsWithGaps.push({
-                        type: 'gap',
+                        type: "gap",
                         time: currentEndTime,
-                        gapMinutes: gapMinutes
+                        gapMinutes: gapMinutes,
                     });
                 }
             }
@@ -243,7 +272,11 @@ const TeacherRow = ({
     }
 
     return (
-        <div key={teacher.teacher.model.id} className={`grid gap-2 border-b border-gray-200 dark:border-gray-600 py-2`} style={{ gridTemplateColumns: `200px repeat(${maxSlots}, 1fr)` }}>
+        <div
+            key={teacher.teacher.model.id}
+            className={`grid gap-2 border-b border-gray-200 dark:border-gray-600 py-2`}
+            style={{ gridTemplateColumns: `200px repeat(${maxSlots}, 1fr)` }}
+        >
             {/* Teacher Name */}
             <div className="font-medium text-sm truncate flex items-center gap-1">
                 <HeadsetIcon className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
@@ -255,9 +288,12 @@ const TeacherRow = ({
                 const item = eventsWithGaps[slotIndex];
 
                 return (
-                    <div key={`${teacher.teacher.model.id}-slot-${slotIndex}`} className="min-h-[80px]">
+                    <div
+                        key={`${teacher.teacher.model.id}-slot-${slotIndex}`}
+                        className="min-h-[80px]"
+                    >
                         {item ? (
-                            item.type === 'event' ? (
+                            item.type === "event" ? (
                                 <EventCard
                                     event={{
                                         id: item.data.id,
@@ -266,7 +302,7 @@ const TeacherRow = ({
                                         date: item.data.date,
                                         status: item.data.status,
                                         location: item.data.location,
-                                        students: item.data.students || []
+                                        students: item.data.students || [],
                                     }}
                                     viewMode={viewMode}
                                 />
@@ -290,20 +326,22 @@ const TeacherRow = ({
     );
 };
 
-// Calendar Grid Component  
+// Calendar Grid Component
 const CalendarGrid = ({
     allTeachers,
     maxEventSlots,
     teacherEventLinkedList,
     maxSlots,
     viewMode,
-    addMinutesToTime
+    addMinutesToTime,
 }: CalendarGridProps) => {
-    if (viewMode === 'print') {
+    if (viewMode === "print") {
         // Print view header and content - collect all unique event times
         const allEventTimes = new Set<string>();
         allTeachers.forEach((teacher) => {
-            const teacherNode = teacherEventLinkedList.getTeacherById(teacher.teacher.model.id);
+            const teacherNode = teacherEventLinkedList.getTeacherById(
+                teacher.teacher.model.id,
+            );
             if (teacherNode) {
                 let current = teacherNode.eventHead;
                 while (current) {
@@ -326,7 +364,13 @@ const CalendarGrid = ({
         return (
             <div id="print-view-container">
                 {/* Print Header with Time Slots */}
-                <div id="print-schedule-header" className="grid gap-0 border-b-2 border-gray-300 dark:border-gray-600 pb-2 mb-2" style={{ gridTemplateColumns: `200px repeat(${timeSlots.length}, 1fr)` }}>
+                <div
+                    id="print-schedule-header"
+                    className="grid gap-0 border-b-2 border-gray-300 dark:border-gray-600 pb-2 mb-2"
+                    style={{
+                        gridTemplateColumns: `200px repeat(${timeSlots.length}, 1fr)`,
+                    }}
+                >
                     <div className="font-bold text-xl flex items-center gap-1 border-r border-gray-300 px-2">
                         <HeadsetIcon className="w-4 h-4" />
                         Teacher
@@ -334,7 +378,10 @@ const CalendarGrid = ({
                     {timeSlots.map((timeSlot, index) => {
                         const isLastColumn = index === timeSlots.length - 1;
                         return (
-                            <div key={timeSlot} className={`text-sm font-bold text-center py-2 ${!isLastColumn ? 'border-r border-gray-300' : ''}`}>
+                            <div
+                                key={timeSlot}
+                                className={`text-sm font-bold text-center py-2 ${!isLastColumn ? "border-r border-gray-300" : ""}`}
+                            >
                                 {timeSlot}
                             </div>
                         );
@@ -343,16 +390,18 @@ const CalendarGrid = ({
 
                 {/* Print Content */}
                 <div className="overflow-visible">
-                    {allTeachers.map(teacher => (
-                        <TeacherRow
-                            key={teacher.teacher.model.id}
-                            teacher={teacher}
-                            teacherEventLinkedList={teacherEventLinkedList}
-                            maxSlots={maxSlots}
-                            viewMode={viewMode}
-                            addMinutesToTime={addMinutesToTime}
-                        />
-                    )).filter(Boolean)}
+                    {allTeachers
+                        .map((teacher) => (
+                            <TeacherRow
+                                key={teacher.teacher.model.id}
+                                teacher={teacher}
+                                teacherEventLinkedList={teacherEventLinkedList}
+                                maxSlots={maxSlots}
+                                viewMode={viewMode}
+                                addMinutesToTime={addMinutesToTime}
+                            />
+                        ))
+                        .filter(Boolean)}
                 </div>
             </div>
         );
@@ -361,7 +410,9 @@ const CalendarGrid = ({
     // Grid view
     // Check if there are any events across all teachers
     const hasAnyEvents = allTeachers.some((teacher) => {
-        const teacherNode = teacherEventLinkedList.getTeacherById(teacher.teacher.model.id);
+        const teacherNode = teacherEventLinkedList.getTeacherById(
+            teacher.teacher.model.id,
+        );
         return teacherNode && teacherNode.hasEvents();
     });
 
@@ -375,7 +426,10 @@ const CalendarGrid = ({
 
     return (
         <>
-            <div className={`grid gap-2 border-b-2 border-gray-300 dark:border-gray-600 pb-2 mb-2`} style={{ gridTemplateColumns: `200px repeat(${maxEventSlots}, 1fr)` }}>
+            <div
+                className={`grid gap-2 border-b-2 border-gray-300 dark:border-gray-600 pb-2 mb-2`}
+                style={{ gridTemplateColumns: `200px repeat(${maxEventSlots}, 1fr)` }}
+            >
                 <div className="font-bold text-sm flex items-center gap-1">
                     <HeadsetIcon className="w-4 h-4" />
                     Teacher
@@ -389,16 +443,18 @@ const CalendarGrid = ({
 
             {/* Grid Content */}
             <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
-                {allTeachers.map(teacher => (
-                    <TeacherRow
-                        key={teacher.teacher.model.id}
-                        teacher={teacher}
-                        teacherEventLinkedList={teacherEventLinkedList}
-                        maxSlots={maxSlots}
-                        viewMode={viewMode}
-                        addMinutesToTime={addMinutesToTime}
-                    />
-                )).filter(Boolean)}
+                {allTeachers
+                    .map((teacher) => (
+                        <TeacherRow
+                            key={teacher.teacher.model.id}
+                            teacher={teacher}
+                            teacherEventLinkedList={teacherEventLinkedList}
+                            maxSlots={maxSlots}
+                            viewMode={viewMode}
+                            addMinutesToTime={addMinutesToTime}
+                        />
+                    ))
+                    .filter(Boolean)}
             </div>
         </>
     );
@@ -409,25 +465,39 @@ const SummaryStats = ({ dateData }: { dateData: any }) => (
     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600 print-hidden">
         <div className="grid grid-cols-3 gap-6 text-sm">
             <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
-                <div className="text-green-600 dark:text-green-400 font-medium">Total Kite Lessons</div>
+                <div className="text-green-600 dark:text-green-400 font-medium">
+                    Total Kite Lessons
+                </div>
                 <div className="text-2xl font-bold text-green-700 dark:text-green-300">
                     {dateData.totalEvents.length}
                 </div>
             </div>
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-                <div className="text-blue-600 dark:text-blue-400 font-medium">Total Kite Hours</div>
+                <div className="text-blue-600 dark:text-blue-400 font-medium">
+                    Total Kite Hours
+                </div>
                 <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
-                    {formatDuration(dateData.totalEvents.reduce((total: number, event: any) => total + event.duration, 0))}
+                    {formatDuration(
+                        dateData.totalEvents.reduce(
+                            (total: number, event: any) => total + event.duration,
+                            0,
+                        ),
+                    )}
                 </div>
             </div>
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-                <div className="text-yellow-600 dark:text-yellow-400 font-medium">Total Kite Revenue</div>
+                <div className="text-yellow-600 dark:text-yellow-400 font-medium">
+                    Total Kite Revenue
+                </div>
                 <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">
-                    €{dateData.totalEvents.reduce((total: number, event: any) => {
-                        const durationHours = event.duration / 60;
-                        const pricePerHour = event.pricePerHour || 0;
-                        return total + (durationHours * pricePerHour);
-                    }, 0).toFixed(0)}
+                    €
+                    {dateData.totalEvents
+                        .reduce((total: number, event: any) => {
+                            const durationHours = event.duration / 60;
+                            const pricePerHour = event.pricePerHour || 0;
+                            return total + durationHours * pricePerHour;
+                        }, 0)
+                        .toFixed(0)}
                 </div>
             </div>
         </div>
@@ -438,17 +508,17 @@ export function WhiteboardCalendar({
     selectedDate,
     dateData,
     teacherEventLinkedList,
-    earliestTime
+    earliestTime,
 }: WhiteboardCalendarProps) {
-    const [viewMode, setViewMode] = useState<'grid' | 'print'>('grid');
+    const [viewMode, setViewMode] = useState<"grid" | "print">("grid");
 
     // Helper functions for time calculations
     const addMinutesToTime = (time: string, minutes: number): string => {
-        const [hours, mins] = time.split(':').map(Number);
+        const [hours, mins] = time.split(":").map(Number);
         const totalMinutes = hours * 60 + mins + minutes;
         const newHours = Math.floor(totalMinutes / 60);
         const newMins = totalMinutes % 60;
-        return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}`;
+        return `${newHours.toString().padStart(2, "0")}:${newMins.toString().padStart(2, "0")}`;
     };
 
     // Get all teachers (not just those with events)
@@ -460,7 +530,9 @@ export function WhiteboardCalendar({
     const maxSlots = useMemo(() => {
         let maxEventsWithGaps = 0;
         allTeachers.forEach((teacher: TeacherEvent) => {
-            const teacherNode = teacherEventLinkedList.getTeacherById(teacher.teacher.model.id);
+            const teacherNode = teacherEventLinkedList.getTeacherById(
+                teacher.teacher.model.id,
+            );
             if (teacherNode && teacherNode.hasEvents()) {
                 // Use the linked list's built-in gap calculation
                 const gaps = teacherNode.getAllGaps();
@@ -478,7 +550,9 @@ export function WhiteboardCalendar({
     const maxEventSlots = useMemo(() => {
         let maxEvents = 0;
         allTeachers.forEach((teacher: TeacherEvent) => {
-            const teacherNode = teacherEventLinkedList.getTeacherById(teacher.teacher.model.id);
+            const teacherNode = teacherEventLinkedList.getTeacherById(
+                teacher.teacher.model.id,
+            );
             if (teacherNode && teacherNode.hasEvents()) {
                 maxEvents = Math.max(maxEvents, teacherNode.eventCount);
             }
@@ -487,14 +561,14 @@ export function WhiteboardCalendar({
     }, [allTeachers, teacherEventLinkedList]);
 
     const handlePrint = () => {
-        setViewMode('print');
+        setViewMode("print");
 
         setTimeout(() => {
             const originalTitle = document.title;
             const dateStr = getDateString(selectedDate);
             document.title = `${dateStr} - Tarifa Kite Hostel Lesson Planning`;
 
-            const style = document.createElement('style');
+            const style = document.createElement("style");
             style.textContent = `
                 @media print {
                     * {
@@ -554,23 +628,27 @@ export function WhiteboardCalendar({
 
     const handleShare = () => {
         try {
-            const dateStr = selectedDate.toLocaleDateString('es-ES', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
+            const dateStr = selectedDate.toLocaleDateString("es-ES", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
             });
 
             let scheduleText = `📅 ${dateStr} - Tarifa Kite Hostel Lesson Schedule\n\n`;
 
             // Get teachers with events
             const teachersWithEvents = allTeachers.filter((teacher: TeacherEvent) => {
-                const teacherNode = teacherEventLinkedList.getTeacherById(teacher.teacher.model.id);
+                const teacherNode = teacherEventLinkedList.getTeacherById(
+                    teacher.teacher.model.id,
+                );
                 if (!teacherNode) return false;
                 return teacherNode.hasEvents();
             });
 
             teachersWithEvents.forEach((teacher: TeacherEvent) => {
-                const teacherNode = teacherEventLinkedList.getTeacherById(teacher.teacher.model.id);
+                const teacherNode = teacherEventLinkedList.getTeacherById(
+                    teacher.teacher.model.id,
+                );
                 if (!teacherNode) return;
 
                 scheduleText += `👨‍🏫 ${teacher.teacher.model.name}:\n`;
@@ -579,19 +657,25 @@ export function WhiteboardCalendar({
                 while (current) {
                     const event = current.event;
                     const durationFormatted = formatDuration(event.duration);
-                    const studentsText = event.students && event.students.length > 0
-                        ? event.students.map((student: any) => `⛑️ ${student.name}`).join(', ')
-                        : 'No students';
+                    const studentsText =
+                        event.students && event.students.length > 0
+                            ? event.students
+                                .map((student: any) => `⛑️ ${student.name}`)
+                                .join(", ")
+                            : "No students";
 
-                    scheduleText += `  • ${event.time} - ${durationFormatted} (${event.location || 'No location'}) - ${studentsText}\n`;
+                    scheduleText += `  • ${event.time} - ${durationFormatted} (${event.location || "No location"}) - ${studentsText}\n`;
                     current = current.next;
                 }
-                scheduleText += '\n';
+                scheduleText += "\n";
             });
 
             // Add summary
             const totalEvents = dateData.totalEvents.length;
-            const totalDuration = dateData.totalEvents.reduce((total: number, event: any) => total + event.duration, 0);
+            const totalDuration = dateData.totalEvents.reduce(
+                (total: number, event: any) => total + event.duration,
+                0,
+            );
             const totalHoursFormatted = formatDuration(totalDuration);
 
             scheduleText += `📊 Summary:\n`;
@@ -605,36 +689,39 @@ export function WhiteboardCalendar({
                 });
             } else {
                 navigator.clipboard.writeText(scheduleText);
-                alert('Schedule copied to clipboard!');
+                alert("Schedule copied to clipboard!");
             }
         } catch (error: any) {
-            console.error('Error sharing:', error);
-            alert('Error sharing schedule');
+            console.error("Error sharing:", error);
+            alert("Error sharing schedule");
         }
     };
 
     const handleCommunicate = () => {
         try {
-            const dateStr = selectedDate.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
+            const dateStr = selectedDate.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
             });
 
             // Count total kite events
             const totalKiteEvents = dateData.totalEvents.length;
 
             // Get all students with their passport numbers from kite events
-            const studentsWithPassports: Array<{name: string, passport: string | null}> = [];
-            
+            const studentsWithPassports: Array<{
+                name: string;
+                passport: string | null;
+            }> = [];
+
             dateData.totalEvents.forEach((event: any) => {
                 if (event.students && event.students.length > 0) {
                     event.students.forEach((student: any) => {
                         // Check if student already added
-                        if (!studentsWithPassports.find(s => s.name === student.name)) {
+                        if (!studentsWithPassports.find((s) => s.name === student.name)) {
                             studentsWithPassports.push({
                                 name: student.name,
-                                passport: student.passport_number || null
+                                passport: student.passport_number || null,
                             });
                         }
                     });
@@ -645,7 +732,7 @@ export function WhiteboardCalendar({
             let emailBody = `Tarifa Kite Hostel\n\n`;
             emailBody += `Selected Date: ${dateStr}\n`;
             emailBody += `Number of students with kite events: ${studentsWithPassports.length}\n\n`;
-            
+
             if (studentsWithPassports.length > 0) {
                 emailBody += `Student Details:\n`;
                 studentsWithPassports.forEach((student, index) => {
@@ -662,38 +749,43 @@ export function WhiteboardCalendar({
             }
 
             // Create mailto URL
-            const subject = encodeURIComponent(`Tarifa Kite Hostel - ${dateStr} Student Information`);
+            const subject = encodeURIComponent(
+                `Tarifa Kite Hostel - ${dateStr} Student Information`,
+            );
             const body = encodeURIComponent(emailBody);
             const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
 
             // Open default email client
             window.location.href = mailtoUrl;
-
         } catch (error: any) {
-            console.error('Error creating email:', error);
-            alert('Error creating email');
+            console.error("Error creating email:", error);
+            alert("Error creating email");
         }
     };
 
     const handleWhatsApp = () => {
         try {
-            const dateStr = selectedDate.toLocaleDateString('es-ES', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
+            const dateStr = selectedDate.toLocaleDateString("es-ES", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
             });
 
             let whatsappText = `*${dateStr} - Tarifa Kite Hostel Lesson Schedule*\n\n`;
 
             // Get teachers with events
             const teachersWithEvents = allTeachers.filter((teacher: TeacherEvent) => {
-                const teacherNode = teacherEventLinkedList.getTeacherById(teacher.teacher.model.id);
+                const teacherNode = teacherEventLinkedList.getTeacherById(
+                    teacher.teacher.model.id,
+                );
                 if (!teacherNode) return false;
                 return teacherNode.hasEvents();
             });
 
             teachersWithEvents.forEach((teacher: TeacherEvent) => {
-                const teacherNode = teacherEventLinkedList.getTeacherById(teacher.teacher.model.id);
+                const teacherNode = teacherEventLinkedList.getTeacherById(
+                    teacher.teacher.model.id,
+                );
                 if (!teacherNode) return;
 
                 whatsappText += `*Teacher: ${teacher.teacher.model.name}*\n`;
@@ -702,30 +794,33 @@ export function WhiteboardCalendar({
                 while (current) {
                     const event = current.event;
                     const durationFormatted = formatDuration(event.duration);
-                    const studentsText = event.students && event.students.length > 0
-                        ? event.students.map((student: any) => student.name).join(', ')
-                        : 'No students';
+                    const studentsText =
+                        event.students && event.students.length > 0
+                            ? event.students.map((student: any) => student.name).join(", ")
+                            : "No students";
 
-                    whatsappText += `- ${event.time} - ${durationFormatted} (${event.location || 'No location'}) - ${studentsText}\n`;
+                    whatsappText += `- ${event.time} - ${durationFormatted} (${event.location || "No location"}) - ${studentsText}\n`;
                     current = current.next;
                 }
-                whatsappText += '\n';
+                whatsappText += "\n";
             });
 
             // Create WhatsApp URL - avoid double encoding
             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
 
             // Open WhatsApp
-            window.open(whatsappUrl, '_blank');
-
+            window.open(whatsappUrl, "_blank");
         } catch (error: any) {
-            console.error('Error sharing to WhatsApp:', error);
-            alert('Error sharing to WhatsApp');
+            console.error("Error sharing to WhatsApp:", error);
+            alert("Error sharing to WhatsApp");
         }
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 border rounded-lg p-4 h-full" id="lesson-planning">
+        <div
+            className="bg-white dark:bg-gray-800 border rounded-lg p-4 h-full"
+            id="lesson-planning"
+        >
             <CalendarHeader
                 selectedDate={selectedDate}
                 earliestTime={earliestTime}
