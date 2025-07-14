@@ -5,23 +5,19 @@ import { TeacherEventLinkedList } from "./teacher-event-linked-list";
 import { getDateString } from "@/components/getters";
 import { formatDuration, formatDateNow } from "@/components/formatters";
 import { HeadsetIcon } from "@/assets/svg/HeadsetIcon";
-import {
-    Printer,
-    Grid,
-    Share,
-    FlagIcon,
-    Ambulance,
-    MessageCircle,
-} from "lucide-react";
+import { Printer, FlagIcon, Ambulance, MessageCircle } from "lucide-react";
+import { EventToCsv } from "./event-to-csv";
 import { WhiteboardCalendarProps, TeacherEvent } from "./types";
 import { EventCard } from "@/rails/view/card/EventCard";
+import { List, Table, FileText } from "lucide-react";
+import { TEACHER_SORT_ORDER } from "./whiteboard-teacher-order";
 
 // Types for sub-components
 interface CalendarHeaderProps {
     selectedDate: Date;
     earliestTime: string;
-    viewMode: "grid" | "print";
-    onViewModeChange: (mode: "grid" | "print") => void;
+    viewMode: "grid" | "table" | "csv";
+    onViewModeChange: (mode: "grid" | "table" | "csv") => void;
     onPrint: () => void;
     onShare: () => void;
     onCommunicate: () => void;
@@ -32,7 +28,7 @@ interface TeacherRowProps {
     teacher: TeacherEvent;
     teacherEventLinkedList: TeacherEventLinkedList;
     maxSlots: number;
-    viewMode: "grid" | "print";
+    viewMode: "grid" | "table" | "csv";
     addMinutesToTime: (time: string, minutes: number) => string;
 }
 
@@ -41,8 +37,10 @@ interface CalendarGridProps {
     maxEventSlots: number;
     teacherEventLinkedList: TeacherEventLinkedList;
     maxSlots: number;
-    viewMode: "grid" | "print";
+    viewMode: "grid" | "table" | "csv";
     addMinutesToTime: (time: string, minutes: number) => string;
+    dateData: any;
+    selectedDate: Date;
 }
 
 // Header Component
@@ -55,62 +53,77 @@ const CalendarHeader = ({
     onShare,
     onCommunicate,
     onWhatsApp,
-}: CalendarHeaderProps) => (
-    <div className="mb-4 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                <div className="text-lg font-semibold text-blue-600 dark:text-blue-400 flex gap-1 items-center">
-                    <FlagIcon />
-                    {earliestTime}
+}: CalendarHeaderProps) => {
+    return (
+        <div className="mb-4 flex justify-between items-center">
+            <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <div className="text-lg font-semibold text-blue-600 dark:text-blue-400 flex gap-1 items-center">
+                        <FlagIcon />
+                        {earliestTime}
+                    </div>
+                    <span className="text-sm text-blue-600 dark:text-blue-400">
+                        earliest
+                    </span>
                 </div>
-                <span className="text-sm text-blue-600 dark:text-blue-400">
-                    earliest
-                </span>
             </div>
-        </div>
-        <div className="flex gap-2 print-hidden">
-            <button
-                onClick={() => onViewModeChange(viewMode === "grid" ? "print" : "grid")}
-                className="flex items-center gap-2 px-3 py-2 border border-gray-400 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 hover:border-blue-400 dark:hover:border-blue-400"
-            >
-                {viewMode === "grid" ? (
+            <div className="flex gap-2 print-hidden">
+                <div className="inline-flex rounded-md shadow-sm" role="group">
+                    <button
+                        type="button"
+                        onClick={() => onViewModeChange("grid")}
+                        className={`px-4 py-2 text-sm font-medium rounded-l-lg border border-gray-200 dark:border-gray-600 ${viewMode === "grid" ? "bg-gray-700 text-white" : "bg-white text-gray-900 hover:bg-gray-100 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"}`}
+                    >
+                        <List className="w-4 h-4 inline-block mr-1" /> Grid
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => onViewModeChange("table")}
+                        className={`px-4 py-2 text-sm font-medium border-t border-b border-gray-200 dark:border-gray-600 ${viewMode === "table" ? "bg-gray-700 text-white" : "bg-white text-gray-900 hover:bg-gray-100 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"}`}
+                    >
+                        <Table className="w-4 h-4 inline-block mr-1" /> Table
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => onViewModeChange("csv")}
+                        className={`px-4 py-2 text-sm font-medium rounded-r-lg border border-gray-200 dark:border-gray-600 ${viewMode === "csv" ? "bg-gray-700 text-white" : "bg-white text-gray-900 hover:bg-gray-100 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"}`}
+                    >
+                        <FileText className="w-4 h-4 inline-block mr-1" /> CSV
+                    </button>
+                </div>
+                <button
+                    onClick={onPrint}
+                    disabled={viewMode === "grid"}
+                    className={`flex items-center gap-2 px-3 py-2 border rounded-lg text-sm ${viewMode === "grid" ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-blue-500 text-white hover:bg-blue-700"}`}
+                >
                     <Printer className="w-4 h-4" />
-                ) : (
-                    <Grid className="w-4 h-4" />
-                )}
-                {viewMode === "grid" ? "Print View" : "Grid View"}
-            </button>
-            <button
-                onClick={onPrint}
-                className="flex items-center gap-2 px-3 py-2 border border-blue-500 text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 rounded-lg text-sm hover:border-blue-700"
-            >
-                <Printer className="w-4 h-4" />
-                Print
-            </button>
-            {/* <button
+                    Print
+                </button>
+                {/* <button
                 onClick={onShare}
                 className="flex items-center gap-2 px-3 py-2 border border-green-500 text-green-600 dark:text-green-400 bg-white dark:bg-gray-800 rounded-lg text-sm hover:border-green-700"
             >
                 <Share className="w-4 h-4" />
                 Share
             </button> */}
-            <button
-                onClick={onCommunicate}
-                className="flex items-center gap-2 px-3 py-2 border border-orange-500 text-orange-600 dark:text-orange-400 bg-white dark:bg-gray-800 rounded-lg text-sm hover:border-orange-700"
-            >
-                <Ambulance className="w-4 h-4" />
-                Insurance
-            </button>
-            <button
-                onClick={onWhatsApp}
-                className="flex items-center gap-2 px-3 py-2 border border-green-600 text-green-700 dark:text-green-400 bg-white dark:bg-gray-800 rounded-lg text-sm hover:border-green-800"
-            >
-                <MessageCircle className="w-4 h-4" />
-                WhatsApp
-            </button>
+                <button
+                    onClick={onCommunicate}
+                    className="flex items-center gap-2 px-3 py-2 border border-orange-500 text-orange-600 dark:text-orange-400 bg-white dark:bg-gray-800 rounded-lg text-sm hover:border-orange-700"
+                >
+                    <Ambulance className="w-4 h-4" />
+                    Insurance
+                </button>
+                <button
+                    onClick={onWhatsApp}
+                    className="flex items-center gap-2 px-3 py-2 border border-green-600 text-green-700 dark:text-green-400 bg-white dark:bg-gray-800 rounded-lg text-sm hover:border-green-800"
+                >
+                    <MessageCircle className="w-4 h-4" />
+                    WhatsApp
+                </button>
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 // Teacher Row Component
 const TeacherRow = ({
@@ -148,7 +161,7 @@ const TeacherRow = ({
         return null;
     }
 
-    if (viewMode === "print") {
+    if (viewMode === "table") {
         // Print view logic for teacher row - each event takes exactly one slot matching its time
         if (teacherEvents.length === 0) {
             return null;
@@ -334,9 +347,21 @@ const CalendarGrid = ({
     maxSlots,
     viewMode,
     addMinutesToTime,
+    dateData,
+    selectedDate,
 }: CalendarGridProps) => {
-    if (viewMode === "print") {
-        // Print view header and content - collect all unique event times
+    if (viewMode === "csv") {
+        return (
+            <div id="csv-view-container">
+                <EventToCsv
+                    kiteEvents={dateData.totalEvents}
+                    selectedDate={selectedDate}
+                />
+            </div>
+        );
+    }
+    if (viewMode === "table") {
+        // Table view header and content - collect all unique event times
         const allEventTimes = new Set<string>();
         allTeachers.forEach((teacher) => {
             const teacherNode = teacherEventLinkedList.getTeacherById(
@@ -362,10 +387,10 @@ const CalendarGrid = ({
         }
 
         return (
-            <div id="print-view-container">
-                {/* Print Header with Time Slots */}
+            <div id="table-view-container">
+                {/* Table Header with Time Slots */}
                 <div
-                    id="print-schedule-header"
+                    id="table-schedule-header"
                     className="grid gap-0 border-b-2 border-gray-300 dark:border-gray-600 pb-2 mb-2"
                     style={{
                         gridTemplateColumns: `200px repeat(${timeSlots.length}, 1fr)`,
@@ -388,7 +413,7 @@ const CalendarGrid = ({
                     })}
                 </div>
 
-                {/* Print Content */}
+                {/* Table Content */}
                 <div className="overflow-visible">
                     {allTeachers
                         .map((teacher) => (
@@ -510,7 +535,7 @@ export function WhiteboardCalendar({
     teacherEventLinkedList,
     earliestTime,
 }: WhiteboardCalendarProps) {
-    const [viewMode, setViewMode] = useState<"grid" | "print">("grid");
+    const [viewMode, setViewMode] = useState<"grid" | "table" | "csv">("grid");
 
     // Helper functions for time calculations
     const addMinutesToTime = (time: string, minutes: number): string => {
@@ -523,7 +548,24 @@ export function WhiteboardCalendar({
 
     // Get all teachers (not just those with events)
     const allTeachers = useMemo(() => {
-        return dateData.todayTeacherLessonsEvent as TeacherEvent[];
+        const sortedTeachers = [...dateData.todayTeacherLessonsEvent].sort(
+            (a, b) => {
+                const aIndex = TEACHER_SORT_ORDER.indexOf(a.teacher.model.name);
+                const bIndex = TEACHER_SORT_ORDER.indexOf(b.teacher.model.name);
+
+                if (aIndex === -1 && bIndex === -1) {
+                    return a.teacher.model.name.localeCompare(b.teacher.model.name); // Both not in list, sort alphabetically
+                }
+                if (aIndex === -1) {
+                    return 1; // a is not in the list, so it comes after b
+                }
+                if (bIndex === -1) {
+                    return -1; // b is not in the list, so it comes after a
+                }
+                return aIndex - bIndex; // Sort based on the index in the list
+            },
+        );
+        return sortedTeachers as TeacherEvent[];
     }, [dateData.todayTeacherLessonsEvent]);
 
     // Calculate maximum number of slots needed (including gaps) using the linked list's gap functionality
@@ -561,69 +603,45 @@ export function WhiteboardCalendar({
     }, [allTeachers, teacherEventLinkedList]);
 
     const handlePrint = () => {
-        setViewMode("print");
+        const originalTitle = document.title;
+        const dateStr = getDateString(selectedDate);
+        document.title = `${dateStr} - Tarifa Kite Hostel Lesson Planning`;
 
-        setTimeout(() => {
-            const originalTitle = document.title;
-            const dateStr = getDateString(selectedDate);
-            document.title = `${dateStr} - Tarifa Kite Hostel Lesson Planning`;
-
-            const style = document.createElement("style");
-            style.textContent = `
-                @media print {
-                    * {
-                        -webkit-print-color-adjust: exact !important;
-                        color-adjust: exact !important;
-                    }
-                    body * {
-                        visibility: hidden;
-                    }
-                    #print-view-container {
-                        visibility: visible !important;
-                        position: absolute !important;
-                        left: 0 !important;
-                        top: 0 !important;
-                        width: 100% !important;
-                        background: white !important;
-                    }
-                    #print-view-container * {
-                        visibility: visible !important;
-                    }
-                    #print-view-container::before {
-                        content: "${dateStr} - Tarifa Kite Hostel Lesson Planning";
-                        display: block !important;
-                        text-align: center !important;
-                        font-size: 28px !important;
-                        font-weight: bold !important;
-                        color: black !important;
-                        margin-bottom: 30px !important;
-                        padding: 20px 0 !important;
-                        border-bottom: 2px solid #333 !important;
-                    }
-                    .print-hidden {
-                        display: none !important;
-                    }
-                    @page {
-                        size: A4 landscape;
-                        margin: 1cm;
-                        margin-top: 0.5cm;
-                        margin-bottom: 0.5cm;
-                        @top-left { content: ""; }
-                        @top-center { content: ""; }
-                        @top-right { content: ""; }
-                        @bottom-left { content: ""; }
-                        @bottom-center { content: ""; }
-                        @bottom-right { content: ""; }
-                    }
+        const style = document.createElement("style");
+        style.textContent = `
+            @media print {
+                * {
+                    -webkit-print-color-adjust: exact !important;
+                    color-adjust: exact !important;
                 }
-            `;
-            document.head.appendChild(style);
+                body * {
+                    visibility: hidden;
+                }
+                #${viewMode}-view-container, #${viewMode}-view-container * {
+                    visibility: visible !important;
+                }
+                #${viewMode}-view-container {
+                    position: absolute !important;
+                    left: 0 !important;
+                    top: 0 !important;
+                    width: 100% !important;
+                    background: white !important;
+                }
+                .print-hidden {
+                    display: none !important;
+                }
+                @page {
+                    size: ${viewMode === "csv" ? "A4 portrait" : "A4 landscape"};
+                    margin: 1cm;
+                }
+            }
+        `;
+        document.head.appendChild(style);
 
-            window.print();
+        window.print();
 
-            style.remove();
-            document.title = originalTitle;
-        }, 100);
+        style.remove();
+        document.title = originalTitle;
     };
 
     const handleShare = () => {
@@ -839,6 +857,8 @@ export function WhiteboardCalendar({
                 maxSlots={maxSlots}
                 viewMode={viewMode}
                 addMinutesToTime={addMinutesToTime}
+                dateData={dateData}
+                selectedDate={selectedDate}
             />
 
             <SummaryStats dateData={dateData} />

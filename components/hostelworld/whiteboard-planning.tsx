@@ -168,8 +168,6 @@ export default function WhiteboardPlanning() {
                     todayKiteEvents={totalEvents}
                 />
 
-                <EventToCsv kiteEvents={totalEvents} selectedDate={selectedDate} />
-
                 <div className="grid grid-cols-12 gap-4 min-h-[600px]">
                     {/* Main Calendar/Planning Area */}{" "}
                     <div className="col-span-12 lg:col-span-9 h-full">

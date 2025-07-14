@@ -1,14 +1,18 @@
-import React from 'react';
-import { HeadsetIcon } from '@/assets/svg/HeadsetIcon';
-import { HelmetIcon } from '@/assets/svg/HelmetIcon';
-import { LessonWithStudents, StudentEntityColumnProps, StudentModel } from './types';
+import React from "react";
+import { HeadsetIcon } from "@/assets/svg/HeadsetIcon";
+import { HelmetIcon } from "@/assets/svg/HelmetIcon";
+import {
+  LessonWithStudents,
+  StudentEntityColumnProps,
+  StudentModel,
+} from "./types";
 
 export function StudentEntityColumn({
   lessons = [],
   onEntityClick,
-  selectedLessons = []
+  selectedLessons = [],
 }: StudentEntityColumnProps) {
-  console.log('lessons i see....', lessons);
+  console.log("lessons i see....", lessons);
 
   const renderStudent = (student: StudentModel) => {
     if (!student) return null;
@@ -25,15 +29,17 @@ export function StudentEntityColumn({
   };
 
   const renderLesson = (lesson: LessonWithStudents) => {
-    const isSelected = selectedLessons.some(l => l.lesson_id === lesson.lesson_id);
+    const isSelected = selectedLessons.some(
+      (l) => l.lesson_id === lesson.lesson_id,
+    );
 
     return (
       <div
         key={`${lesson.lesson_id}-abc`}
         onClick={() => onEntityClick?.(lesson.lesson_id)}
         className={`border rounded-lg p-3 space-y-2 cursor-pointer transition-colors ${isSelected
-          ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
-          : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
+          ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+          : "bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
           }`}
       >
         {/* Lesson Header with LessonView and Dropdown */}
@@ -47,10 +53,12 @@ export function StudentEntityColumn({
               </span>
               <span>[-{lesson.status}-]</span>
             </span>
-            <span className={`px-2 py-1 rounded-full font-medium text-xs ${lesson.hours_remaining > 0
-              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-              }`}>
+            <span
+              className={`px-2 py-1 rounded-full font-medium text-xs ${lesson.hours_remaining > 0
+                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                }`}
+            >
               {lesson.hours_remaining.toFixed(1)}h
             </span>
           </div>
@@ -58,7 +66,7 @@ export function StudentEntityColumn({
 
         {/* Students in this lesson */}
         <div className="flex flex-wrap">
-          {lesson.students.map(student => renderStudent(student))}
+          {lesson.students.map((student) => renderStudent(student))}
         </div>
       </div>
     );
@@ -73,12 +81,10 @@ export function StudentEntityColumn({
       <div className="overflow-y-auto flex-1">
         {lessons?.length === 0 ? (
           <div className="text-gray-500 dark:text-gray-400 text-center py-4">
-            No available students
+            No students with Available Lessons
           </div>
         ) : (
-          <div className="space-y-3">
-            {lessons.map(renderLesson)}
-          </div>
+          <div className="space-y-3">{lessons.map(renderLesson)}</div>
         )}
       </div>
     </div>

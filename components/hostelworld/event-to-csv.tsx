@@ -5,7 +5,7 @@ import { KiteEventData } from "./types";
 import { formatNumber } from "@/components/formatters";
 import { Printer } from "lucide-react";
 
-const TEACHER_SORT_ORDER = ["Matteo", "Chantal", "Ricardo", "Victor", "Fabio"];
+import { TEACHER_SORT_ORDER } from "./whiteboard-teacher-order";
 
 interface EventToCsvProps {
   kiteEvents: KiteEventData[];
@@ -13,69 +13,6 @@ interface EventToCsvProps {
 }
 
 export const EventToCsv: React.FC<EventToCsvProps> = ({ kiteEvents, selectedDate }) => {
-  const handlePrint = () => {
-    const dateStr = selectedDate.toLocaleDateString("es-ES", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-    });
-    const originalTitle = document.title;
-    document.title = `Kite Schedule - ${dateStr}`;
-
-    const style = document.createElement("style");
-    style.textContent = `
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            #event-to-csv-container, #event-to-csv-container * {
-                visibility: visible;
-            }
-            #event-to-csv-container {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                background: white !important;
-                color: black !important;
-            }
-            .print-hidden {
-                display: none !important;
-            }
-            #event-to-csv-container::before {
-                content: "Kite Schedule for ${dateStr}";
-                display: block;
-                text-align: center;
-                font-size: 20px;
-                font-weight: bold;
-                margin-bottom: 20px;
-                color: black !important;
-            }
-            @page {
-                size: A4 portrait;
-                margin: 1cm;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-            th, td {
-                border: 1px solid #ddd;
-                padding: 8px;
-                color: black !important;
-            }
-            th {
-                background-color: #f2f2f2 !important;
-            }
-        }
-    `;
-    document.head.appendChild(style);
-
-    window.print();
-
-    document.head.removeChild(style);
-    document.title = originalTitle;
-  };
 
   const sortedEvents = [...kiteEvents].sort((a, b) => {
     const aIndex = TEACHER_SORT_ORDER.indexOf(a.teacher.name);
@@ -103,13 +40,9 @@ export const EventToCsv: React.FC<EventToCsvProps> = ({ kiteEvents, selectedDate
   }
 
   return (
-    <div id="event-to-csv-container" className="bg-white dark:bg-gray-800 border rounded-lg p-4 mt-4">
+    <div id="csv-view-container" className="bg-white dark:bg-gray-800 border rounded-lg p-4 mt-4">
       <div className="flex justify-between items-center mb-4 print-hidden">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Daily Schedule Export</h3>
-        <button onClick={handlePrint} className="flex items-center gap-2 px-3 py-2 border rounded-lg text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600">
-          <Printer className="w-4 h-4" />
-          Print Schedule
-        </button>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
