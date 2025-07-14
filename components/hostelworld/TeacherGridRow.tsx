@@ -1,5 +1,5 @@
 import { HeadsetIcon } from "@/assets/svg/HeadsetIcon";
-import { EventCard } from "@/rails/view/card/EventCard";
+import { KiteClass } from "@/rails/view/card/KiteClass";
 import { TeacherEvent } from "./types";
 import { TeacherEventLinkedList } from "./teacher-event-linked-list";
 
@@ -94,18 +94,7 @@ export const TeacherGridRow = ({
                     >
                         {item ? (
                             item.type === "event" ? (
-                                <EventCard
-                                    event={{
-                                        id: item.data.id,
-                                        time: item.data.time,
-                                        duration: item.data.duration,
-                                        date: item.data.date,
-                                        status: item.data.status,
-                                        location: item.data.location,
-                                        students: item.data.students || [],
-                                    }}
-                                    viewMode="grid" // Always grid view for this component
-                                />
+                                <KiteClass event={item.data} />
                             ) : (
                                 // Gap
                                 <div className="h-full bg-yellow-50 dark:bg-yellow-900/20 border border-dashed border-yellow-300 dark:border-yellow-600 rounded-lg p-2 min-h-[80px] flex items-center justify-center">
