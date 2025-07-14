@@ -10,7 +10,7 @@ import {
     Grid,
     Share,
     FlagIcon,
-    Mail,
+    Ambulance,
     MessageCircle,
 } from "lucide-react";
 import { WhiteboardCalendarProps, TeacherEvent } from "./types";
@@ -71,7 +71,7 @@ const CalendarHeader = ({
         <div className="flex gap-2 print-hidden">
             <button
                 onClick={() => onViewModeChange(viewMode === "grid" ? "print" : "grid")}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-600"
+                className="flex items-center gap-2 px-3 py-2 border border-gray-400 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 hover:border-blue-400 dark:hover:border-blue-400"
             >
                 {viewMode === "grid" ? (
                     <Printer className="w-4 h-4" />
@@ -82,28 +82,28 @@ const CalendarHeader = ({
             </button>
             <button
                 onClick={onPrint}
-                className="flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600"
+                className="flex items-center gap-2 px-3 py-2 border border-blue-500 text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 rounded-lg text-sm hover:border-blue-700"
             >
                 <Printer className="w-4 h-4" />
                 Print
             </button>
-            <button
+            {/* <button
                 onClick={onShare}
-                className="flex items-center gap-2 px-3 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600"
+                className="flex items-center gap-2 px-3 py-2 border border-green-500 text-green-600 dark:text-green-400 bg-white dark:bg-gray-800 rounded-lg text-sm hover:border-green-700"
             >
                 <Share className="w-4 h-4" />
                 Share
-            </button>
+            </button> */}
             <button
                 onClick={onCommunicate}
-                className="flex items-center gap-2 px-3 py-2 bg-orange-500 text-white rounded-lg text-sm hover:bg-orange-600"
+                className="flex items-center gap-2 px-3 py-2 border border-orange-500 text-orange-600 dark:text-orange-400 bg-white dark:bg-gray-800 rounded-lg text-sm hover:border-orange-700"
             >
-                <Mail className="w-4 h-4" />
-                Communicate
+                <Ambulance className="w-4 h-4" />
+                Insurance
             </button>
             <button
                 onClick={onWhatsApp}
-                className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700"
+                className="flex items-center gap-2 px-3 py-2 border border-green-600 text-green-700 dark:text-green-400 bg-white dark:bg-gray-800 rounded-lg text-sm hover:border-green-800"
             >
                 <MessageCircle className="w-4 h-4" />
                 WhatsApp
