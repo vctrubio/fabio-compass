@@ -1,13 +1,15 @@
 import React from "react";
 import { Share, Mail } from "lucide-react";
-import { KiteEventFromBooking } from "@/app/(admin)/admin/AdminDashboard";
+import { KiteEventFromBooking } from "@/components/hostelworld/types";
 import { formatDuration } from "@/components/formatters";
 
 interface AdminShareEventsProps {
   filteredKiteEvents: KiteEventFromBooking[];
 }
 
-export function AdminShareEvents({ filteredKiteEvents }: AdminShareEventsProps) {
+export function AdminShareEvents({
+  filteredKiteEvents,
+}: AdminShareEventsProps) {
   const handleCommunicate = () => {
     try {
       const dateStr = new Date().toLocaleDateString("en-US", {
@@ -17,7 +19,10 @@ export function AdminShareEvents({ filteredKiteEvents }: AdminShareEventsProps) 
       });
 
       // Get all students with their passport numbers from kite events
-      const studentsWithPassports: Array<{ name: string; passport?: string | null }> = [];
+      const studentsWithPassports: Array<{
+        name: string;
+        passport?: string | null;
+      }> = [];
 
       filteredKiteEvents.forEach((event) => {
         if (event.students && event.students.length > 0) {
@@ -36,7 +41,7 @@ export function AdminShareEvents({ filteredKiteEvents }: AdminShareEventsProps) 
       // Create email content
       let emailBody = `Tarifa Kite Hostel\n\n`;
       emailBody += `Selected Date: ${dateStr}\n`;
-      emailBody += `Number of students with kite events: ${studentsWithPassports.length}\n\n`;
+      emailBody += `Kite Classes: ${studentsWithPassports.length}\n\n`;
 
       if (studentsWithPassports.length > 0) {
         emailBody += `Student Details:\n`;
@@ -79,14 +84,17 @@ export function AdminShareEvents({ filteredKiteEvents }: AdminShareEventsProps) 
       let scheduleText = `📅 ${dateStr} - Tarifa Kite Hostel Lesson Schedule\n\n`;
 
       // Group events by teacher
-      const eventsByTeacher = filteredKiteEvents.reduce((acc, event) => {
-        const teacherName = event.teacher?.name || "Unknown Teacher";
-        if (!acc[teacherName]) {
-          acc[teacherName] = [];
-        }
-        acc[teacherName].push(event);
-        return acc;
-      }, {} as Record<string, KiteEventFromBooking[]>);
+      const eventsByTeacher = filteredKiteEvents.reduce(
+        (acc, event) => {
+          const teacherName = event.teacher?.name || "Unknown Teacher";
+          if (!acc[teacherName]) {
+            acc[teacherName] = [];
+          }
+          acc[teacherName].push(event);
+          return acc;
+        },
+        {} as Record<string, KiteEventFromBooking[]>,
+      );
 
       Object.entries(eventsByTeacher).forEach(([teacherName, events]) => {
         scheduleText += `👨‍🏫 ${teacherName}:\n`;
@@ -94,11 +102,12 @@ export function AdminShareEvents({ filteredKiteEvents }: AdminShareEventsProps) 
           const durationFormatted = formatDuration(event.duration);
           const studentsText =
             event.students && event.students.length > 0
-              ? event.students.map((student: any) => `⛑️ ${student.name}`).join(", ")
+              ? event.students
+                .map((student: any) => `⛑️ ${student.name}`)
+                .join(", ")
               : "No students";
 
-          scheduleText +=
-            `  • ${event.time} - ${durationFormatted} (${event.location || "No location"}) - ${studentsText}\n`;
+          scheduleText += `  • ${event.time} - ${durationFormatted} (${event.location || "No location"}) - ${studentsText}\n`;
         });
         scheduleText += "\n";
       });

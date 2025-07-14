@@ -10,29 +10,13 @@ import AdminEvents from "./AdminEvents";
 import AdminStartingTime from "./AdminStartingTime";
 import AdminSlotBoard from "./AdminSlotBoard";
 import AdminTeacherLessonStudentMap from "./AdminTeacherLessonStudentMap";
-import { AdminDebugPanel } from "@/components/admin/AdminDebugPanel";
-import { AdminShareEvents } from "@/components/admin/AdminShareEvents";
+import { AdminDebugPanel } from "./AdminDebugPanel";
+import { AdminShareEvents } from "./AdminShareEvents";
 import { AdminEventBoard } from "./AdminEventBoard";
+import { KiteEventFromBooking } from "@/components/hostelworld/types";
 
 interface AdminDashboardProps {
   allBookings: BookingWithRelations[];
-}
-
-interface KiteEventFromBooking {
-  id: string;
-  lesson_id: string;
-  date: string;
-  duration: number;
-  location: string;
-  status: string;
-  trigger_transaction: boolean;
-  created_at?: string;
-  lesson: any;
-  booking: BookingWithRelations;
-  students: Array<{
-    id: string;
-    name: string;
-  }>;
 }
 
 export default function AdminDashboard({ allBookings }: AdminDashboardProps) {

@@ -3,14 +3,14 @@
 import { useMemo, useState } from "react";
 import { TeacherEventLinkedList } from "./teacher-event-linked-list";
 import { getDateString } from "@/components/getters";
-import { formatDuration, formatDateNow } from "@/components/formatters";
-import { HeadsetIcon } from "@/assets/svg/HeadsetIcon";
-import { Printer, FlagIcon, Ambulance, MessageCircle } from "lucide-react";
+import { formatDuration } from "@/components/formatters";
+import { FlagIcon, Ambulance, MessageCircle, Printer } from "lucide-react";
 import { EventToCsv } from "./event-to-csv";
 import { WhiteboardCalendarProps, TeacherEvent } from "./types";
-import { EventCard } from "@/rails/view/card/EventCard";
 import { List, Table, FileText } from "lucide-react";
 import { TEACHER_SORT_ORDER } from "./whiteboard-teacher-order";
+import { CalendarTable } from "./CalendarTable";
+import { CalendarGridDisplay } from "./CalendarGridDisplay";
 
 // Types for sub-components
 interface CalendarHeaderProps {
@@ -22,14 +22,6 @@ interface CalendarHeaderProps {
     onShare: () => void;
     onCommunicate: () => void;
     onWhatsApp: () => void;
-}
-
-interface TeacherRowProps {
-    teacher: TeacherEvent;
-    teacherEventLinkedList: TeacherEventLinkedList;
-    maxSlots: number;
-    viewMode: "grid" | "table" | "csv";
-    addMinutesToTime: (time: string, minutes: number) => string;
 }
 
 interface CalendarGridProps {
@@ -45,7 +37,6 @@ interface CalendarGridProps {
 
 // Header Component
 const CalendarHeader = ({
-    selectedDate,
     earliestTime,
     viewMode,
     onViewModeChange,
@@ -125,220 +116,6 @@ const CalendarHeader = ({
     );
 };
 
-// Teacher Row Component
-const TeacherRow = ({
-    teacher,
-    teacherEventLinkedList,
-    maxSlots,
-    viewMode,
-    addMinutesToTime,
-}: TeacherRowProps) => {
-    const teacherNode = teacherEventLinkedList.getTeacherById(
-        teacher.teacher.model.id,
-    );
-
-    // Get all events for this teacher in order
-    const teacherEvents: Array<{
-        id: string;
-        time: string;
-        duration: number;
-        date: string;
-        status: string;
-        location: string;
-        students: Array<{ id: string; name: string }>;
-    }> = [];
-
-    if (teacherNode) {
-        let current = teacherNode.eventHead;
-        while (current) {
-            teacherEvents.push(current.event);
-            current = current.next;
-        }
-    }
-
-    // Don't render teachers with no events
-    if (teacherEvents.length === 0) {
-        return null;
-    }
-
-    if (viewMode === "table") {
-        // Print view logic for teacher row - each event takes exactly one slot matching its time
-        if (teacherEvents.length === 0) {
-            return null;
-        }
-
-        // Get all unique time slots from all teachers for consistent grid
-        const allEventTimes = new Set<string>();
-        // We need to get the global time slots, not just this teacher's times
-        // This should match what's calculated in CalendarGrid
-
-        // Create a map of events by their start time
-        const eventsByTime = new Map<string, (typeof teacherEvents)[0]>();
-        teacherEvents.forEach((event) => {
-            eventsByTime.set(event.time, event);
-        });
-
-        // Get the time slots from the parent context (we'll need to pass this down)
-        // For now, let's collect all possible times from the linked list
-        const allTeachers = teacherEventLinkedList.getTeachers();
-
-        allTeachers.forEach((tNode) => {
-            let current = tNode.eventHead;
-            while (current) {
-                allEventTimes.add(current.event.time);
-                current = current.next;
-            }
-        });
-
-        const timeSlots = Array.from(allEventTimes).sort();
-
-        return (
-            <div
-                key={teacher.teacher.model.id}
-                className="grid gap-0 border-b border-gray-200 dark:border-gray-600 py-2"
-                style={{
-                    gridTemplateColumns: `200px repeat(${timeSlots.length}, 1fr)`,
-                }}
-            >
-                {/* Teacher Name */}
-                <div className="font-medium text-xl truncate flex items-center gap-1 border-r border-gray-300 px-2">
-                    <HeadsetIcon className="w-6 h-6 text-green-600 dark:text-green-400 flex-shrink-0" />
-                    <span>{teacher.teacher.model.name}</span>
-                </div>
-
-                {/* Time Slots - show event if it matches this time, empty otherwise */}
-                {timeSlots.map((timeSlot, slotIndex) => {
-                    const event = eventsByTime.get(timeSlot);
-                    const isLastColumn = slotIndex === timeSlots.length - 1;
-
-                    return (
-                        <div
-                            key={`${teacher.teacher.model.id}-${timeSlot}`}
-                            className={`min-h-[60px] p-2 ${!isLastColumn ? "border-r border-gray-300" : ""}`}
-                        >
-                            {event ? (
-                                <EventCard
-                                    event={{
-                                        id: event.id,
-                                        time: event.time,
-                                        duration: event.duration,
-                                        date: event.date,
-                                        status: event.status,
-                                        location: event.location,
-                                        students: event.students || [],
-                                    }}
-                                    viewMode={viewMode}
-                                />
-                            ) : null}
-                        </div>
-                    );
-                })}
-            </div>
-        );
-    }
-
-    // Grid view logic for teacher row
-    const eventsWithGaps: Array<{
-        type: "event" | "gap";
-        data?: any;
-        time?: string;
-        gapMinutes?: number;
-    }> = [];
-
-    if (teacherNode) {
-        // Iterate through events using the linked list structure
-        let current = teacherNode.eventHead;
-
-        while (current) {
-            // Add the current event
-            eventsWithGaps.push({ type: "event", data: current.event });
-
-            // Check for gap to next event
-            if (current.next) {
-                const currentEndTime = addMinutesToTime(
-                    current.event.time,
-                    current.event.duration,
-                );
-                const nextStartTime = current.next.event.time;
-
-                // Calculate gap in minutes
-                const [currentHours, currentMins] = currentEndTime
-                    .split(":")
-                    .map(Number);
-                const [nextHours, nextMins] = nextStartTime.split(":").map(Number);
-                const currentEndMinutes = currentHours * 60 + currentMins;
-                const nextStartMinutes = nextHours * 60 + nextMins;
-                const gapMinutes = nextStartMinutes - currentEndMinutes;
-
-                if (gapMinutes > 15) {
-                    // Only show significant gaps
-                    eventsWithGaps.push({
-                        type: "gap",
-                        time: currentEndTime,
-                        gapMinutes: gapMinutes,
-                    });
-                }
-            }
-
-            current = current.next;
-        }
-    }
-
-    return (
-        <div
-            key={teacher.teacher.model.id}
-            className={`grid gap-2 border-b border-gray-200 dark:border-gray-600 py-2`}
-            style={{ gridTemplateColumns: `200px repeat(${maxSlots}, 1fr)` }}
-        >
-            {/* Teacher Name */}
-            <div className="font-medium text-sm truncate flex items-center gap-1">
-                <HeadsetIcon className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
-                <span>{teacher.teacher.model.name}</span>
-            </div>
-
-            {/* Event and Gap Slots */}
-            {Array.from({ length: maxSlots }, (_, slotIndex) => {
-                const item = eventsWithGaps[slotIndex];
-
-                return (
-                    <div
-                        key={`${teacher.teacher.model.id}-slot-${slotIndex}`}
-                        className="min-h-[80px]"
-                    >
-                        {item ? (
-                            item.type === "event" ? (
-                                <EventCard
-                                    event={{
-                                        id: item.data.id,
-                                        time: item.data.time,
-                                        duration: item.data.duration,
-                                        date: item.data.date,
-                                        status: item.data.status,
-                                        location: item.data.location,
-                                        students: item.data.students || [],
-                                    }}
-                                    viewMode={viewMode}
-                                />
-                            ) : (
-                                // Gap
-                                <div className="h-full bg-yellow-50 dark:bg-yellow-900/20 border border-dashed border-yellow-300 dark:border-yellow-600 rounded-lg p-2 min-h-[80px] flex items-center justify-center">
-                                    <div className="text-center text-yellow-600 dark:text-yellow-400">
-                                        <div className="font-medium">Gap</div>
-                                        <div className="text-xs mt-1">{item.gapMinutes}mins</div>
-                                    </div>
-                                </div>
-                            )
-                        ) : (
-                            // Empty slot - show nothing
-                            <div className="min-h-[80px]"></div>
-                        )}
-                    </div>
-                );
-            })}
-        </div>
-    );
-};
-
 // Calendar Grid Component
 const CalendarGrid = ({
     allTeachers,
@@ -361,127 +138,25 @@ const CalendarGrid = ({
         );
     }
     if (viewMode === "table") {
-        // Table view header and content - collect all unique event times
-        const allEventTimes = new Set<string>();
-        allTeachers.forEach((teacher) => {
-            const teacherNode = teacherEventLinkedList.getTeacherById(
-                teacher.teacher.model.id,
-            );
-            if (teacherNode) {
-                let current = teacherNode.eventHead;
-                while (current) {
-                    allEventTimes.add(current.event.time);
-                    current = current.next;
-                }
-            }
-        });
-
-        const timeSlots = Array.from(allEventTimes).sort();
-
-        if (timeSlots.length === 0) {
-            return (
-                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                    No events scheduled for this date
-                </div>
-            );
-        }
-
         return (
-            <div id="table-view-container">
-                {/* Table Header with Time Slots */}
-                <div
-                    id="table-schedule-header"
-                    className="grid gap-0 border-b-2 border-gray-300 dark:border-gray-600 pb-2 mb-2"
-                    style={{
-                        gridTemplateColumns: `200px repeat(${timeSlots.length}, 1fr)`,
-                    }}
-                >
-                    <div className="font-bold text-xl flex items-center gap-1 border-r border-gray-300 px-2">
-                        <HeadsetIcon className="w-4 h-4" />
-                        Teacher
-                    </div>
-                    {timeSlots.map((timeSlot, index) => {
-                        const isLastColumn = index === timeSlots.length - 1;
-                        return (
-                            <div
-                                key={timeSlot}
-                                className={`text-sm font-bold text-center py-2 ${!isLastColumn ? "border-r border-gray-300" : ""}`}
-                            >
-                                {timeSlot}
-                            </div>
-                        );
-                    })}
-                </div>
-
-                {/* Table Content */}
-                <div className="overflow-visible">
-                    {allTeachers
-                        .map((teacher) => (
-                            <TeacherRow
-                                key={teacher.teacher.model.id}
-                                teacher={teacher}
-                                teacherEventLinkedList={teacherEventLinkedList}
-                                maxSlots={maxSlots}
-                                viewMode={viewMode}
-                                addMinutesToTime={addMinutesToTime}
-                            />
-                        ))
-                        .filter(Boolean)}
-                </div>
-            </div>
+            <CalendarTable
+                allTeachers={allTeachers}
+                teacherEventLinkedList={teacherEventLinkedList}
+                maxSlots={maxSlots}
+                addMinutesToTime={addMinutesToTime}
+            />
         );
     }
 
     // Grid view
-    // Check if there are any events across all teachers
-    const hasAnyEvents = allTeachers.some((teacher) => {
-        const teacherNode = teacherEventLinkedList.getTeacherById(
-            teacher.teacher.model.id,
-        );
-        return teacherNode && teacherNode.hasEvents();
-    });
-
-    if (!hasAnyEvents) {
-        return (
-            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                No events scheduled for this date
-            </div>
-        );
-    }
-
     return (
-        <>
-            <div
-                className={`grid gap-2 border-b-2 border-gray-300 dark:border-gray-600 pb-2 mb-2`}
-                style={{ gridTemplateColumns: `200px repeat(${maxEventSlots}, 1fr)` }}
-            >
-                <div className="font-bold text-sm flex items-center gap-1">
-                    <HeadsetIcon className="w-4 h-4" />
-                    Teacher
-                </div>
-                {Array.from({ length: maxEventSlots }, (_, index) => (
-                    <div key={index} className="text-sm font-bold text-left">
-                        Slot {index + 1}
-                    </div>
-                ))}
-            </div>
-
-            {/* Grid Content */}
-            <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
-                {allTeachers
-                    .map((teacher) => (
-                        <TeacherRow
-                            key={teacher.teacher.model.id}
-                            teacher={teacher}
-                            teacherEventLinkedList={teacherEventLinkedList}
-                            maxSlots={maxSlots}
-                            viewMode={viewMode}
-                            addMinutesToTime={addMinutesToTime}
-                        />
-                    ))
-                    .filter(Boolean)}
-            </div>
-        </>
+        <CalendarGridDisplay
+            allTeachers={allTeachers}
+            maxEventSlots={maxEventSlots}
+            teacherEventLinkedList={teacherEventLinkedList}
+            maxSlots={maxSlots}
+            addMinutesToTime={addMinutesToTime}
+        />
     );
 };
 
@@ -748,8 +423,8 @@ export function WhiteboardCalendar({
 
             // Create email content
             let emailBody = `Tarifa Kite Hostel\n\n`;
-            emailBody += `Selected Date: ${dateStr}\n`;
-            emailBody += `Number of students with kite events: ${studentsWithPassports.length}\n\n`;
+            emailBody += `Date: ${dateStr}\n`;
+            emailBody += `Lessons: ${studentsWithPassports.length}\n\n`;
 
             if (studentsWithPassports.length > 0) {
                 emailBody += `Student Details:\n`;

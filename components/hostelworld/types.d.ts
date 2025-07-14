@@ -1,6 +1,7 @@
 import { DrizzleData } from "@/rails/types";
 import { TeacherType } from "@/rails/model/TeacherModel";
 import { BookingType } from "@/rails/model/BookingModel";
+import { BookingWithRelations } from "@/rails/types";
 
 //tmp to remove
 export interface TeacherEvent {
@@ -178,4 +179,21 @@ export interface StudentEntityColumnProps {
 export interface WhiteboardData {
   teachers: DrizzleData<TeacherType>[];
   bookings: DrizzleData<BookingType>[];
+}
+
+export interface KiteEventFromBooking {
+  id: string;
+  lesson_id: string;
+  date: string;
+  duration: number;
+  location: string;
+  status: string;
+  trigger_transaction: boolean;
+  created_at?: string;
+  lesson: any;
+  booking: BookingWithRelations;
+  students: Array<{
+    id: string;
+    name: string;
+  }>;
 }
