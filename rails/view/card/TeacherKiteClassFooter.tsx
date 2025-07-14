@@ -52,10 +52,36 @@ export function TeacherKiteClassFooter({
         setCurrentDuration((prev) => Math.max(0, prev + increment));
     };
 
+    const getStatusBadgeClasses = () => {
+        switch (status) {
+            case 'completed':
+                return 'bg-green-100 text-green-800 border border-green-200';
+            case 'planned':
+            case 'plannedauto':
+                return 'bg-blue-100 text-blue-800 border border-blue-200';
+            case 'teacherConfirmation':
+                return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+            default:
+                return 'bg-gray-100 text-gray-800 border border-gray-200';
+        }
+    };
+
+    // If status is not teacherConfirmation, show only the status badge
+    if (status !== 'teacherConfirmation') {
+        return (
+            <div className="p-3 rounded-b-lg flex justify-center border-y">
+                <div className={`px-2 py-1 rounded ${getStatusBadgeClasses()}`}>
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                </div>
+            </div>
+        );
+    }
+
+    // Full functionality for teacherConfirmation status
     return (
         <div className="p-3 rounded-b-lg flex flex-col gap-2 border-y">
             <div className="flex items-center justify-between mb-2">
-                <div className="bg-yellow-100 text-yellow-800 border border-yellow-200 px-2 py-1 rounded">
+                <div className={`px-2 py-1 rounded ${getStatusBadgeClasses()}`}>
                     {status.charAt(0).toUpperCase() + status.slice(1)}
                 </div>
                 <Button
