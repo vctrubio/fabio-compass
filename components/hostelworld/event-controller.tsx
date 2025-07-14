@@ -62,7 +62,7 @@ export function EventController({
     ];
 
     // Calculate next available submit time
-    const calcSubmitTime = (currentTime: string, teacherId: string): string => {
+    const calcSubmitTime = React.useCallback((currentTime: string, teacherId: string): string => {
         if (!teacherEventLinkedList) return currentTime;
 
         const teacherNode = teacherEventLinkedList.getTeacherById(teacherId);
@@ -98,7 +98,7 @@ export function EventController({
 
         const lastEvent = sortedEvents[sortedEvents.length - 1];
         return TimeUtils.calculateEndTime(lastEvent.time, lastEvent.duration || 60);
-    };
+    }, [teacherEventLinkedList]);
 
     // Update submit time when selected lessons change
     useEffect(() => {
@@ -121,7 +121,7 @@ export function EventController({
                 }
             });
         }
-    }, [selectedLessons, teacherEventLinkedList]);
+    }, [selectedLessons, teacherEventLinkedList, calcSubmitTime, submitTime]);
 
     // Update submit time when earliestTime changes
     useEffect(() => {

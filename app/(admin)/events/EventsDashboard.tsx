@@ -309,7 +309,7 @@ export default function EventsDashboard({ allEvents }: EventsDashboardProps) {
 
   // Filter and sort events
   const filteredAndSortedEvents = useMemo(() => {
-    let filtered = allEvents.filter(event => {
+    const filtered = allEvents.filter(event => {
       const eventDate = new Date(event.date);
       const eventMonth = `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, '0')}`;
       const matchesMonth = eventMonth === selectedMonth;

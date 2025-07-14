@@ -156,7 +156,7 @@ export function AdminEventBoard({
             </div>
             <div>
                 <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Today's Start Time
+                    Today&apos;s Start Time
                 </h3>
                 {startingTime ? (
                     <span className={`text-2xl font-bold ${isSubmitTimeModified ? 'text-orange-500' : 'text-gray-900 dark:text-gray-100'}`}>

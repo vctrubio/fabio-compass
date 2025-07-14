@@ -117,7 +117,7 @@ export function TeacherDashboard({ teacher, organizedLessons }: TeacherDashboard
             <p className="text-gray-500">No lessons found for {activeTab}.</p>
             {activeTab !== 'past' && (
               <p className="text-xs text-gray-400 mt-2">
-                Only lessons with 'completed' or 'teacherConfirmation' kite events are shown.
+                Only lessons with &apos;completed&apos; or &apos;teacherConfirmation&apos; kite events are shown.
               </p>
             )}
           </div>

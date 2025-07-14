@@ -1,6 +1,6 @@
 "use client";
 
-import { EventCard } from "@/rails/view/card/EventCard";
+import { TeacherKiteClass } from "@/rails/view/card/TeacherKiteClass";
 import { KiteEventData } from "./types";
 import { HeadsetIcon } from '@/assets/svg/HeadsetIcon';
 
@@ -27,10 +27,10 @@ export function TeacherEntityColumn({ teacherConfirmationEvents }: TeacherEntity
                 ) : (
                     <div className="space-y-3">
                         {teacherConfirmationEvents.map((event) => (
-                            <EventCard
+                            <TeacherKiteClass
                                 key={event.id}
                                 event={event}
-                                viewMode="grid"
+                                viewFooter={true}
                             />
                         ))}
                     </div>
