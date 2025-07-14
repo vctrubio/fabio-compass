@@ -13,6 +13,7 @@ import { DrizzleData } from "@/rails/types";
 import { BookingType } from "@/rails/model/BookingModel";
 import { useWhiteboardBackend } from "./whiteboard-backend";
 import { LessonWithStudents } from "./types";
+import { EventToCsv } from "./event-to-csv";
 
 export default function WhiteboardPlanning() {
     const { bookingsData, teachersData } = useAdmin();
@@ -166,6 +167,8 @@ export default function WhiteboardPlanning() {
                     earliestTime={earliestTime}
                     todayKiteEvents={totalEvents}
                 />
+
+                <EventToCsv kiteEvents={totalEvents} selectedDate={selectedDate} />
 
                 <div className="grid grid-cols-12 gap-4 min-h-[600px]">
                     {/* Main Calendar/Planning Area */}{" "}

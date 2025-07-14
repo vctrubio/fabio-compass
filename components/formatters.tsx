@@ -478,3 +478,13 @@ export const FormatFlagTimeDuration = ({
     <span className="text-xs text-blue-700 dark:text-blue-300 font-semibold">+{formatDuration(duration)}</span>
   </div>
 );
+
+/**
+ * Formats a number to show one decimal place only if it's not a whole number.
+ */
+export const formatNumber = (num: number): string => {
+  if (num % 1 === 0) {
+    return num.toString();
+  }
+  return num.toFixed(1);
+};
