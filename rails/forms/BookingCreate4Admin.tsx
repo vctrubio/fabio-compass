@@ -1,21 +1,21 @@
-'use client'
+"use client";
 
-import { createBookingWithStudent } from '@/actions/booking-actions';
-import { createLesson } from '@/actions/lesson-actions';
-import { DatePicker, DateRange } from '@/components/pickers/date-picker';
-import { PackageTableSelection } from '@/rails/view/table/PackageTableSelection';
-import { StudentTableSelection } from '@/rails/view/table/StudentTableSelection';
-import { TeacherTableSelection } from '@/rails/view/table/TeacherTableSelection';
-import { useAdmin } from '@/providers/AdminProvider';
-import { useWalletContext } from '@/providers/WalletProvider';
-import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
-import { FormatDateRange } from '@/components/formatters';
-import { DrizzleData } from '@/rails/types';
-import { TeacherType } from '@/rails/model/TeacherModel';
-import { ChevronDown, ChevronUp } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { ENTITY_CONFIGS } from '@/config/entities';
+import { createBookingWithStudent } from "@/actions/booking-actions";
+import { createLesson } from "@/actions/lesson-actions";
+import { DatePicker, DateRange } from "@/components/pickers/date-picker";
+import { PackageTableSelection } from "@/rails/view/table/PackageTableSelection";
+import { StudentTableSelection } from "@/rails/view/table/StudentTableSelection";
+import { TeacherTableSelection } from "@/rails/view/table/TeacherTableSelection";
+import { useAdmin } from "@/providers/AdminProvider";
+import { useWalletContext } from "@/providers/WalletProvider";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { FormatDateRange } from "@/components/formatters";
+import { DrizzleData } from "@/rails/types";
+import { TeacherType } from "@/rails/model/TeacherModel";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ENTITY_CONFIGS } from "@/config/entities";
 
 interface BookingCreate4AdminFormProps {
   onSubmit?: (data: any) => void;
@@ -26,7 +26,7 @@ const LeftColumn = ({
   dateRange,
   setDateRange,
   onPackageSelectionChange,
-  selectedPackageId
+  selectedPackageId,
 }: {
   dateRange: DateRange;
   setDateRange: (range: DateRange) => void;
@@ -36,7 +36,7 @@ const LeftColumn = ({
   <div className="flex-1 space-y-4">
     {/* Package Selection */}
     <div className="space-y-2">
-      <div className="rounded-md bg-background max-h-64 overflow-y-auto">
+      <div className="rounded-md bg-background max-h-[600px] overflow-y-auto">
         <PackageTableSelection
           selectedPackageId={selectedPackageId}
           onPackageSelectionChange={onPackageSelectionChange}
@@ -46,11 +46,10 @@ const LeftColumn = ({
 
     {/* Date Selection */}
     <div className="space-y-2">
-      <h4 className="text-xs font-medium text-muted-foreground">Select Date Range</h4>
-      <DatePicker
-        dateRange={dateRange}
-        setDateRange={setDateRange}
-      />
+      <h4 className="text-xs font-medium text-muted-foreground">
+        Select Date Range
+      </h4>
+      <DatePicker dateRange={dateRange} setDateRange={setDateRange} />
     </div>
   </div>
 );
@@ -66,7 +65,7 @@ const RightColumn = ({
   isStudentSelectionCollapsed,
   setIsStudentSelectionCollapsed,
   isTeacherSelectionCollapsed,
-  setIsTeacherSelectionCollapsed
+  setIsTeacherSelectionCollapsed,
 }: {
   selectedPackageId: string | null;
   selectedStudentIds: string[];
@@ -91,21 +90,24 @@ const RightColumn = ({
                 <ENTITY_CONFIGS.students.icon className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-foreground">Select Students</h3>
+                <h3 className="text-lg font-semibold text-foreground">
+                  Select Students
+                </h3>
                 <p className="text-sm text-muted-foreground">
-                  {selectedStudentIds.length > 0 
+                  {selectedStudentIds.length > 0
                     ? `${selectedStudentIds.length} of ${selectedPackage?.capacity || 0} selected`
-                    : `Choose up to ${selectedPackage?.capacity || 0} students`
-                  }
+                    : `Choose up to ${selectedPackage?.capacity || 0} students`}
                 </p>
               </div>
             </div>
-            
+
             {/* Collapse/Expand Button */}
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsStudentSelectionCollapsed(!isStudentSelectionCollapsed)}
+              onClick={() =>
+                setIsStudentSelectionCollapsed(!isStudentSelectionCollapsed)
+              }
               className="h-8 w-8 p-0"
             >
               {isStudentSelectionCollapsed ? (
@@ -132,18 +134,22 @@ const RightColumn = ({
             <div className="animate-in slide-in-from-top-2 duration-200 p-4 bg-primary/5 rounded-lg border border-primary/20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className={`text-sm font-medium ${
-                    selectedStudentIds.length === (selectedPackage?.capacity || 0)
-                      ? 'text-green-600 dark:text-green-400'
-                      : 'text-primary'
-                  }`}>
-                    {selectedStudentIds.length} student{selectedStudentIds.length !== 1 ? 's' : ''} selected
+                  <span
+                    className={`text-sm font-medium ${selectedStudentIds.length ===
+                      (selectedPackage?.capacity || 0)
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-primary"
+                      }`}
+                  >
+                    {selectedStudentIds.length} student
+                    {selectedStudentIds.length !== 1 ? "s" : ""} selected
                   </span>
-                  {selectedStudentIds.length === (selectedPackage?.capacity || 0) && (
-                    <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">
-                      Full capacity
-                    </span>
-                  )}
+                  {selectedStudentIds.length ===
+                    (selectedPackage?.capacity || 0) && (
+                      <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">
+                        Full capacity
+                      </span>
+                    )}
                 </div>
                 <Button
                   variant="outline"
@@ -167,21 +173,24 @@ const RightColumn = ({
                 <ENTITY_CONFIGS.teachers.icon className="h-5 w-5 text-secondary-foreground" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-foreground">Select Teacher</h3>
+                <h3 className="text-lg font-semibold text-foreground">
+                  Select Teacher
+                </h3>
                 <p className="text-sm text-muted-foreground">
-                  {selectedTeacher 
+                  {selectedTeacher
                     ? `${selectedTeacher.model?.name} selected`
-                    : 'Optional - assigns teacher and creates lesson'
-                  }
+                    : "Optional - assigns teacher and creates lesson"}
                 </p>
               </div>
             </div>
-            
+
             {/* Collapse/Expand Button */}
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsTeacherSelectionCollapsed(!isTeacherSelectionCollapsed)}
+              onClick={() =>
+                setIsTeacherSelectionCollapsed(!isTeacherSelectionCollapsed)
+              }
               className="h-8 w-8 p-0"
             >
               {isTeacherSelectionCollapsed ? (
@@ -233,9 +242,12 @@ const RightColumn = ({
           <ENTITY_CONFIGS.packages.icon className="h-8 w-8 text-muted-foreground" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">Select a Package First</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            Select a Package First
+          </h3>
           <p className="text-sm text-muted-foreground max-w-sm">
-            Choose a package from the left column to start selecting students and assigning teachers
+            Choose a package from the left column to start selecting students
+            and assigning teachers
           </p>
         </div>
       </div>
@@ -251,7 +263,7 @@ const BookingSummary = ({
   dateRange,
   canCreate,
   onSubmit,
-  isCreatingBooking
+  isCreatingBooking,
 }: {
   selectedPackage: any;
   selectedStudentIds: string[];
@@ -263,41 +275,45 @@ const BookingSummary = ({
 }) => (
   <div className="p-4 bg-muted/30 rounded-lg border border-border/50 space-y-3">
     <div className="flex items-center justify-between">
-      <h3 className="text-sm font-semibold text-foreground">Booking Creation Summary</h3>
+      <h3 className="text-sm font-semibold text-foreground">
+        Booking Creation Summary
+      </h3>
       <div className="text-xs text-muted-foreground">
         {canCreate ? (
           <div className="flex items-center gap-2">
             <button
               onClick={onSubmit}
               disabled={isCreatingBooking || !canCreate}
-              className={`h-9 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors duration-200 font-medium text-sm whitespace-nowrap ${
-                canCreate && !isCreatingBooking
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed'
-                  : 'bg-muted text-muted-foreground cursor-not-allowed'
-              }`}
+              className={`h-9 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors duration-200 font-medium text-sm whitespace-nowrap ${canCreate && !isCreatingBooking
+                ? "bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                : "bg-muted text-muted-foreground cursor-not-allowed"
+                }`}
             >
               {isCreatingBooking ? (
                 <span className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                   Creating...
                 </span>
+              ) : selectedTeacher ? (
+                "+ Create Booking & Lesson"
               ) : (
-                selectedTeacher ? '+ Create Booking & Lesson' : '+ Create Booking'
+                "+ Create Booking"
               )}
             </button>
           </div>
         ) : (
           <span className="h-9 px-6 rounded-md bg-muted text-muted-foreground cursor-not-allowed font-medium text-sm whitespace-nowrap flex items-center">
-            {!selectedPackage && selectedStudentIds.length === 0 && !dateRange.startDate
-              ? 'Select package, students, and dates'
+            {!selectedPackage &&
+              selectedStudentIds.length === 0 &&
+              !dateRange.startDate
+              ? "Select package, students, and dates"
               : !selectedPackage
-                ? 'Select package'
+                ? "Select package"
                 : selectedStudentIds.length === 0
-                  ? 'Select students'
+                  ? "Select students"
                   : !dateRange.startDate || !dateRange.endDate
-                    ? 'Select dates'
-                    : 'Complete form'
-            }
+                    ? "Select dates"
+                    : "Complete form"}
           </span>
         )}
       </div>
@@ -307,28 +323,32 @@ const BookingSummary = ({
       <div className="space-y-1">
         <span className="text-muted-foreground">Package:</span>
         <div className="font-medium">
-          {selectedPackage ? selectedPackage.description || 'Selected' : 'Not selected'}
+          {selectedPackage
+            ? selectedPackage.description || "Selected"
+            : "Not selected"}
         </div>
       </div>
       <div className="space-y-1">
         <span className="text-muted-foreground">Students:</span>
         <div className="font-medium">
-          {selectedStudentIds.length > 0
-            ? (
-              <div className="space-y-1">
-                <div className={selectedStudentIds.length === (selectedPackage?.capacity || 0)
-                  ? 'text-green-600 dark:text-green-400'
-                  : 'text-yellow-600 dark:text-yellow-400'
-                }>
-                  {selectedStudentIds.length} of {selectedPackage?.capacity || 0}
-                </div>
-                <div className="text-xs text-muted-foreground truncate">
-                  {selectedStudentIds.length} selected
-                </div>
+          {selectedStudentIds.length > 0 ? (
+            <div className="space-y-1">
+              <div
+                className={
+                  selectedStudentIds.length === (selectedPackage?.capacity || 0)
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-yellow-600 dark:text-yellow-400"
+                }
+              >
+                {selectedStudentIds.length} of {selectedPackage?.capacity || 0}
               </div>
-            )
-            : 'None selected'
-          }
+              <div className="text-xs text-muted-foreground truncate">
+                {selectedStudentIds.length} selected
+              </div>
+            </div>
+          ) : (
+            "None selected"
+          )}
         </div>
       </div>
       <div className="space-y-1">
@@ -336,7 +356,9 @@ const BookingSummary = ({
         <div className="font-medium">
           {selectedTeacher ? (
             <div className="space-y-1">
-              <div className="font-semibold">{selectedTeacher.model?.name || 'Teacher'}</div>
+              <div className="font-semibold">
+                {selectedTeacher.model?.name || "Teacher"}
+              </div>
             </div>
           ) : (
             <div className="text-muted-foreground">None selected</div>
@@ -347,9 +369,10 @@ const BookingSummary = ({
         <span className="text-muted-foreground">Action:</span>
         <div className="font-medium">
           {canCreate
-            ? (selectedTeacher ? 'Create Booking & Lesson' : 'Create Booking')
-            : 'Complete form'
-          }
+            ? selectedTeacher
+              ? "Create Booking & Lesson"
+              : "Create Booking"
+            : "Complete form"}
         </div>
       </div>
     </div>
@@ -369,17 +392,20 @@ const BookingSummary = ({
           <div className="font-medium">
             {((selectedPackage.duration || 0) / 60) % 1 === 0
               ? `${(selectedPackage.duration || 0) / 60}h`
-              : `${((selectedPackage.duration || 0) / 60).toFixed(1)}h`
-            }
+              : `${((selectedPackage.duration || 0) / 60).toFixed(1)}h`}
           </div>
         </div>
         <div className="space-y-1">
           <span className="text-muted-foreground">Date Span:</span>
           <div className="font-medium">
-            {dateRange.startDate && dateRange.endDate
-              ? <FormatDateRange startDate={dateRange.startDate} endDate={dateRange.endDate} />
-              : 'Not selected'
-            }
+            {dateRange.startDate && dateRange.endDate ? (
+              <FormatDateRange
+                startDate={dateRange.startDate}
+                endDate={dateRange.endDate}
+              />
+            ) : (
+              "Not selected"
+            )}
           </div>
         </div>
       </div>
@@ -388,22 +414,31 @@ const BookingSummary = ({
 );
 
 // Main Component
-export const BookingCreate4AdminForm = ({ onSubmit }: BookingCreate4AdminFormProps) => {
+export const BookingCreate4AdminForm = ({
+  onSubmit,
+}: BookingCreate4AdminFormProps) => {
   const { packagesData, studentsData } = useAdmin();
 
-  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
+  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(
+    null,
+  );
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
-  const [selectedTeacher, setSelectedTeacher] = useState<DrizzleData<TeacherType> | null>(null);
+  const [selectedTeacher, setSelectedTeacher] =
+    useState<DrizzleData<TeacherType> | null>(null);
   const [isCreatingBooking, setIsCreatingBooking] = useState(false);
-  const [isStudentSelectionCollapsed, setIsStudentSelectionCollapsed] = useState(false);
-  const [isTeacherSelectionCollapsed, setIsTeacherSelectionCollapsed] = useState(false);
+  const [isStudentSelectionCollapsed, setIsStudentSelectionCollapsed] =
+    useState(false);
+  const [isTeacherSelectionCollapsed, setIsTeacherSelectionCollapsed] =
+    useState(false);
   const [dateRange, setDateRange] = useState<DateRange>({
-    startDate: '',
-    endDate: ''
+    startDate: "",
+    endDate: "",
   });
 
   // Find selected objects from IDs
-  const selectedPackage = selectedPackageId ? packagesData?.find(p => p.model.id === selectedPackageId)?.model : null;
+  const selectedPackage = selectedPackageId
+    ? packagesData?.find((p) => p.model.id === selectedPackageId)?.model
+    : null;
 
   const handlePackageSelectionChange = (packageId: string | null) => {
     setSelectedPackageId(packageId);
@@ -413,7 +448,9 @@ export const BookingCreate4AdminForm = ({ onSubmit }: BookingCreate4AdminFormPro
       setIsStudentSelectionCollapsed(false);
       setIsTeacherSelectionCollapsed(false);
     } else {
-      const newSelectedPackage = packagesData?.find(p => p.model.id === packageId)?.model;
+      const newSelectedPackage = packagesData?.find(
+        (p) => p.model.id === packageId,
+      )?.model;
       const newMaxStudents = newSelectedPackage?.capacity || 0;
       if (newMaxStudents > 0 && selectedStudentIds.length > newMaxStudents) {
         setSelectedStudentIds(selectedStudentIds.slice(0, newMaxStudents));
@@ -426,7 +463,11 @@ export const BookingCreate4AdminForm = ({ onSubmit }: BookingCreate4AdminFormPro
 
   // Auto-collapse student selection when capacity is reached
   useEffect(() => {
-    if (selectedPackage && selectedStudentIds.length === selectedPackage.capacity && selectedStudentIds.length > 0) {
+    if (
+      selectedPackage &&
+      selectedStudentIds.length === selectedPackage.capacity &&
+      selectedStudentIds.length > 0
+    ) {
       setIsStudentSelectionCollapsed(true);
     }
   }, [selectedStudentIds.length, selectedPackage?.capacity]);
@@ -437,22 +478,24 @@ export const BookingCreate4AdminForm = ({ onSubmit }: BookingCreate4AdminFormPro
     setSelectedTeacher(null);
     setIsStudentSelectionCollapsed(false);
     setIsTeacherSelectionCollapsed(false);
-    setDateRange({ startDate: '', endDate: '' });
+    setDateRange({ startDate: "", endDate: "" });
   };
 
   const validateForm = () => {
     if (!selectedPackage || selectedStudentIds.length === 0) {
-      toast.error('Please select a package and students');
+      toast.error("Please select a package and students");
       return false;
     }
 
     if (selectedStudentIds.length > (selectedPackage.capacity || 0)) {
-      toast.error(`Too many students selected. Package capacity is ${selectedPackage.capacity}`);
+      toast.error(
+        `Too many students selected. Package capacity is ${selectedPackage.capacity}`,
+      );
       return false;
     }
 
     if (!dateRange.startDate || !dateRange.endDate) {
-      toast.error('Please select valid dates');
+      toast.error("Please select valid dates");
       return false;
     }
 
@@ -473,10 +516,15 @@ export const BookingCreate4AdminForm = ({ onSubmit }: BookingCreate4AdminFormPro
         date_end: dateRange.endDate,
       };
 
-      const createdBookingResult = await createBookingWithStudent(bookingData, firstStudentId);
+      const createdBookingResult = await createBookingWithStudent(
+        bookingData,
+        firstStudentId,
+      );
 
       if (!createdBookingResult.success) {
-        throw new Error(createdBookingResult.error || 'Failed to create booking');
+        throw new Error(
+          createdBookingResult.error || "Failed to create booking",
+        );
       }
 
       const createdBooking = createdBookingResult.data.booking;
@@ -492,12 +540,20 @@ export const BookingCreate4AdminForm = ({ onSubmit }: BookingCreate4AdminFormPro
           if (result.success) {
             addedStudents++;
           } else {
-            const student = studentsData?.find(s => s.model.id === studentId)?.model;
-            errors.push(`${student?.name || studentId}: ${result.error || 'Unknown error'}`);
+            const student = studentsData?.find(
+              (s) => s.model.id === studentId,
+            )?.model;
+            errors.push(
+              `${student?.name || studentId}: ${result.error || "Unknown error"}`,
+            );
           }
         } catch (error) {
-          const student = studentsData?.find(s => s.model.id === studentId)?.model;
-          errors.push(`${student?.name || studentId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          const student = studentsData?.find(
+            (s) => s.model.id === studentId,
+          )?.model;
+          errors.push(
+            `${student?.name || studentId}: ${error instanceof Error ? error.message : "Unknown error"}`,
+          );
         }
       }
 
@@ -505,32 +561,40 @@ export const BookingCreate4AdminForm = ({ onSubmit }: BookingCreate4AdminFormPro
       let lessonCreated = false;
       if (selectedTeacher?.model?.id && createdBooking?.id) {
         try {
-          const lessonResult = await createLesson(createdBooking.id, selectedTeacher.model.id);
+          const lessonResult = await createLesson(
+            createdBooking.id,
+            selectedTeacher.model.id,
+          );
 
           if (lessonResult.success) {
             lessonCreated = true;
           }
         } catch (error) {
-          errors.push(`Lesson creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          errors.push(
+            `Lesson creation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+          );
         }
       }
 
       // Show notifications
       if (addedStudents > 0 && errors.length === 0) {
-        let message = `Booking created with ${addedStudents} student${addedStudents !== 1 ? 's' : ''}`;
+        let message = `Booking created with ${addedStudents} student${addedStudents !== 1 ? "s" : ""}`;
         if (lessonCreated && selectedTeacher?.model) {
           message += ` and teacher ${selectedTeacher.model.name} assigned to booking #${createdBooking?.id}`;
         }
         toast.success(message);
       } else if (errors.length > 0) {
-        toast.error(`Booking created but with errors: ${errors.join('; ')}`);
+        toast.error(`Booking created but with errors: ${errors.join("; ")}`);
       }
 
       resetForm();
-      onSubmit?.({ booking: createdBooking, studentsAdded: addedStudents, lessonCreated });
-
+      onSubmit?.({
+        booking: createdBooking,
+        studentsAdded: addedStudents,
+        lessonCreated,
+      });
     } catch (error) {
-      toast.error('Failed to create booking. Please try again.');
+      toast.error("Failed to create booking. Please try again.");
     } finally {
       setIsCreatingBooking(false);
     }
@@ -548,15 +612,18 @@ export const BookingCreate4AdminForm = ({ onSubmit }: BookingCreate4AdminFormPro
     <div className="w-full">
       {/* Header */}
       <div className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-6">
+        <div className="mx-auto px-6 py-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
               <ENTITY_CONFIGS.bookings.icon className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Create New Booking</h1>
+              <h1 className="text-3xl font-bold text-foreground">
+                Create New Booking
+              </h1>
               <p className="text-muted-foreground mt-1">
-                Select a package, choose students, and optionally assign a teacher to create a new booking
+                Select a package, choose students, and optionally assign a
+                teacher to create a lesson
               </p>
             </div>
           </div>
@@ -564,17 +631,21 @@ export const BookingCreate4AdminForm = ({ onSubmit }: BookingCreate4AdminFormPro
       </div>
 
       {/* Content */}
-      <div 
-        className="max-w-7xl mx-auto p-6 space-y-6 focus:outline-none focus:ring-2 focus:ring-primary/20 rounded"
+      <div
+        className="mx-auto p-6 space-y-6 focus:outline-none focus:ring-2 focus:ring-primary/20 rounded"
         onKeyDown={(e) => {
           // Submit form when Enter is pressed and form is valid
-          if (e.key === 'Enter' && canCreate && !isCreatingBooking) {
+          if (e.key === "Enter" && canCreate && !isCreatingBooking) {
             const target = e.target as HTMLElement;
-            const isInTable = target.closest('table') !== null;
-            const isButton = target.tagName === 'BUTTON' || target.closest('button') !== null;
-            const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
-            const isInteractiveElement = target.getAttribute('role') === 'button' || target.closest('[role="button"]') !== null;
-            
+            const isInTable = target.closest("table") !== null;
+            const isButton =
+              target.tagName === "BUTTON" || target.closest("button") !== null;
+            const isInput =
+              target.tagName === "INPUT" || target.tagName === "TEXTAREA";
+            const isInteractiveElement =
+              target.getAttribute("role") === "button" ||
+              target.closest('[role="button"]') !== null;
+
             // Only submit if not interacting with table elements, buttons, inputs, or other interactive elements
             if (!isInTable && !isButton && !isInput && !isInteractiveElement) {
               e.preventDefault();

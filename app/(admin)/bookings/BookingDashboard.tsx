@@ -7,6 +7,7 @@ import { BookingCsvData } from "@/rails/controller/BookingCsv";
 import { ProgressBar, FormatDateRange } from "@/components/formatters";
 import { Input } from "@/components/ui/input";
 import { ChevronUp, ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type SortOrder = "asc" | "desc";
 type SortableBookingField = keyof BookingCsvData;
@@ -20,6 +21,7 @@ interface BookingsTableProps {
   sortBy: string;
   sortOrder: SortOrder;
   onSort: (column: string) => void;
+  onRowClick: (bookingId: string) => void;
 }
 
 function BookingsTable({
@@ -27,6 +29,7 @@ function BookingsTable({
   sortBy,
   sortOrder,
   onSort,
+  onRowClick,
 }: BookingsTableProps) {
   const getSortIcon = (column: string) => {
     if (sortBy !== column) return null;
@@ -107,7 +110,8 @@ function BookingsTable({
               {bookings.map((booking, index) => (
                 <tr
                   key={`${booking.booking_id}-${index}`}
-                  className="border-b hover:bg-muted/30"
+                  className="border-b hover:bg-muted/30 cursor-pointer"
+                  onClick={() => onRowClick(booking.booking_id)}
                 >
                   <td className="p-2 text-muted-foreground">
                     {new Date(booking.created_at).toLocaleDateString("en-US", {
@@ -182,6 +186,7 @@ export default function BookingsDashboard({
   const currentMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}`;
 
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+  const router = useRouter();
 
   // Load selected month from localStorage on mount
   useEffect(() => {
@@ -214,6 +219,13 @@ export default function BookingsDashboard({
       }
     },
     [sortBy],
+  );
+
+  const handleBookingRowClick = useCallback(
+    (bookingId: string) => {
+      router.push(`/bookings/${bookingId}`);
+    },
+    [router],
   );
 
   // Filter and sort bookings
@@ -302,6 +314,7 @@ export default function BookingsDashboard({
           sortBy={sortBy}
           sortOrder={sortOrder}
           onSort={handleSort}
+          onRowClick={handleBookingRowClick}
         />
       </div>
     </main>
