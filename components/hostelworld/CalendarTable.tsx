@@ -13,7 +13,6 @@ interface CalendarTableProps {
 export const CalendarTable = ({
     allTeachers,
     teacherEventLinkedList,
-    maxSlots,
     addMinutesToTime,
 }: CalendarTableProps) => {
     // Table view header and content - collect all unique event times

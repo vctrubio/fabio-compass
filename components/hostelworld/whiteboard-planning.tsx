@@ -13,7 +13,6 @@ import { DrizzleData } from "@/rails/types";
 import { BookingType } from "@/rails/model/BookingModel";
 import { useWhiteboardBackend } from "./whiteboard-backend";
 import { LessonWithStudents } from "./types";
-import { EventToCsv } from "./event-to-csv";
 
 export default function WhiteboardPlanning() {
     const { bookingsData, teachersData } = useAdmin();

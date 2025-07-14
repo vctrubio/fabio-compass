@@ -4,87 +4,87 @@ import { useState, useMemo, useEffect } from "react";
 import { DrizzleData } from "@/rails/types";
 import { BookingType } from "@/rails/model/BookingModel";
 import { BookingCard } from "@/rails/view/card/BookingCard";
-import { WhiteboardStyles } from "./whiteboard-classes";
 import { KiteEventData } from "./types";
 import { Eye, EyeOff } from "lucide-react";
 import { BookingIcon } from "@/assets/svg";
 
-type FilterType = 'all' | 'available' | 'onboard' | 'offboard' | 'no-lessons' | 'cancelled' | 'completed' | 'overbooking';
+// --- STYLES ---
+const BOOKING_HEADER_CLASSES = {
+    HAS_KITE_EVENTS_TODAY: "bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700",
+    HAS_LESSONS_NO_KITE_EVENTS: "bg-orange-100 dark:bg-orange-900/30 border-orange-300 dark:border-orange-700",
+    PROGRESS_NOT_COMPLETED: "bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600",
+    DEFAULT: "bg-gray-50 dark:bg-gray-800"
+} as const;
 
-interface WhiteboardPinsProps {
-    bookingsData: DrizzleData<BookingType>[];
-    selectedDate?: Date;
-    todayKiteEvents?: KiteEventData[];
+// --- HELPERS ---
+function isSameDay(date1: Date, date2: Date): boolean {
+    return date1.getFullYear() === date2.getFullYear() &&
+        date1.getMonth() === date2.getMonth() &&
+        date1.getDate() === date2.getDate();
 }
 
-interface StatusBreakdown {
+function getBookingHeaderClass(
+    booking: DrizzleData<BookingType>,
+    selectedDate?: Date
+): string {
+    const lessons = (booking.relations as { lessons?: Array<{ id: string; kiteEvents?: Array<{ date: string; duration: number }> }> })?.lessons || [];
+    const targetDate = selectedDate || new Date();
+    const hasKiteEventsToday = lessons.some(lesson =>
+        (lesson.kiteEvents || []).some(kiteEvent => {
+            const kiteEventDate = new Date(kiteEvent.date);
+            return isSameDay(kiteEventDate, targetDate);
+        })
+    );
+    if (hasKiteEventsToday) {
+        return BOOKING_HEADER_CLASSES.HAS_KITE_EVENTS_TODAY;
+    }
+    if (lessons.length > 0) {
+        return BOOKING_HEADER_CLASSES.HAS_LESSONS_NO_KITE_EVENTS;
+    }
+    return BOOKING_HEADER_CLASSES.DEFAULT;
+}
+
+// --- TYPES ---
+type FilterType = 'all' | 'available' | 'onboard' | 'offboard' | 'no-lessons' | 'cancelled' | 'completed' | 'overbooking';
+
+type StatusBreakdown = {
     waiting: StatusData;
     onboard: StatusData;
     noLessons: StatusData;
     cancelled: StatusData;
     completed: StatusData;
     overbooking: StatusData;
-}
+};
 
-interface StatusData {
+type StatusData = {
     count: number;
     color: string;
     label: string;
-}
+};
 
-interface FilterButton {
+type FilterButton = {
     key: FilterType;
     label: string;
     count: number;
     color: string;
     desc: string;
-}
+};
 
-interface PinsHeaderProps {
+// --- COMPONENTS ---
+// PinsHeader Component
+const PinsHeader = ({
+    activeFilter,
+    filteredCount,
+    isSimpleView,
+    onToggleSimpleView,
+    filterButtons
+}: {
     activeFilter: FilterType;
     filteredCount: number;
     isSimpleView: boolean;
     onToggleSimpleView: () => void;
     filterButtons: FilterButton[];
-}
-
-interface FilterInterfaceProps {
-    activeFilter: FilterType;
-    onFilterChange: (filter: FilterType) => void;
-    filterButtons: FilterButton[];
-    statusBreakdown: StatusBreakdown;
-    totalBookings: number;
-}
-
-interface StatusBarProps {
-    statusBreakdown: StatusBreakdown;
-    totalBookings: number;
-    activeFilter: FilterType;
-    onFilterChange: (filter: FilterType) => void;
-}
-
-interface FilterButtonsProps {
-    filterButtons: FilterButton[];
-    activeFilter: FilterType;
-    onFilterChange: (filter: FilterType) => void;
-    statusBreakdown: StatusBreakdown;
-}
-
-interface BookingsDisplayProps {
-    filteredBookings: DrizzleData<BookingType>[];
-    selectedDate?: Date;
-    activeFilter: FilterType;
-    filterButtons: FilterButton[];
-}
-
-// Pins Header Component
-const PinsHeader = ({ 
-    activeFilter, 
-    filteredCount, 
-    isSimpleView, 
-    onToggleSimpleView, 
-    filterButtons 
-}: PinsHeaderProps) => (
+}) => (
     <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-3">
             <BookingIcon className="w-6 h-6 text-primary" />
@@ -104,12 +104,17 @@ const PinsHeader = ({
 );
 
 // Status Bar Component
-const StatusBar = ({ 
-    statusBreakdown, 
-    totalBookings, 
-    activeFilter, 
-    onFilterChange 
-}: StatusBarProps) => (
+const StatusBar = ({
+    statusBreakdown,
+    totalBookings,
+    activeFilter,
+    onFilterChange
+}: {
+    statusBreakdown: StatusBreakdown;
+    totalBookings: number;
+    activeFilter: FilterType;
+    onFilterChange: (filter: FilterType) => void;
+}) => (
     <div className="flex rounded-lg overflow-hidden h-6 mb-3 bg-gray-300 dark:bg-gray-600 border transition-transform duration-300 delay-150">
         {Object.entries(statusBreakdown).map(([key, status]) => {
             const percentage = totalBookings > 0 ? (status.count / totalBookings) * 100 : 0;
@@ -144,12 +149,17 @@ const StatusBar = ({
 );
 
 // Filter Buttons Component
-const FilterButtons = ({ 
-    filterButtons, 
-    activeFilter, 
-    onFilterChange, 
-    statusBreakdown 
-}: FilterButtonsProps) => (
+const FilterButtons = ({
+    filterButtons,
+    activeFilter,
+    onFilterChange,
+    statusBreakdown
+}: {
+    filterButtons: FilterButton[];
+    activeFilter: FilterType;
+    onFilterChange: (filter: FilterType) => void;
+    statusBreakdown: StatusBreakdown;
+}) => (
     <div className="flex flex-wrap gap-2 transition-transform duration-300 delay-200">
         {filterButtons.map(filter => {
             const statusKey = filter.key === 'available' ? 'waiting' :
@@ -187,13 +197,19 @@ const FilterButtons = ({
 );
 
 // Filter Interface Component
-const FilterInterface = ({ 
-    activeFilter, 
-    onFilterChange, 
-    filterButtons, 
-    statusBreakdown, 
-    totalBookings 
-}: FilterInterfaceProps) => (
+const FilterInterface = ({
+    activeFilter,
+    onFilterChange,
+    filterButtons,
+    statusBreakdown,
+    totalBookings
+}: {
+    activeFilter: FilterType;
+    onFilterChange: (filter: FilterType) => void;
+    filterButtons: FilterButton[];
+    statusBreakdown: StatusBreakdown;
+    totalBookings: number;
+}) => (
     <div className="mb-4">
         <div className="text-sm font-medium mb-3 text-muted-foreground transition-opacity duration-300 delay-100">
             Status Overview ({totalBookings} total)
@@ -216,12 +232,17 @@ const FilterInterface = ({
 );
 
 // Bookings Display Component
-const BookingsDisplay = ({ 
-    filteredBookings, 
-    selectedDate, 
-    activeFilter, 
-    filterButtons 
-}: BookingsDisplayProps) => (
+const BookingsDisplay = ({
+    filteredBookings,
+    selectedDate,
+    activeFilter,
+    filterButtons
+}: {
+    filteredBookings: DrizzleData<BookingType>[];
+    selectedDate?: Date;
+    activeFilter: FilterType;
+    filterButtons: FilterButton[];
+}) => (
     <div className="transition-opacity duration-300 delay-250">
         {filteredBookings.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
@@ -234,7 +255,7 @@ const BookingsDisplay = ({
                         <BookingCard
                             key={booking.model.id}
                             booking={booking}
-                            headerClassName={WhiteboardStyles.getBookingHeaderClass(
+                            headerClassName={getBookingHeaderClass(
                                 booking,
                                 selectedDate,
                             )}
@@ -246,7 +267,7 @@ const BookingsDisplay = ({
     </div>
 );
 
-export function WhiteboardPins({ bookingsData, selectedDate, todayKiteEvents = [] }: WhiteboardPinsProps) {
+export function WhiteboardPins({ bookingsData, selectedDate, todayKiteEvents = [] }: { bookingsData: DrizzleData<BookingType>[]; selectedDate?: Date; todayKiteEvents?: KiteEventData[]; }) {
     const [activeFilter, setActiveFilter] = useState<FilterType>('all');
     const [isSimpleView, setIsSimpleView] = useState(false);
 

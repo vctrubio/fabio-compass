@@ -1,6 +1,6 @@
 import { HeadsetIcon } from "@/assets/svg/HeadsetIcon";
 import { KiteClass } from "@/rails/view/card/KiteClass";
-import { TeacherEvent } from "./types";
+import { KiteEventData, TeacherEvent } from "./types";
 import { TeacherEventLinkedList } from "./teacher-event-linked-list";
 
 interface TeacherTableRowProps {
@@ -20,15 +20,7 @@ export const TeacherTableRow = ({
     );
 
     // Get all events for this teacher in order
-    const teacherEvents: Array<{
-        id: string;
-        time: string;
-        duration: number;
-        date: string;
-        status: string;
-        location: string;
-        students: Array<{ id: string; name: string }>;
-    }> = [];
+    const teacherEvents: KiteEventData[] = [];
 
     if (teacherNode) {
         let current = teacherNode.eventHead;
