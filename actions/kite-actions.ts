@@ -60,37 +60,19 @@ export async function updateKiteEventLocation(
 
 export async function updateKiteEventTime(
   kiteEventId: string,
-  newTime: string
+  newTime: string,
+  currentEventDate: string
 ): Promise<ApiAction> {
   return withInternalActionTracking(async () => {
     const supabase = await createClient();
 
     console.log('Updating kite event time via Supabase:', kiteEventId, newTime);
 
-    // Fetch the existing event to get its current date
-    const { data: existingEvent, error: fetchError } = await supabase
-      .from('kite_event')
-      .select('date')
-      .eq('id', kiteEventId)
-      .single();
+    // Use the currentEventDate passed from the component
+    const existingDate = new Date(currentEventDate);
 
-    if (fetchError) {
-      console.error('Supabase kite event fetch error:', fetchError);
-      return { success: false, error: fetchError.message };
-    }
-
-    if (!existingEvent) {
-      return { success: false, error: 'Kite event not found' };
-    }
-
-    // Extract date part from existing timestamp
-    const existingDate = new Date(existingEvent.date);
-    existingDate.setHours(0, 0, 0, 0); // Reset time to midnight
-
-    // Parse newTime (HH:MM) and combine with existing date
-    const [hours, minutes] = newTime.split(':').map(Number);
-    const newDateTime = new Date(existingDate);
-    newDateTime.setHours(hours, minutes, 0, 0);
+    // Use createMadridDateTime to combine the date part of existingDate with newTime
+    const newDateTime = createMadridDateTime(existingDate, newTime);
 
     const { data, error } = await supabase
       .from('kite_event')

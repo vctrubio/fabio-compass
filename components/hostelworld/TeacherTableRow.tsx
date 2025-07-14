@@ -1,5 +1,5 @@
 import { HeadsetIcon } from "@/assets/svg/HeadsetIcon";
-import { EventCard } from "@/rails/view/card/EventCard";
+import { KiteClass } from "@/rails/view/card/KiteClass";
 import { TeacherEvent } from "./types";
 import { TeacherEventLinkedList } from "./teacher-event-linked-list";
 
@@ -74,17 +74,7 @@ export const TeacherTableRow = ({
                         className={`min-h-[60px] p-2 ${!isLastColumn ? "border-r border-gray-300" : ""}`}
                     >
                         {event ? (
-                            <EventCard
-                                event={{
-                                    id: event.id,
-                                    time: event.time,
-                                    duration: event.duration,
-                                    date: event.date,
-                                    status: event.status,
-                                    location: event.location,
-                                    students: event.students || [],
-                                }}
-                            />
+                            <KiteClass event={event} viewFooter={false} />
                         ) : null}
                     </div>
                 );
