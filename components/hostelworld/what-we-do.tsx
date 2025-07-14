@@ -1,43 +1,43 @@
-'use client'
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { ENTITY_CONFIGS } from '@/config/entities';
-import { getUserRoleColor } from '@/components/getters';
+"use client";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { ENTITY_CONFIGS } from "@/config/entities";
+import { getUserRoleColor } from "@/components/getters";
 
 // Role configurations for the what-we-do component
 const ROLE_CONFIGS = {
     student: {
         Icon: ENTITY_CONFIGS.students.icon,
         label: ENTITY_CONFIGS.students.titleSingular,
-        colors: getUserRoleColor('student'),
-        route: '/student'
+        colors: getUserRoleColor("student"),
+        route: "/student",
     },
     teacher: {
         Icon: ENTITY_CONFIGS.teachers.icon,
         label: ENTITY_CONFIGS.teachers.titleSingular,
-        colors: getUserRoleColor('teacher'),
-        route: '/teacher'
+        colors: getUserRoleColor("teacher"),
+        route: "/teacher",
     },
     admin: {
         Icon: ENTITY_CONFIGS.admin.icon,
         label: ENTITY_CONFIGS.admin.titleSingular,
-        colors: getUserRoleColor('admin'),
-        route: '/whiteboard'
-    }
+        colors: getUserRoleColor("admin"),
+        route: "/whiteboard",
+    },
 } as const;
 
 // Connection colors between roles - declared in this file
 const CONNECTION_COLORS = {
     studentTeacher: "text-blue-500 dark:text-blue-400",
-    studentAdmin: "text-green-500 dark:text-green-400", 
-    teacherAdmin: "text-purple-500 dark:text-purple-400"
+    studentAdmin: "text-green-500 dark:text-green-400",
+    teacherAdmin: "text-purple-500 dark:text-purple-400",
 } as const;
 
 // Convert role configs to array for iteration
 const ROLE_ICONS = [
     ROLE_CONFIGS.student,
     ROLE_CONFIGS.teacher,
-    ROLE_CONFIGS.admin
+    ROLE_CONFIGS.admin,
 ] as const;
 
 interface CompassSVGProps {
@@ -54,13 +54,25 @@ function CompassSVG({ className = "", isLoading = false }: CompassSVGProps) {
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className={`${className} ${isLoading ? 'animate-spin' : ''} transition-transform duration-300 drop-shadow-sm`}
+            className={`${className} ${isLoading ? "animate-spin" : ""} transition-transform duration-300 drop-shadow-sm`}
         >
             {/* Outer compass ring */}
-            <circle cx="12" cy="12" r="10" className="stroke-current opacity-40" strokeWidth="2" />
+            <circle
+                cx="12"
+                cy="12"
+                r="10"
+                className="stroke-current opacity-40"
+                strokeWidth="2"
+            />
 
             {/* Inner compass ring */}
-            <circle cx="12" cy="12" r="8" className="stroke-current opacity-20" strokeWidth="1" />
+            <circle
+                cx="12"
+                cy="12"
+                r="8"
+                className="stroke-current opacity-20"
+                strokeWidth="1"
+            />
 
             {/* Compass markings - 12 equally spaced marks around the circle */}
             <g className="stroke-current opacity-60">
@@ -79,12 +91,26 @@ function CompassSVG({ className = "", isLoading = false }: CompassSVGProps) {
 
             {/* Compass needle - points north */}
             <g>
-                <path d="M12 4 L13.5 10 L12 9 L10.5 10 Z" fill="currentColor" className="text-red-500 dark:text-red-400" />
-                <path d="M12 20 L10.5 14 L12 15 L13.5 14 Z" fill="currentColor" className="opacity-60" />
+                <path
+                    d="M12 4 L13.5 10 L12 9 L10.5 10 Z"
+                    fill="currentColor"
+                    className="text-red-500 dark:text-red-400"
+                />
+                <path
+                    d="M12 20 L10.5 14 L12 15 L13.5 14 Z"
+                    fill="currentColor"
+                    className="opacity-60"
+                />
             </g>
 
             {/* Center dot */}
-            <circle cx="12" cy="12" r="1.5" fill="currentColor" className="opacity-80" />
+            <circle
+                cx="12"
+                cy="12"
+                r="1.5"
+                fill="currentColor"
+                className="opacity-80"
+            />
         </svg>
     );
 }
@@ -96,16 +122,14 @@ interface FooterCardProps {
     className?: string;
 }
 
-export default function WWD({
-    appName,
-    className = ""
-}: FooterCardProps) {
+export default function WWD({ appName }: FooterCardProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [hoveredIcon, setHoveredIcon] = useState<number | null>(null);
     const router = useRouter();
 
     const handleIconClick = (route: string, index: number) => {
-        if (index === 0) { // Student clicked
+        if (index === 0) {
+            // Student clicked
             alert("hello sexy student");
         } else {
             router.push(route);
@@ -121,7 +145,7 @@ export default function WWD({
     }, []);
 
     return (
-        <div className={`bg-transparent border-0 p-6 sm:p-8 w-full max-w-md mx-auto ${className}`}>
+        <div className="p-6 sm:p-8 my-auto">
             {/* Logo and Title */}
             <div className="flex flex-col text-center mb-6">
                 {isLoading ? (
@@ -210,48 +234,52 @@ export default function WWD({
 
                                 {/* Top row - 2 icons */}
                                 <div className="flex gap-20 relative z-10">
-                                    {ROLE_ICONS.slice(0, 2).map(({ Icon, label, colors, route }, index) => (
-                                        <div
-                                            key={label}
-                                            className={`flex items-center gap-4 cursor-pointer ${index === 0 ? 'flex-row-reverse' : 'flex-row'}`}
-                                            onMouseEnter={() => setHoveredIcon(index)}
-                                            onMouseLeave={() => setHoveredIcon(null)}
-                                            onClick={() => handleIconClick(route, index)}
-                                        >
-                                            <div 
-                                                className={`p-5 border-2 bg-transparent rounded-xl shadow-inner transition-all duration-300 ${hoveredIcon === index ? `shadow-lg ring-2 ring-current/50` : ''}`}
-                                                style={{ borderColor: colors.primary }}
+                                    {ROLE_ICONS.slice(0, 2).map(
+                                        ({ Icon, label, colors, route }, index) => (
+                                            <div
+                                                key={label}
+                                                className={`flex items-center gap-4 cursor-pointer ${index === 0 ? "flex-row-reverse" : "flex-row"}`}
+                                                onMouseEnter={() => setHoveredIcon(index)}
+                                                onMouseLeave={() => setHoveredIcon(null)}
+                                                onClick={() => handleIconClick(route, index)}
                                             >
-                                                <Icon className="h-12 w-12 text-slate-700 dark:text-slate-200" />
+                                                <div
+                                                    className={`p-5 border-2 bg-transparent rounded-xl shadow-inner transition-all duration-300 ${hoveredIcon === index ? `shadow-lg ring-2 ring-current/50` : ""}`}
+                                                    style={{ borderColor: colors.primary }}
+                                                >
+                                                    <Icon className="h-12 w-12 text-slate-700 dark:text-slate-200" />
+                                                </div>
+                                                <span className="text-2xl font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                                                    {label}
+                                                </span>
                                             </div>
-                                            <span className="text-2xl font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                                                {label}
-                                            </span>
-                                        </div>
-                                    ))}
+                                        ),
+                                    )}
                                 </div>
 
                                 {/* Bottom row - 1 centered icon */}
                                 <div className="flex justify-center relative z-10">
-                                    {ROLE_ICONS.slice(2).map(({ Icon, label, colors, route }, index) => (
-                                        <div
-                                            key={label}
-                                            className="flex flex-col items-center gap-2 cursor-pointer"
-                                            onMouseEnter={() => setHoveredIcon(2)}
-                                            onMouseLeave={() => setHoveredIcon(null)}
-                                            onClick={() => handleIconClick(route, index + 2)}
-                                        >
-                                            <div 
-                                                className={`p-5 border-2 bg-transparent rounded-xl shadow-inner transition-all duration-300 ${hoveredIcon === 2 ? `shadow-lg ring-2 ring-current/50` : ''}`}
-                                                style={{ borderColor: colors.primary }}
+                                    {ROLE_ICONS.slice(2).map(
+                                        ({ Icon, label, colors, route }, index) => (
+                                            <div
+                                                key={label}
+                                                className="flex flex-col items-center gap-2 cursor-pointer"
+                                                onMouseEnter={() => setHoveredIcon(2)}
+                                                onMouseLeave={() => setHoveredIcon(null)}
+                                                onClick={() => handleIconClick(route, index + 2)}
                                             >
-                                                <Icon className="h-12 w-12 text-slate-700 dark:text-slate-200" />
+                                                <div
+                                                    className={`p-5 border-2 bg-transparent rounded-xl shadow-inner transition-all duration-300 ${hoveredIcon === 2 ? `shadow-lg ring-2 ring-current/50` : ""}`}
+                                                    style={{ borderColor: colors.primary }}
+                                                >
+                                                    <Icon className="h-12 w-12 text-slate-700 dark:text-slate-200" />
+                                                </div>
+                                                <span className="text-2xl font-bold text-slate-700 dark:text-slate-300">
+                                                    {label}
+                                                </span>
                                             </div>
-                                            <span className="text-2xl font-bold text-slate-700 dark:text-slate-300">
-                                                {label}
-                                            </span>
-                                        </div>
-                                    ))}
+                                        ),
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -261,7 +289,7 @@ export default function WWD({
                             {ROLE_ICONS.map(({ Icon, label, colors, route }, index) => (
                                 <div
                                     key={label}
-                                    className={`flex items-center gap-4 cursor-pointer p-4 border-4 bg-transparent rounded-xl transition-all duration-300 hover:shadow-lg ${hoveredIcon === index ? `ring-2 ring-current/50 shadow-lg` : ''}`}
+                                    className={`flex items-center gap-4 cursor-pointer p-4 border-4 bg-transparent rounded-xl transition-all duration-300 hover:shadow-lg ${hoveredIcon === index ? `ring-2 ring-current/50 shadow-lg` : ""}`}
                                     style={{ borderColor: colors.primary }}
                                     onMouseEnter={() => setHoveredIcon(index)}
                                     onMouseLeave={() => setHoveredIcon(null)}
@@ -280,7 +308,6 @@ export default function WWD({
                 )}
 
                 <div>
-
                     {/* Subheading with decorative line */}
                     <div className="flex items-center justify-center gap-3 mb-1">
                         <div className="h-0.5 bg-gradient-to-r from-transparent via-slate-300 to-slate-400 dark:via-slate-400 dark:to-slate-300 w-12 shadow-sm"></div>
