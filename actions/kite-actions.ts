@@ -58,6 +58,57 @@ export async function updateKiteEventLocation(
   });
 }
 
+export async function updateKiteEventTime(
+  kiteEventId: string,
+  newTime: string
+): Promise<ApiAction> {
+  return withInternalActionTracking(async () => {
+    const supabase = await createClient();
+
+    console.log('Updating kite event time via Supabase:', kiteEventId, newTime);
+
+    // Fetch the existing event to get its current date
+    const { data: existingEvent, error: fetchError } = await supabase
+      .from('kite_event')
+      .select('date')
+      .eq('id', kiteEventId)
+      .single();
+
+    if (fetchError) {
+      console.error('Supabase kite event fetch error:', fetchError);
+      return { success: false, error: fetchError.message };
+    }
+
+    if (!existingEvent) {
+      return { success: false, error: 'Kite event not found' };
+    }
+
+    // Extract date part from existing timestamp
+    const existingDate = new Date(existingEvent.date);
+    existingDate.setHours(0, 0, 0, 0); // Reset time to midnight
+
+    // Parse newTime (HH:MM) and combine with existing date
+    const [hours, minutes] = newTime.split(':').map(Number);
+    const newDateTime = new Date(existingDate);
+    newDateTime.setHours(hours, minutes, 0, 0);
+
+    const { data, error } = await supabase
+      .from('kite_event')
+      .update({ date: newDateTime.toISOString() })
+      .eq('id', kiteEventId)
+      .select();
+
+    if (error) {
+      console.error('Supabase kite event time update error:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('Kite event time updated successfully:', data);
+
+    return { success: true, data };
+  });
+}
+
 export async function createKiteEvent(data: {
   lesson_id: string;
   date: string;
