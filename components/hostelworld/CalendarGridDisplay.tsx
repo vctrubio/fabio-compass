@@ -37,15 +37,15 @@ export const CalendarGridDisplay = ({
     return (
         <>
             <div
-                className={`grid gap-2 border-b-2 border-gray-300 dark:border-gray-600 pb-2 mb-2`}
+                className={`grid gap-2 border-b-2 border-gray-300 dark:border-gray-600 pb-2 mb-2 px-1`}
                 style={{ gridTemplateColumns: `200px repeat(${maxEventSlots}, 1fr)` }}
             >
-                <div className="font-bold text-sm flex items-center gap-1">
+                <div className="font-bold text-xl flex items-center gap-1">
                     <HeadsetIcon className="w-4 h-4" />
                     Teacher
                 </div>
                 {Array.from({ length: maxEventSlots }, (_, index) => (
-                    <div key={index} className="text-sm font-bold text-left">
+                    <div key={index} className="text-md font-bold text-left">
                         Slot {index + 1}
                     </div>
                 ))}

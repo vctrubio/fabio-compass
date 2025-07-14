@@ -78,7 +78,7 @@ export const TeacherGridRow = ({
             style={{ gridTemplateColumns: `200px repeat(${maxSlots}, 1fr)` }}
         >
             {/* Teacher Name */}
-            <div className="font-medium text-sm truncate flex items-center gap-1">
+            <div className="font-medium text-xl truncate flex items-center gap-1">
                 <HeadsetIcon className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
                 <span>{teacher.teacher.model.name}</span>
             </div>
