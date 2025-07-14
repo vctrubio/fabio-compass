@@ -20,7 +20,7 @@ function transformKiteEvents(organizedLessons: any): KiteEventData[] {
     lesson.kite_events.forEach((event: any) => {
       // Extract time from date string (assuming format includes time)
       const eventDate = new Date(event.date);
-      const timeString = eventDate.toLocaleTimeString('en-US', { 
+      const timeString = eventDate.toLocaleTimeString('es-ES', { 
         hour: '2-digit', 
         minute: '2-digit',
         hour12: false 
@@ -102,32 +102,50 @@ function categorizeEventsByTime(groupedEvents: Record<string, KiteEventData[]>):
   return { past, today: todayEvents, future };
 }
 
-function calculateDateStats(events: KiteEventData[]): {
+function groupLessonsByDate(organizedLessons: any): Record<string, any[]> {
+  const allLessons = [...organizedLessons.past, ...organizedLessons.today, ...organizedLessons.upcoming];
+  const grouped: Record<string, any[]> = {};
+  allLessons.forEach(lesson => {
+    // Each lesson may have multiple kite_events, but we use the date of each event
+    lesson.kite_events.forEach((event: any) => {
+      const dateKey = event.date.split('T')[0];
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = [];
+      }
+      // Only add the lesson if it hasn't been added for this date yet
+      if (!grouped[dateKey].includes(lesson)) {
+        grouped[dateKey].push(lesson);
+      }
+    });
+  });
+  return grouped;
+}
+
+function calculateDateStats(events: KiteEventData[], lessonsForDate: any[]): {
   studentCount: number;
   lessonCount: number;
   kiteHours: number;
 } {
+  // Unique students from lessons for this date
   const uniqueStudents = new Set<string>();
+  lessonsForDate.forEach(lesson => {
+    (lesson.students || []).forEach((student: string) => uniqueStudents.add(student));
+  });
+
+  // Unique lessons from events (for kiteHours and lessonCount)
   const uniqueLessons = new Set<string>();
   let totalMinutes = 0;
-
   events.forEach(event => {
-    // Count unique students
-    event.students.forEach(student => uniqueStudents.add(student.id));
-    
-    // Count unique lessons
     if (event.lesson_id) {
       uniqueLessons.add(event.lesson_id);
     }
-    
-    // Sum duration
     totalMinutes += event.duration;
   });
 
   return {
     studentCount: uniqueStudents.size,
     lessonCount: uniqueLessons.size,
-    kiteHours: Math.round((totalMinutes / 60) * 10) / 10 // Round to 1 decimal place
+    kiteHours: Math.round((totalMinutes / 60) * 10) / 10
   };
 }
 
@@ -142,25 +160,78 @@ function formatDateHeader(dateString: string): string {
   const tomorrowKey = tomorrow.toISOString().split('T')[0];
   
   if (dateKey === todayKey) {
-    return `Today - ${date.toLocaleDateString('en-US', { 
+    return `Hoy - ${date.toLocaleDateString('es-ES', { 
       weekday: 'long', 
       month: 'long', 
       day: 'numeric' 
     })}`;
   } else if (dateKey === tomorrowKey) {
-    return `Tomorrow - ${date.toLocaleDateString('en-US', { 
+    return `Mañana - ${date.toLocaleDateString('es-ES', { 
       weekday: 'long', 
       month: 'long', 
       day: 'numeric' 
     })}`;
   } else {
-    return date.toLocaleDateString('en-US', { 
+    return date.toLocaleDateString('es-ES', { 
       weekday: 'long', 
       month: 'long', 
       day: 'numeric',
       year: 'numeric'
     });
   }
+}
+
+// --- Add a reusable subcomponent for event sections ---
+type EventSectionProps = {
+  dateKey: string;
+  events: KiteEventData[];
+  lessonsForDate: any[];
+  color: 'blue' | 'green' | 'gray' | 'orange';
+  header: string;
+};
+
+function EventSection({ dateKey, events, lessonsForDate, color, header }: EventSectionProps) {
+  const stats = calculateDateStats(events, lessonsForDate);
+  const colorMap = {
+    blue: {
+      border: 'border-blue-200',
+      text: 'text-blue-600',
+      stats: 'text-blue-500',
+    },
+    green: {
+      border: 'border-green-200',
+      text: 'text-green-600',
+      stats: 'text-green-500',
+    },
+    gray: {
+      border: 'border-gray-200',
+      text: 'text-gray-600',
+      stats: 'text-gray-500',
+    },
+    orange: {
+      border: 'border-orange-200',
+      text: 'text-orange-600',
+      stats: 'text-orange-500',
+    },
+  };
+  const c = colorMap[color];
+  return (
+    <div key={dateKey} className="space-y-4">
+      <div className={`border-b ${c.border} pb-2`}>
+        <h2 className={`text-2xl font-semibold ${c.text}`}>{header}</h2>
+        <div className={`flex gap-4 mt-2 text-sm ${c.stats}`}>
+          <span>{stats.studentCount} students</span>
+          <span>{stats.lessonCount} lessons</span>
+          <span>{stats.kiteHours}h kite time</span>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {events.map((event) => (
+          <TeacherKiteClass key={event.id} event={event} viewFooter={true} />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default async function TeacherPage({ params }: TeacherPageProps) {
@@ -187,101 +258,59 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
   const kiteEvents = transformKiteEvents(organizedLessons);
   const groupedEvents = groupEventsByDate(kiteEvents);
   const categorizedEvents = categorizeEventsByTime(groupedEvents);
+  const groupedLessons = groupLessonsByDate(organizedLessons);
 
   return (
     <div className="container mx-auto p-6">
       <div className="my-6 mx-auto flex items-center">
         <h1 className="text-3xl font-bold mx-auto">Hola {teacher.name}</h1>
       </div>
-      
       <div className="space-y-8">
         {/* Today's Events */}
-        {Object.entries(categorizedEvents.today).map(([dateKey, events]) => {
-          const stats = calculateDateStats(events);
-          return (
-            <div key={dateKey} className="space-y-4">
-              <div className="border-b border-blue-200 pb-2">
-                <h2 className="text-2xl font-semibold text-blue-600">
-                  {formatDateHeader(dateKey)}
-                </h2>
-                <div className="flex gap-4 mt-2 text-sm text-blue-500">
-                  <span>{stats.studentCount} students</span>
-                  <span>{stats.lessonCount} lessons</span>
-                  <span>{stats.kiteHours}h kite time</span>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {events.map((event) => (
-                  <TeacherKiteClass
-                    key={event.id}
-                    event={event}
-                    viewFooter={true}
-                  />
-                ))}
-              </div>
-            </div>
-          );
-        })}
-
-        {/* Future Events */}
+        {Object.entries(categorizedEvents.today).map(([dateKey, events]) => (
+          <EventSection
+            key={dateKey}
+            dateKey={dateKey}
+            events={events}
+            lessonsForDate={groupedLessons[dateKey] || []}
+            color="blue"
+            header={formatDateHeader(dateKey)}
+          />
+        ))}
+        {/* Future Events (tomorrow = orange, others = green) */}
         {Object.entries(categorizedEvents.future)
           .sort(([a], [b]) => a.localeCompare(b))
           .map(([dateKey, events]) => {
-            const stats = calculateDateStats(events);
+            // Detect tomorrow
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(today.getDate() + 1);
+            const tomorrowKey = tomorrow.toISOString().split('T')[0];
+            const isTomorrow = dateKey === tomorrowKey;
             return (
-              <div key={dateKey} className="space-y-4">
-                <div className="border-b border-green-200 pb-2">
-                  <h2 className="text-2xl font-semibold text-green-600">
-                    {formatDateHeader(dateKey)}
-                  </h2>
-                  <div className="flex gap-4 mt-2 text-sm text-green-500">
-                    <span>{stats.studentCount} students</span>
-                    <span>{stats.lessonCount} lessons</span>
-                    <span>{stats.kiteHours}h kite time</span>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {events.map((event) => (
-                    <TeacherKiteClass
-                      key={event.id}
-                      event={event}
-                      viewFooter={true}
-                    />
-                  ))}
-                </div>
-              </div>
+              <EventSection
+                key={dateKey}
+                dateKey={dateKey}
+                events={events}
+                lessonsForDate={groupedLessons[dateKey] || []}
+                color={isTomorrow ? 'orange' : 'green'}
+                header={formatDateHeader(dateKey)}
+              />
             );
           })}
-
         {/* Past Events */}
         {Object.entries(categorizedEvents.past)
-          .sort(([a], [b]) => b.localeCompare(a)) // Reverse order for past events
-          .map(([dateKey, events]) => {
-            const stats = calculateDateStats(events);
-            return (
-              <div key={dateKey} className="space-y-4">
-                <div className="border-b border-gray-200 pb-2">
-                  <h2 className="text-2xl font-semibold text-gray-600">
-                    {formatDateHeader(dateKey)}
-                  </h2>
-                  <div className="flex gap-4 mt-2 text-sm text-gray-500">
-                    <span>{stats.studentCount} students</span>
-                    <span>{stats.lessonCount} lessons</span>
-                    <span>{stats.kiteHours}h kite time</span>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {events.map((event) => (
-                    <TeacherKiteClass
-                      key={event.id}
-                      event={event}
-                      viewFooter={true}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+          .sort(([a], [b]) => b.localeCompare(a))
+          .map(([dateKey, events]) => (
+            <EventSection
+              key={dateKey}
+              dateKey={dateKey}
+              events={events}
+              lessonsForDate={groupedLessons[dateKey] || []}
+              color="gray"
+              header={formatDateHeader(dateKey)}
+            />
+          ))}
       </div>
     </div>
   );

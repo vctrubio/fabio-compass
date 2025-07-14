@@ -138,14 +138,7 @@ function organizeLessonsByTime(lessons: TeacherLessonData[]): OrganizedLessons {
     const hasKiteEvents = lesson.kite_events.length > 0;
     
     if (hasKiteEvents) {
-      // Show lessons that have completed or teacherConfirmation events
-      const hasRelevantEvents = lesson.kite_events.some(event => 
-        event.status === 'completed' || event.status === 'teacherConfirmation'
-      );
       
-      if (!hasRelevantEvents) {
-        return; // Skip lessons without relevant events
-      }
       
       // Get the earliest event date to determine lesson timing
       const earliestEvent = lesson.kite_events.reduce((earliest, current) => 
