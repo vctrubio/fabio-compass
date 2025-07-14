@@ -84,16 +84,29 @@ function PackageDetails({
       </div>
       {booking.relations.package?.price &&
       booking.relations.package?.duration ? (
-        <div className="mt-4">
-          <h4 className="font-medium text-gray-800 mb-2">Price per Hour</h4>
-          <p className="text-gray-600">
-            €
-            {(
-              (booking.relations.package.price /
-                booking.relations.package.duration) *
-              60
-            ).toFixed(2)}
-          </p>
+        <div className="mt-4 flex gap-4">
+          <div>
+            <h4 className="font-medium text-gray-800 mb-2">Price per Hour</h4>
+            <p className="text-gray-600">
+              €
+              {(() => {
+                const price = (booking.relations.package.price / booking.relations.package.duration) * 60;
+                return Number.isInteger(price) ? price.toFixed(0) : price.toFixed(2);
+              })()}
+            </p>
+          </div>
+          {(booking.relations.package?.capacity || 0) > 1 ? (
+            <div>
+              <h4 className="font-medium text-gray-800 mb-2">Price per Group</h4>
+              <p className="text-gray-600">
+                €
+                {(() => {
+                  const price = ((booking.relations.package.price / booking.relations.package.duration) * 60) * (booking.relations.package.capacity || 1);
+                  return Number.isInteger(price) ? price.toFixed(0) : price.toFixed(2);
+                })()}
+              </p>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>
