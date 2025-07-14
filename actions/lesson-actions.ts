@@ -60,56 +60,51 @@ export async function createLesson(
 
 export async function updateLessonStatusAndDuration(
   lessonId: string,
-  newStatus: string,
   newDuration: number,
-  continueTomorrow: boolean
+  continueLessonTomorrow: boolean
 ): Promise<ApiAction> {
   return withInternalActionTracking(async () => {
     const supabase = await createClient();
 
     console.log(
-      "Updating lesson status and duration via Supabase:",
+      "Updating lesson and kite event status and duration via Supabase:",
       lessonId,
-      newStatus,
       newDuration,
-      continueTomorrow
+      continueLessonTomorrow
     );
 
-    // Update lesson status
-    const { error: lessonError } = await supabase
-      .from("lesson")
-      .update({ status: newStatus })
-      .eq("id", lessonId);
+    // Always update kite_event status to "completed"
+    const { error: kiteEventStatusError } = await supabase
+      .from("kite_event")
+      .update({ status: "completed" })
+      .eq("lesson_id", lessonId);
 
-    if (lessonError) {
-      console.error("Supabase lesson status update error:", lessonError);
-      return { success: false, error: lessonError.message };
+    if (kiteEventStatusError) {
+      console.error("Supabase kite event status update error:", kiteEventStatusError);
+      return { success: false, error: kiteEventStatusError.message };
     }
 
     // Update kite event duration
-    const { error: kiteEventError } = await supabase
+    const { error: kiteEventDurationError } = await supabase
       .from("kite_event")
       .update({ duration: newDuration })
       .eq("lesson_id", lessonId);
 
-    if (kiteEventError) {
-      console.error("Supabase kite event duration update error:", kiteEventError);
-      return { success: false, error: kiteEventError.message };
+    if (kiteEventDurationError) {
+      console.error("Supabase kite event duration update error:", kiteEventDurationError);
+      return { success: false, error: kiteEventDurationError.message };
     }
 
-    // If not continuing tomorrow, set kite event status to 'planned'
-    if (!continueTomorrow) {
-      const { error: kiteEventStatusError } = await supabase
-        .from("kite_event")
+    // Conditionally update lesson status based on continueLessonTomorrow
+    if (!continueLessonTomorrow) {
+      const { error: lessonStatusError } = await supabase
+        .from("lesson")
         .update({ status: "planned" })
-        .eq("lesson_id", lessonId);
+        .eq("id", lessonId);
 
-      if (kiteEventStatusError) {
-        console.error(
-          "Supabase kite event status update error (planned):",
-          kiteEventStatusError
-        );
-        return { success: false, error: kiteEventStatusError.message };
+      if (lessonStatusError) {
+        console.error("Supabase lesson status update error:", lessonStatusError);
+        return { success: false, error: lessonStatusError.message };
       }
     }
 

@@ -1,30 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
 import { updateLessonStatusAndDuration } from "@/actions/lesson-actions";
-import { ChevronUp, ChevronDown, Check, Loader2 } from "lucide-react"; // Import icons
-import { Badge } from "@/components/ui/badge"; // Import Badge component
+import { ChevronUp, ChevronDown, Check, Loader2, CalendarCheck, CalendarX } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface TeacherKiteClassFooterProps {
-    id: string;
     lesson_id: string;
     status: string;
-    location: string;
-    time: string;
-    eventDate: string;
     duration: number;
     isLoading: boolean;
     setIsLoading: (isLoading: boolean) => void;
 }
 
 export function TeacherKiteClassFooter({
-    id,
     lesson_id,
     status,
-    location,
-    time,
-    eventDate,
     duration,
     isLoading,
     setIsLoading,
@@ -32,13 +23,10 @@ export function TeacherKiteClassFooter({
     const [currentDuration, setCurrentDuration] = useState(duration);
     const [continueTomorrow, setContinueTomorrow] = useState(true);
 
-    const isTeacherConfirmation = status === "teacherConfirmation";
-
     const handleConfirmAction = async () => {
         setIsLoading(true);
         try {
-            const newStatus = isTeacherConfirmation ? "completed" : "completed";
-            await updateLessonStatusAndDuration(lesson_id, newStatus, currentDuration, continueTomorrow);
+            await updateLessonStatusAndDuration(lesson_id, currentDuration, continueTomorrow);
             // Optionally, add a success toast or refresh data
         } catch (error) {
             console.error("Failed to update lesson:", error);
@@ -55,25 +43,25 @@ export function TeacherKiteClassFooter({
     const getStatusBadgeVariant = (currentStatus: string) => {
         switch (currentStatus) {
             case "completed":
-                return "bg-green-500 text-white";
+                return "bg-green-100 text-green-800 border border-green-200";
             case "planned":
-                return "bg-blue-500 text-white";
+                return "bg-blue-100 text-blue-800 border border-blue-200";
             case "teacherConfirmation":
-                return "bg-yellow-500 text-black";
+                return "bg-yellow-100 text-yellow-800 border border-yellow-200";
             default:
-                return "bg-gray-500 text-white";
+                return "bg-gray-100 text-gray-800 border border-gray-200";
         }
     };
 
     return (
-        <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-b-lg flex flex-col gap-2">
-            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 mb-2">
+        <div className="bg-white dark:bg-gray-800 p-3 rounded-b-lg flex flex-col gap-2 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between text-sm mb-2">
                 <Badge className={getStatusBadgeVariant(status)}>{status.charAt(0).toUpperCase() + status.slice(1)}</Badge>
                 <Button
                     onClick={handleConfirmAction}
                     disabled={isLoading || status === "completed"}
                     size="sm"
-                    className="bg-blue-500 hover:bg-blue-600 text-white"
+                    className="bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                 >
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                 </Button>
@@ -87,6 +75,7 @@ export function TeacherKiteClassFooter({
                         size="icon"
                         onClick={() => handleDurationChange(-30)}
                         disabled={isLoading || currentDuration <= 0}
+                        className="border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                         <ChevronDown className="h-4 w-4" />
                     </Button>
@@ -94,7 +83,7 @@ export function TeacherKiteClassFooter({
                         type="number"
                         value={currentDuration / 60}
                         onChange={(e) => setCurrentDuration(parseFloat(e.target.value) * 60)}
-                        className="w-16 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className="w-16 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border-gray-300 dark:border-gray-600"
                         disabled={isLoading}
                     />
                     <Button
@@ -102,6 +91,7 @@ export function TeacherKiteClassFooter({
                         size="icon"
                         onClick={() => handleDurationChange(30)}
                         disabled={isLoading}
+                        className="border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                         <ChevronUp className="h-4 w-4" />
                     </Button>
@@ -110,12 +100,15 @@ export function TeacherKiteClassFooter({
 
             <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Continuing for tomorrow:</span>
-                <Checkbox
-                    id="continueTomorrow"
-                    checked={continueTomorrow}
-                    onCheckedChange={(checked) => setContinueTomorrow(checked as boolean)}
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setContinueTomorrow(prev => !prev)}
                     disabled={isLoading}
-                />
+                    className="border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                    {continueTomorrow ? <CalendarCheck className="h-4 w-4 text-green-600" /> : <CalendarX className="h-4 w-4 text-red-600" />}
+                </Button>
             </div>
         </div>
     );
