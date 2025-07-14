@@ -25,11 +25,7 @@ export interface TeacherLessonData {
   }[];
 }
 
-export interface OrganizedLessons {
-  past: TeacherLessonData[];
-  today: TeacherLessonData[];
-  upcoming: TeacherLessonData[];
-}
+
 
 const teacherLessonQuery = {
   with: {

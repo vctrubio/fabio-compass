@@ -231,6 +231,7 @@ export const KiteEvent = pgTable(
   ]
 );
 
+
 export const Transaction = pgTable(
   "transaction",
   {

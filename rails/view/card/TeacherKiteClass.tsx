@@ -1,3 +1,4 @@
+"use client";
 import { formatDuration } from "@/components/formatters";
 import { MapPin } from "lucide-react";
 import { HelmetIcon } from "@/assets/svg/HelmetIcon";
@@ -8,9 +9,13 @@ import { TeacherKiteClassFooter } from "./TeacherKiteClassFooter"; // New footer
 
 export function TeacherKiteClass({
     event,
-    viewFooter = false
-}: { event: KiteEventData, viewFooter?: boolean }) {
-    const { id, time, duration, location, students, status, date, lesson_id } = event;
+    viewFooter = false,
+}: {
+    event: KiteEventData;
+    viewFooter?: boolean;
+}) {
+    const { id, time, duration, location, students, status, date, lesson_id } =
+        event;
     const [isLoading, setIsLoading] = useState(false);
 
     return (
@@ -22,7 +27,10 @@ export function TeacherKiteClass({
                         {time}
                     </h3>
                     <span className="bg-gray-200 dark:bg-gray-700 px-2 py-1 text-sm font-medium text-green-700 dark:text-green-200">
-                        +{Number.isInteger(duration / 60) ? (duration / 60) : (duration / 60).toFixed(1)}
+                        +
+                        {Number.isInteger(duration / 60)
+                            ? duration / 60
+                            : (duration / 60).toFixed(1)}
                     </span>
                 </div>
 
@@ -39,16 +47,16 @@ export function TeacherKiteClass({
                     <>
                         <Separator className="my-2" />
                         <div className="flex flex-wrap gap-1 mt-auto">
-                        {students.map((student) => (
-                            <div
-                                key={student.id}
-                                className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-0.5 rounded-full text-xs font-medium"
-                            >
-                                <HelmetIcon className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                                {student.name}
-                            </div>
-                        ))}
-                    </div>
+                            {students.map((student) => (
+                                <div
+                                    key={student.id}
+                                    className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-0.5 rounded-full text-xs font-medium"
+                                >
+                                    <HelmetIcon className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                    {student.name}
+                                </div>
+                            ))}
+                        </div>
                     </>
                 )}
             </div>

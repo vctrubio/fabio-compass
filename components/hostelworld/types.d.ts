@@ -63,15 +63,14 @@ export interface ProcessedBookingData {
 // =====================================
 export interface KiteEventData {
   id: string;
-  lesson_id: string;
   date: string;
   time: string;
   duration: number;
   location: string;
   status: string;
-  teacher: TeacherModel;
-  students: Array<StudentModel>;
-  pricePerHour?: number;
+  lesson_id?: string;
+  students: Array<{ id: string; name: string }>;
+  equipments: Array<{ id: string; type: string; model: string; size: number }>;
 }
 
 // =====================================

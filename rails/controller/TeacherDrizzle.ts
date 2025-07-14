@@ -3,6 +3,7 @@ import { eq, desc } from "drizzle-orm";
 import { Teacher } from "@/drizzle/migrations/schema";
 import { TeacherType } from "@/rails/model/TeacherModel";
 import { DrizzleData } from "@/rails/types";
+import { KiteEventData } from "@/components/hostelworld/types";
 
 const teachersWithRelations = {
   with: {
@@ -46,8 +47,11 @@ const teacherWithSort = {
 function calculateLambdaValues(teacher: any) {
   const studentsMap = new Map<string, string>(); // id -> name
   let totalTeachingHours = 0;
+  let totalLessons = 0;
+  let totalKiteEvents = 0;
 
   teacher.lessons?.forEach((lesson: any) => {
+    totalLessons++;
     // Extract student names from lesson bookings
     lesson.booking?.bookingStudents?.forEach((bookingStudent: any) => {
       if (bookingStudent.student?.id && bookingStudent.student?.name) {
@@ -57,6 +61,7 @@ function calculateLambdaValues(teacher: any) {
 
     // Calculate total teaching hours from kite events
     lesson.kiteEvents?.forEach((kiteEvent: any) => {
+      totalKiteEvents++;
       if (kiteEvent.duration && !isNaN(Number(kiteEvent.duration))) {
         totalTeachingHours += Number(kiteEvent.duration);
       }
@@ -64,9 +69,11 @@ function calculateLambdaValues(teacher: any) {
   });
 
   return {
-    totalTeachingHours, // Total hours from kite event durations
-    totalStudents: studentsMap.size, // Total number of unique students
-    studentNames: Array.from(studentsMap.values()), // Array of student names
+    totalTeachingHours,
+    totalStudents: studentsMap.size,
+    studentNames: Array.from(studentsMap.values()),
+    totalLessons,
+    totalKiteEvents,
   };
 }
 
@@ -100,5 +107,70 @@ export async function drizzleTeacherById(
   } catch (error) {
     console.error("Error fetching teacher by ID with Drizzle:", error);
     throw new Error("Failed to fetch teacher");
+  }
+}
+
+export async function drizzleKiteEvents(): Promise<KiteEventData[]> {
+  try {
+    if (process.env.DEBUG) console.log("(dev:drizzle:server) getting table name: KiteEvent");
+    const kiteEvents = await db.query.KiteEvent.findMany({
+      with: {
+        lesson: {
+          with: {
+            booking: {
+              with: {
+                bookingStudents: {
+                  with: {
+                    student: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        kiteEventEquipment: {
+          with: {
+            equipment: true,
+          },
+        },
+      },
+    });
+
+    const result: KiteEventData[] = kiteEvents.map((kiteEvent) => {
+      const students =
+        kiteEvent.lesson?.booking?.bookingStudents?.map((bs) => ({
+          id: bs.student.id,
+          name: bs.student.name,
+        })) || [];
+
+      const equipments =
+        kiteEvent.kiteEventEquipment?.map((kee) => ({
+          id: kee.equipment.id,
+          type: kee.equipment.type,
+          model: kee.equipment.model,
+          size: kee.equipment.size,
+        })) || [];
+
+      return {
+        id: kiteEvent.id,
+        date: kiteEvent.date,
+        time: new Date(kiteEvent.date).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        duration: kiteEvent.duration,
+        location: kiteEvent.location,
+        status: kiteEvent.status,
+        lesson_id: kiteEvent.lesson_id,
+        students,
+        equipments,
+      };
+    });
+
+    if (process.env.DEBUG) console.log("(dev:drizzle:server) parse completed: KiteEvent");
+    return result;
+  } catch (error) {
+    console.error("Error fetching kite events with Drizzle:", error);
+    throw new Error("Failed to fetch kite events");
   }
 }
