@@ -37,7 +37,7 @@ export default async function TeacherPage() {
         </h1>
         <div className="flex flex-col gap-4 w-full max-w-md">
           {sortedTeachers.map((teacher) => (
-            <Link key={teacher.model.id} href={`/teacher/${teacher.model.id}`}>
+            <Link key={teacher.model.id} href={`/teachers/${teacher.model.id}`}>
               <div className="flex items-center p-6 border-2 border-emerald-600 bg-transparent rounded-xl shadow-lg cursor-pointer hover:bg-emerald-50 transition-colors duration-200">
                 <HeadsetIcon className="h-16 w-16 text-slate-700 dark:text-slate-200 mr-4" />
                 <div className="flex flex-col items-start">
