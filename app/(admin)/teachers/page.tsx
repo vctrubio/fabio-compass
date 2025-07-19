@@ -1,73 +1,74 @@
-import React from 'react';
-import { getAllTeachersStats, calculateOverallStats, getAvailableMonths } from '@/rails/controller/TeachersStats';
-import { TeachersDashboard } from './TeachersDashboard';
+import {
+  HeadsetIcon,
+  HelmetIcon,
+  FlagIcon,
+  KiteIcon,
+  ClockIcon,
+  UsersIcon,
+} from "@/assets/svg";
+import { drizzleTeachers } from "@/rails/controller/TeacherDrizzle";
+import Link from "next/link";
+import { TEACHER_SORT_ORDER } from "@/components/hostelworld/whiteboard-teacher-order";
 
-interface TeachersPageProps {
-  searchParams: {
-    month?: string;
-  };
-}
+export default async function TeacherPage() {
+  const teachers = await drizzleTeachers();
 
-export default async function TeachersPage({ searchParams }: TeachersPageProps) {
-  const monthFilter = searchParams.month;
-  
-  const [teachersStats, availableMonths] = await Promise.all([
-    getAllTeachersStats(monthFilter),
-    Promise.resolve(getAvailableMonths()),
-  ]);
+  // Sort teachers based on TEACHER_SORT_ORDER
+  const sortedTeachers = teachers.sort((a, b) => {
+    const indexA = TEACHER_SORT_ORDER.indexOf(a.model.name);
+    const indexB = TEACHER_SORT_ORDER.indexOf(b.model.name);
 
-  const overallStats = calculateOverallStats(teachersStats);
-
-  const selectedMonthLabel = monthFilter 
-    ? new Date(`${monthFilter}-01`).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
-    : 'All Time';
+    if (indexA === -1 && indexB === -1) {
+      return 0; // Both not in sort order, maintain original relative order
+    } else if (indexA === -1) {
+      return 1; // a is not in sort order, b comes first
+    } else if (indexB === -1) {
+      return -1; // b is not in sort order, a comes first
+    } else {
+      return indexA - indexB; // Sort by the defined order
+    }
+  });
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Teachers Dashboard</h1>
-        <p className="text-gray-600 mt-2">
-          Overview of all teachers and their performance - {selectedMonthLabel}
-        </p>
+    <main className="flex flex-col items-center justify-center p-8">
+      <div className="flex flex-col items-center gap-6">
+        <h1 className="text-4xl font-bold text-slate-700 dark:text-slate-300 mb-8">
+          Teachers Registry
+        </h1>
+        <div className="flex flex-col gap-4 w-full max-w-md">
+          {sortedTeachers.map((teacher) => (
+            <Link key={teacher.model.id} href={`/teacher/${teacher.model.id}`}>
+              <div className="flex items-center p-6 border-2 border-emerald-600 bg-transparent rounded-xl shadow-lg cursor-pointer hover:bg-emerald-50 transition-colors duration-200">
+                <HeadsetIcon className="h-16 w-16 text-slate-700 dark:text-slate-200 mr-4" />
+                <div className="flex flex-col items-start">
+                  <h2 className="text-xl font-semibold text-slate-700 dark:text-slate-300">
+                    {teacher.model.name}
+                  </h2>
+                  <p className="text-sm text-gray-500 flex items-center">
+                    <UsersIcon className="h-4 w-4 mr-2" />
+                    Students: {teacher.lambdas.totalStudents}
+                  </p>
+                  <p className="text-sm text-gray-500 flex items-center">
+                    <FlagIcon className="h-4 w-4 mr-2" />
+                    Lessons: {teacher.lambdas.totalLessons}
+                  </p>
+                  <p className="text-sm text-gray-500 flex items-center">
+                    <KiteIcon className="h-4 w-4 mr-2" />
+                    Kite Lessons: {teacher.lambdas.totalKiteEvents}
+                  </p>
+                  <p className="text-sm text-gray-500 flex items-center">
+                    <ClockIcon className="h-4 w-4 mr-2" />
+                    Teaching Hours:{" "}
+                    {Number.isInteger(teacher.lambdas.totalTeachingHours / 60)
+                      ? teacher.lambdas.totalTeachingHours / 60
+                      : (teacher.lambdas.totalTeachingHours / 60).toFixed(1)}
+                  </p>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h3 className="font-semibold text-blue-800">Total Teachers</h3>
-          <p className="text-2xl font-bold text-blue-600">{overallStats.totalTeachers}</p>
-          <p className="text-xs text-blue-600 mt-1">
-            Avg {overallStats.averageLessonsPerTeacher} lessons each
-          </p>
-        </div>
-        <div className="bg-green-50 p-4 rounded-lg">
-          <h3 className="font-semibold text-green-800">Total Lessons</h3>
-          <p className="text-2xl font-bold text-green-600">{overallStats.totalLessons}</p>
-          <p className="text-xs text-green-600 mt-1">
-            {overallStats.totalKiteEvents} kite events
-          </p>
-        </div>
-        <div className="bg-purple-50 p-4 rounded-lg">
-          <h3 className="font-semibold text-purple-800">Money Earned</h3>
-          <p className="text-2xl font-bold text-purple-600">€{overallStats.totalMoneyEarned}</p>
-          <p className="text-xs text-purple-600 mt-1">
-            Avg €{overallStats.averageMoneyPerTeacher} per teacher
-          </p>
-        </div>
-        <div className="bg-orange-50 p-4 rounded-lg">
-          <h3 className="font-semibold text-orange-800">Total Hours</h3>
-          <p className="text-2xl font-bold text-orange-600">{overallStats.totalDurationHours}h</p>
-          <p className="text-xs text-orange-600 mt-1">
-            {overallStats.totalPendingConfirmations} pending confirmations
-          </p>
-        </div>
-      </div>
-
-      <TeachersDashboard 
-        teachersStats={teachersStats}
-        availableMonths={availableMonths}
-        selectedMonth={monthFilter}
-        overallStats={overallStats}
-      />
-    </div>
+    </main>
   );
 }

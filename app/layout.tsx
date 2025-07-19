@@ -12,8 +12,8 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Fabio",
-  description: "Fabio Admin Dashboard",
+  title: "North Compass",
+  description: "Tarifa Kite Hostel Kite Management App",
 };
 
 export default function RootLayout({

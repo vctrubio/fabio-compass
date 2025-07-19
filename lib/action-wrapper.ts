@@ -6,12 +6,12 @@ import { revalidatePath } from 'next/cache';
  * This ensures that real-time listeners ignore changes from our own actions.
  * 
  * @param actionFn - The async function that performs the database operation
- * @param revalidatePathValue - The path to revalidate after the action (default: "/fabio")
+ * @param revalidatePathValue - The path to revalidate after the action (default: "/whiteboard")
  * @returns The result of the action function
  */
 export async function withInternalActionTracking<T>(
   actionFn: () => Promise<T>,
-  revalidatePathValue: string = "/fabio"
+  revalidatePathValue: string = "/whiteboard"
 ): Promise<T> {
   try {
     // Mark that we're executing an internal action

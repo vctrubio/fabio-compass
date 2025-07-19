@@ -1,7 +1,6 @@
 import WhiteboardPlanning from "@/components/hostelworld/whiteboard-planning";
 
-export default function FabioPage() {
-  console.log("fabio.....")
+export default function WhiteboardPage() {
   return (
     <main className="min-h-screen w-full">
         <WhiteboardPlanning />

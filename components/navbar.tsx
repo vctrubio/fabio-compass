@@ -48,7 +48,7 @@ export default function Navbar() {
 
           {/* Auth Section */}
           <div className="flex items-center justify-end mt-2 md:mt-0">
-            {/* <AuthButton /> */}
+            <AuthButton />
           </div>
         </div>
       </div>

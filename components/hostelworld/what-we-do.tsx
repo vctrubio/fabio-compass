@@ -10,13 +10,13 @@ const ROLE_CONFIGS = {
         Icon: ENTITY_CONFIGS.students.icon,
         label: ENTITY_CONFIGS.students.titleSingular,
         colors: getUserRoleColor("student"),
-        route: "/student",
+        route: "/",
     },
     teacher: {
         Icon: ENTITY_CONFIGS.teachers.icon,
         label: ENTITY_CONFIGS.teachers.titleSingular,
         colors: getUserRoleColor("teacher"),
-        route: "/teacher",
+        route: "/teachers",
     },
     admin: {
         Icon: ENTITY_CONFIGS.admin.icon,
@@ -128,12 +128,12 @@ export default function WWD({ appName }: FooterCardProps) {
     const router = useRouter();
 
     const handleIconClick = (route: string, index: number) => {
-        if (index === 0) {
-            // Student clicked
-            alert("hello sexy student");
-        } else {
+        // if (index === 0) {
+        //     // Student clicked
+        //     alert("hello sexy student");
+        // } else {
             router.push(route);
-        }
+        // }
     };
 
     useEffect(() => {
